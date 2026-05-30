@@ -639,6 +639,44 @@ function prepareGameOverview() {
 // === Game Logic ===
 let timer;
 let remainingTime = 0;
+let isTimerRunning = false; // guard to prevent duplicate intervals
+// short tick/beep for last countdown seconds
+let tickAudio = null;
+let endAudio = null;
+try {
+    // prefer a short ticking/pip audio for the last seconds
+    tickAudio = new Audio('assets/analog-timer-74998.mp3');
+    tickAudio.preload = 'auto';
+    tickAudio.volume = 0.7;
+} catch (e) { tickAudio = null; }
+try {
+    const el = document.getElementById('alarm-sound');
+    if (el && el.tagName === 'AUDIO') {
+        endAudio = el;
+    } else {
+        endAudio = new Audio('assets/Alarm.m4a');
+        endAudio.preload = 'auto';
+    }
+    try { endAudio.volume = 0.85; } catch (e) {}
+} catch (e) { endAudio = null; }
+
+function playTick() {
+    if (!tickAudio) return;
+    try {
+        tickAudio.currentTime = 0;
+        const p = tickAudio.play();
+        if (p && p.catch) p.catch(() => {});
+    } catch (e) { }
+}
+
+function playEndAlarm() {
+    if (!endAudio) return;
+    try {
+        endAudio.currentTime = 0;
+        const p = endAudio.play();
+        if (p && p.catch) p.catch(() => {});
+    } catch (e) { }
+}
 let displayedCards = [];
 let skipCounter = 0;
 let activePlayerIndexA = -1;
@@ -698,6 +736,14 @@ function showStartRoundScreen() {
 }
 
 function startRoundTimer() {
+    // prevent duplicate starts
+    if (isTimerRunning) return;
+    // mark as running immediately to prevent re-entrant starts
+    isTimerRunning = true;
+    // ensure any existing timer is cleared to avoid double intervals
+    try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
+    // disable start button to avoid double start
+    try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = true; } catch (e) {}
     const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
     const roundIndex = currentRound;
     let baseTime = parseInt(settings.roundTimer?.[roundIndex] || 60);
@@ -714,11 +760,21 @@ function startRoundTimer() {
     timer = setInterval(() => {
         remainingTime--;
         document.getElementById("timerDisplay").textContent = `${remainingTime}s`;
+        // play a short tick for the last 5 seconds
+        if (remainingTime > 0 && remainingTime <= 5) {
+            playTick();
+        }
         if (remainingTime <= 0) {
             clearInterval(timer);
+            timer = undefined;
+            isTimerRunning = false;
+            try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = false; } catch (e) {}
+            // play final alarm sound and then show guessed cards
+            try { playEndAlarm(); } catch (e) {}
             showGuessedCardsAfterTimer();
         }
     }, 1000);
+    isTimerRunning = true;
     showNextCard();
 }
 
@@ -840,7 +896,8 @@ function setNextPlayer() {
 }
 
 function endRound() {
-    clearInterval(timer);
+    try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
+    isTimerRunning = false;
     if (currentCards.length > 0) {
         setNextPlayer();
         showStartRoundScreen();
@@ -934,7 +991,8 @@ function confirmStartRound() {
 
 // === Pause Game ===
 function pauseGame() {
-    clearInterval(timer);
+    try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
+    isTimerRunning = false;
 
     // Erstelle Overlay
     let pauseOverlay = document.getElementById("pauseOverlay");
@@ -1013,18 +1071,37 @@ function pauseGame() {
 
 // Hilfsfunktion zum Fortsetzen des Timers
 function resumeTimer() {
+    // prevent duplicate starts
+    if (isTimerRunning) return;
+    // mark as running immediately to prevent re-entrant starts
+    isTimerRunning = true;
+    // ensure no duplicate timer
+    try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
     timer = setInterval(() => {
         remainingTime--;
         document.getElementById("timerDisplay").textContent = `${remainingTime}s`;
+        // play a short tick for the last 5 seconds
+        if (remainingTime > 0 && remainingTime <= 5) {
+            playTick();
+        }
         if (remainingTime <= 0) {
             clearInterval(timer);
+            timer = undefined;
+            isTimerRunning = false;
+            try { playEndAlarm(); } catch (e) {}
             showGuessedCardsAfterTimer();
         }
     }, 1000);
+    isTimerRunning = true;
 }
 
 // === Guessed Cards ===
 function showGuessedCardsAfterTimer() {
+    // ensure no timer remains running
+    try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
+    isTimerRunning = false;
+    try { playEndAlarm(); } catch (e) {}
+    try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = false; } catch (e) {}
     // Erstelle Overlay
     let guessedOverlay = document.getElementById("guessedOverlay");
     if (guessedOverlay) guessedOverlay.remove();
