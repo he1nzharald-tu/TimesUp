@@ -5,6 +5,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Times Up – Mobile App</title>
+    <style>
+        /* Minimal early variables so external CSS can render correctly before full styles load */
+        :root{
+            --bg: #ffffff;
+            --panel: #f9fafc;
+            --card-bg: #ffffff;
+            --text: #222;
+            --divider: #b2bec3;
+            --on-accent: #ffffff;
+            --accent-a: #ff7675;
+            --accent-b: #00b894;
+            --primary: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
+            --sheen: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            --inset-sheen: rgba(255,255,255,0.02);
+            --overlay: rgba(255,255,255,0.7);
+        }
+        .dark {
+            --bg: #0f1620;
+            --panel: #121826;
+            --card-bg: #0b1220;
+            --text: #e6eef6;
+            --divider: #253142;
+            --accent-a: #ff8b94;
+            --accent-b: #5ce1b8;
+            --primary: linear-gradient(90deg, #3b82f6 0%, #7c3aed 100%);
+            --sheen: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.03));
+            --inset-sheen: rgba(0,0,0,0.04);
+            --overlay: rgba(0,0,0,0.55);
+        }
+    </style>
     <link rel="stylesheet" href="css/startscreen.css" />
     <link rel="manifest" href="manifest.json" />
     <script>
@@ -17,10 +47,78 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Google Fonts for playful look -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        // Apply persisted theme as early as possible to avoid flash of light theme
+        try {
+            if (localStorage.getItem('timesup_theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        } catch (e) { /* ignore if localStorage blocked */ }
+    </script>
     <style>
+        :root{
+            --bg: #ffffff;
+            --panel: #f9fafc;
+            --sheen: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            --inset-sheen: rgba(255,255,255,0.02);
+            --muted: #636e72;
+            --accent-a: #ff7675;
+            --accent-b: #00b894;
+            --primary: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
+            --card-bg: #ffffff;
+            --on-accent: #ffffff;
+            --round-1: #e0f0ff;
+            --round-2: #e2fce2;
+            --round-3: #fff3d6;
+            --round-4: #fce2f2;
+            --round-5: #ede2fc;
+            --round-6: #e2f7fc;
+            --round-7: #f6e2fc;
+            --round-8: #fcf3e2;
+            --round-9: #e2fcf0;
+            --round-10: #d9d9d9;
+            --text: #222;
+            --divider: #b2bec3;
+            --radius: 12px;
+            --accent-c: #f6d100; /* yellow accent */
+            --accent-c-text: #000000;
+            --danger: #dc3545;
+                --overlay: rgba(255,255,255,0.7);
+        }
+        .dark {
+            --bg: #0f1620;
+            --panel: #121826;
+            --sheen: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.03));
+            --inset-sheen: rgba(0,0,0,0.04);
+            --muted: #98a0ad;
+            --accent-a: #ff8b94;
+            --accent-b: #5ce1b8;
+            --primary: linear-gradient(90deg, #3b82f6 0%, #7c3aed 100%);
+            --card-bg: #0b1220;
+            --on-accent: #ffffff;
+            --round-1: #102033;
+            --round-2: #103322;
+            --round-3: #2b2414;
+            --round-4: #3a1622;
+            --round-5: #2f2140;
+            --round-6: #12282b;
+            --round-7: #2b1237;
+            --round-8: #3a2b12;
+            --round-9: #123a2f;
+            --round-10: #1e1e1e;
+            --text: #e6eef6;
+            --divider: #253142;
+            --accent-c: #f5b400;
+            --accent-c-text: #0b0b0b;
+            --danger: #ff6b6b;
+                --overlay: rgba(0,0,0,0.55);
+        }
+
+        body{ background: var(--bg); color: var(--text); font-family: 'Fredoka', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+
         .divider {
             border: none;
-            border-top: 2px dashed #b2bec3;
+            border-top: 2px dashed var(--divider);
             margin-top: 0px;
         }
 
@@ -31,24 +129,26 @@
             font-family: inherit;
             font-size: 1.1rem;
             border-radius: 8px;
-            border: 1px solid #b2bec3;
+            border: 1px solid var(--divider);
             padding: 8px 16px;
             margin: 4px 0;
             transition: box-shadow 0.2s;
+            background: var(--card-bg);
+            color: var(--text);
         }
 
         button {
-            background: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
-            color: #222;
+            background: var(--primary);
+            color: var(--text);
             font-weight: 600;
             border: none;
-            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.08);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.06);
             cursor: pointer;
         }
 
         button.secondary {
-            background: #dfe6e9;
-            color: #636e72;
+            background: var(--panel);
+            color: var(--muted);
         }
 
         button:hover {
@@ -69,13 +169,13 @@
         }
 
         th {
-            background: #f1f2f6;
-            color: #636e72;
+            background: var(--panel);
+            color: var(--muted);
             font-weight: 700;
         }
 
         tr {
-            background: #f9fafc;
+            background: var(--panel);
             border-radius: 8px;
         }
 
@@ -83,6 +183,7 @@
             width: 70%;
         }
 
+        .screen{ padding: 20px 6vw; }
         .teams {
             display: flex;
             gap: 32px;
@@ -91,7 +192,7 @@
         }
 
         .team {
-            background: #f1f2f6;
+            background: var(--panel);
             border-radius: 12px;
             padding: 16px 20px;
             min-width: 140px;
@@ -99,36 +200,20 @@
         }
 
         .team-a {
-            border-left: 6px solid #ff7675;
+            border-left: 6px solid var(--accent-a);
         }
 
         .team-b {
-            border-left: 6px solid #00b894;
+            border-left: 6px solid var(--accent-b);
         }
 
-        ul {
-            padding-left: 0;
-            list-style: none;
-        }
-
-        ul li {
-            padding: 6px 0;
-            font-size: 1.1rem;
-        }
-
-        
+        ul { padding-left: 0; list-style: none; }
+        ul li { padding: 6px 0; font-size: 1.1rem; }
 
         /* Responsive */
         @media (max-width: 700px) {
-            .screen {
-                padding: 16px 4vw 16px 4vw;
-                margin: 12px 0;
-            }
-
-            .teams {
-                flex-direction: column;
-                gap: 12px;
-            }
+            .screen { padding: 16px 4vw 16px 4vw; margin: 12px 0; }
+            .teams { flex-direction: column; gap: 12px; }
         }
 
         @keyframes popIn {
@@ -145,7 +230,7 @@
     <div id="screen-start" class="screen active">
         <div style="position: relative;">
             <h2 style="text-align:center; font-size:2.2rem; margin-bottom:10px;">
-                <span style="font-size:2.5rem;">⏰</span> TimesUp <span style="font-size:1.1rem; color:#636e72;">by
+                <span style="font-size:2.5rem;">⏰</span> TimesUp <span style="font-size:1.1rem; color:var(--muted);">by
                     He1nzHarald</span>
             </h2>
             <span id="kartenStatusText" style="
@@ -153,7 +238,7 @@
                 top: 0em;
                 right: 0.5em;
                 font-size: 0.6em;
-                color: #636e72;
+                color: var(--muted);
                 opacity: 0.5;
                 text-align: right;
                 z-index: 2;
@@ -187,7 +272,7 @@
                 style="height:38px; padding: 0 12px; font-size: 1.1rem; min-width: 0; width: auto; flex: 0 0 auto;"
                 title="Spieler hinzufügen">➕</button>
             <button onclick="confirmBeforeContinue()"
-                style="height:38px; padding: 0 12px; font-size: 1.1rem; min-width: 0; width: auto; flex: 0 0 auto; background: #48ff34;">➡️
+                style="height:38px; padding: 0 12px; font-size: 1.1rem; min-width: 0; width: auto; flex: 0 0 auto; background: var(--accent-b);">➡️
                 Weiter</button>
         </div>
         <!-- Wrap the table for scrolling -->
@@ -214,7 +299,7 @@
             <h2 style="margin-bottom: 0;">⚙️ Einstellungen</h2>
             <div class="tab-btns" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 0;">
                 <button onclick="resetAllSettings()"
-                    style="background: rgb(250, 209, 3); color: #000000; border: none;">
+                    style="background: var(--accent-c); color: var(--accent-c-text); border: none;">
                     🔄 Standardwerte
                 </button>
             </div>
@@ -224,7 +309,7 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative;">
                 <label for="cardCount" style="margin: 0;">
                     <span
-                        style="display:inline-block; font-weight:bold; background:#e6f2ff; border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px #b2bec355; font-size: 1.3rem;">
+                        style="display:inline-block; font-weight:bold; background: var(--panel); border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size: 1.3rem;">
                         🃏 Anzahl Karten (Std: 40)
                     </span>
                 </label>
@@ -235,7 +320,7 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative;">
                 <label for="roundCount" style="margin: 0;">
                     <span
-                        style="display:inline-block; font-weight:bold; background:#e6f2ff; border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px #b2bec355; font-size: 1.3rem;">
+                        style="display:inline-block; font-weight:bold; background: var(--panel); border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size: 1.3rem;">
                         🔁 Anzahl Spielrunden (Std: 3)
                     </span>
                 </label>
@@ -246,7 +331,7 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; position: relative;">
                 <label for="handicapEnabled" style="margin: 0;">
                     <span
-                        style="display:inline-block; font-weight:bold; background:#e6f2ff; border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px #b2bec355; font-size: 1.3rem;">
+                        style="display:inline-block; font-weight:bold; background: var(--panel); border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size: 1.3rem;">
                         🧩 Handicap aktivieren
                     </span>
                 </label>
@@ -267,7 +352,7 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                 <label for="punishEnabled" style="margin: 0;">
                     <span
-                        style="display:inline-block; font-weight:bold; background:#e6f2ff; border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px #b2bec355; font-size: 1.3rem;">
+                        style="display:inline-block; font-weight:bold; background: var(--panel); border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size: 1.3rem;">
                         ⚠️ Strafzeit
                     </span>
                 </label>
@@ -293,11 +378,24 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
                 <label for="vetoCount" style="margin: 0;">
                     <span
-                        style="display:inline-block; font-weight:bold; background:#e6f2ff; border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px #b2bec355; font-size: 1.3rem;">
+                        style="display:inline-block; font-weight:bold; background: var(--panel); border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size: 1.3rem;">
                         🚫 Anzahl Karten Veto
                     </span>
                 </label>
                 <input type="number" id="vetoCount" min="0" value="1" style="width: auto; margin-left: 76px;" />
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <label for="themeSelect" style="margin: 0;">
+                    <span
+                        style="display:inline-block; font-weight:bold; background: var(--panel); border-radius:8px; padding:4px 12px; box-shadow:0 1px 4px rgba(0,0,0,0.06); font-size: 1.3rem;">
+                        🎨 Design
+                    </span>
+                </label>
+                <select id="themeSelect" onchange="applyTheme(this.value)"
+                    style="width: auto; margin-left: 152px; height: 38px;">
+                    <option value="light">Altes Design (Hell)</option>
+                    <option value="dark">Neues Design (Darkmode)</option>
+                </select>
             </div>
             <hr class="divider" />
             <div id="roundSettingsContainer"></div>
@@ -334,7 +432,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: #ffffff00;
+            background: transparent;
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -374,7 +472,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: #ffffff00;
+            background: transparent;
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -397,15 +495,15 @@
                 top: 20px; 
                 left: 10px; 
                 right: 10px; 
-                background: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%); 
+                background: var(--primary);
                 display: flex; 
                 z-index: 10;
                 padding: 5px 0 20px 0; 
-                box-shadow: 0 2px 8px #f6e58d33;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.12);
                 height: 30px;
                 border-radius: var(--radius);
 ">
-                <h2 style="font-size: 2rem; color: #000000; margin: 0 0 0 20px; text-shadow: 0 1px 4px #00000055;">
+                <h2 style="font-size: 2rem; color: var(--text); margin: 0 0 0 20px; text-shadow: 0 1px 4px rgba(0,0,0,0.12);">
                     🃏 Kartenauswahl -
                 </h2>
                 <h2 id="cardSelectionPlayerName" style="
@@ -413,20 +511,20 @@
                     margin-left: 10px;
                     text-align: left; 
                     border-radius: var(--radius); 
-                    color: #000000; 
-                    text-shadow: 0 1px 4px #00000055;">
+                    color: var(--text); 
+                    text-shadow: 0 1px 4px rgba(0,0,0,0.12);">
                 </h2>
                 <p id="vetoInfoText" style="
                     display: none; 
                     position: fixed;
                     top: 33px;
                     right: 15px;
-                    background:#e6f2ff; 
+                    background: var(--panel); 
                     border-radius:8px; 
                     padding:4px 12px; 
-                    box-shadow:0 1px 4px #b2bec355; 
+                    box-shadow:0 1px 4px rgba(0,0,0,0.08); 
                     font-size: 1rem; 
-                    color: #555; 
+                    color: var(--muted); 
                     margin: 0 20px 0 0; 
                     z-index: 11;
                     text-align: center;">
@@ -443,12 +541,12 @@
                     left: 50%;
                     transform: translate(-50%, -50%);
                     font-size: 1.2rem;
-                    color: #222;
-                    background: #fff;
-                    border: 2px solid #000;
-                    border-radius: var(--radius);
+                    color: var(--text);
+                    background: var(--card-bg);
+                    border: 1px solid var(--divider);
+                    border-radius: 12px;
                     padding: 24px 32px;
-                    box-shadow: 0 2px 12px #0001;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
                     z-index: 1000;
                     text-align: center;
                     cursor: pointer;
@@ -468,7 +566,7 @@
             left: 10px;
             right: 10px;
             bottom: 0;
-            background: #ffffff00;
+            background: transparent;
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -507,7 +605,7 @@
             left: 10px;
             right: 10px;
             bottom: 0;
-            background: #ffffff00;
+            background: transparent;
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -520,7 +618,7 @@
 
     <!-- === Bildschirm: Aktiver Spieler === -->
     <div id="screen-roundstart" class="screen" style="text-align: center;">
-        <div id="roundBorderWrapper"
+            <div id="roundBorderWrapper"
             style="
             display: flex; 
             flex-direction: row; 
@@ -531,9 +629,9 @@
             height: calc(100vh - 80px);
             max-width: 650px;
             box-sizing: border-box;
-            border: 8px solid #ff7675; /* Standard: Team A */
+            border: 8px solid var(--accent-a); /* Standard: Team A */
             border-radius: 32px;
-            background: #fff;
+            background: var(--card-bg);
             padding: 32px 20px;
             transition: border-color 0.3s;
         ">
@@ -546,7 +644,7 @@
             <!-- Hauptinhalt -->
             <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 0px;">
                 <div id="roundPlayerTeam"
-                    style="font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5em; padding: 6px 18px; border-radius: 18px; background: linear-gradient(90deg, #ffe6e6 0%, #e2fce2 100%); display: inline-block;">
+                    style="font-size: 1.3rem; font-weight: 600; margin-bottom: 0.5em; padding: 6px 18px; border-radius: 18px; background: var(--panel); display: inline-block;">
                     Team
                 </div>
                 <h2 id="roundPlayerName"
@@ -560,23 +658,24 @@
                         text-align: center;
                         font-size: 3.3rem;
                         margin-bottom: 0.3em;
-                        color: #fff;
+                        color: var(--text);
                         letter-spacing: 2.5px;
-                        background: conic-gradient(from 120deg at 50% 50%, #fdcb6e 0%, #00b894 25%, #00b894 50%, #0984e3 75%, #fdcb6e 100%);
+                        /* subtle sheen that adapts to theme */
+                        background: var(--sheen);
                         padding: 26px 0;
                         border-radius: 60px 20px 60px 20px / 40px 60px 40px 60px;
-                        box-shadow: 0 8px 32px #636e7233, 0 2px 0 #fff inset;
-                        text-shadow: 0 8px 32px #636e72cc, 0 1px 0 #fff;
-                        border: 5px solid #fdcb6e;
+                        box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 0 var(--inset-sheen) inset;
+                        text-shadow: 0 1px 0 rgba(0,0,0,0.1);
+                        border: 5px solid var(--accent-c);
                         display: inline-block;
                         transition: background 0.3s, box-shadow 0.3s;
                         animation: popIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);
                         font-family: 'Fredoka', Arial, sans-serif;
-                        filter: drop-shadow(0 0 18px #fdcb6e88);
+                        filter: none;
                         text-transform: uppercase;
                         letter-spacing: 3px;
                         backdrop-filter: blur(2px);
-                        outline: 3px dashed #00b894;
+                        outline: 3px dashed rgba(0,0,0,0.06);
                         outline-offset: 8px;
                         border-style: double;
                     ">
@@ -594,13 +693,13 @@
                         font-size: 1.5rem;
                         border-radius: 32px;
                         width: 400px;
-                        color: #fff;
+                        color: var(--text);
                         font-weight: bold;
                         box-shadow: 0 4px 16px rgba(52, 152, 219, 0.15);
                         border: none;
                         cursor: pointer;
                         transition: filter 0.2s, background 0.3s;
-                        background: linear-gradient(90deg, #ff7675 0%, #ffb199 100%); /* Standard: Team A */
+                        background: linear-gradient(90deg, var(--accent-a), rgba(0,0,0,0.06)); /* Standard: Team A */
                     ">
                     ▶️ Start!
                 </button>
@@ -620,27 +719,27 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #cce5ff;
-    border-radius: 10px 10px 10px 10px;
+    background: var(--panel);
+    border-radius: 10px;
     padding: 12px 18px 8px 18px;
-    box-shadow: 0 1px 4px #b2bec322;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     margin-bottom: 0;
 ">
     <div id="timerDisplay" class="play-timer" style="
         font-size: 1.7rem;
         font-weight: bold;
-        color: #222;
-        background: #fff;
+        color: var(--text);
+        background: var(--card-bg);
         padding: 6px 18px;
         border-radius: 8px;
-        box-shadow: 0 1px 4px #b2bec322;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         min-width: 70px;
         text-align: center;
-        border: 1px solid #dfe6e9;
+        border: 1px solid var(--divider);
     ">60s</div>
     <div class="play-playerinfo" style="
         font-size: 1.7rem;
-        color: #222;
+        color: var(--text);
         font-weight: 500;
         background: none;
         padding: 0 10px;
@@ -651,21 +750,21 @@
     ">
         <span id="playRoundPlayer" style="font-weight: bold;">Spielername</span>
         <span style="font-size: 1em;">–</span>
-        <span id="playRoundTeam" style="font-size: 1em; font-weight: bold; background: #ffe6e6; color: #d63031; border-radius: 6px; padding: 2px 8px;">Team A</span>
+    <span id="playRoundTeam" style="font-size: 1em; font-weight: bold; background: var(--panel); color: var(--muted); border-radius: 6px; padding: 2px 8px;">Team A</span>
     </div>
     <div class="play-pause" onclick="pauseGame()" title="Pausieren" style="
         font-size: 1.5rem;
-        color: #636e72;
-        background: #fff;
+        color: var(--muted);
+        background: var(--card-bg);
         border-radius: 50%;
         width: 40px;
         height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 1px 4px #b2bec322;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
         cursor: pointer;
-        border: 1px solid #dfe6e9;
+        border: 1px solid var(--divider);
         transition: background 0.2s, color 0.2s;
     ">
         ⏸️
@@ -680,28 +779,28 @@
     margin: 24px 0 18px 0;
 ">
     <div id="currentCardDisplay" onclick="toggleExplanation()" style="
-        background: #fff;
+        background: var(--card-bg);
         border-radius: 12px;
-        box-shadow: 0 2px 8px #b2bec322;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         padding: 24px 18px 16px 18px;
         width: 90vw;
         cursor: pointer;
         transition: box-shadow 0.2s, background 0.2s;
         text-align: center;
-        border: 1px solid #dfe6e9;
+        border: 1px solid var(--divider);
         position: relative;
     ">
-        <div id="cardTerm" style="
+            <div id="cardTerm" style="
             font-size: 2rem;
             font-weight: bold;
-            color: #222;
+            color: var(--text);
             letter-spacing: 1px;
             margin-bottom: 8px;
         ">Begriff erscheint hier</div>
         <div id="cardExplanation" style="
             font-size: 1.5rem;
-            color: #636e72;
-            background: #f1f2f6;
+            color: var(--muted);
+            background: var(--panel);
             border-radius: 6px;
             padding: 7px 12px;
             margin-top: 6px;
@@ -712,7 +811,7 @@
             bottom: 6px;
             right: 12px;
             font-size: 0.95rem;
-            color: #b2bec3;
+            color: var(--divider);
             opacity: 0.7;
         ">Tippen für Erklärung</span>
     </div>
@@ -730,15 +829,15 @@
     z-index: 100;
 ">
     <button id="btnMistake" onclick="handleMistake()"
-        style="background: #ff7675; color: #fff; border: none; font-size: 1.1rem; border-radius: 10px; min-width: 90px; box-shadow: 0 1px 4px #ff767522; height: 56px; padding: 0 18px;">
+        style="background: var(--accent-a); color: var(--on-accent); border: none; font-size: 1.1rem; border-radius: 10px; min-width: 90px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); height: 56px; padding: 0 18px;">
         ❌ Fehler
     </button>
     <button id="btnSkip" onclick="handleSkip()"
-        style="background: #fdcb6e; color: #fff; border: none; font-size: 1.1rem; border-radius: 10px; min-width: 90px; box-shadow: 0 1px 4px #fdcb6e22; height: 56px; padding: 0 18px;">
+        style="background: var(--accent-c); color: var(--accent-c-text); border: none; font-size: 1.1rem; border-radius: 10px; min-width: 90px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); height: 56px; padding: 0 18px;">
         🔁 Überspringen
     </button>
     <button id="btnCorrect" onclick="handleCorrect()"
-        style="background: #00b894; color: #fff; border: none; font-size: 1.1rem; border-radius: 10px; min-width: 90px; box-shadow: 0 1px 4px #00b89422; height: 56px; padding: 0 18px;">
+        style="background: var(--accent-b); color: var(--on-accent); border: none; font-size: 1.1rem; border-radius: 10px; min-width: 90px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); height: 56px; padding: 0 18px;">
         ✅ Richtig
     </button>
 </div>
@@ -752,13 +851,13 @@
             </h2>
         </div>
         <div style="margin-top: 55px; display: flex; gap: 32px; justify-content: center;">
-            <div class="team team-a" style="background-color: #ffe6e6; border-left: 6px solid #ff4d4d; min-width: 150px;">
+            <div class="team team-a" style="background: linear-gradient(120deg, rgba(255,118,117,0.08) 60%, var(--panel) 100%); border-left: 6px solid var(--accent-a); min-width: 150px;">
                 <h3 id="statsTeamATitle" style="text-align: center; margin-top: 0; font-size: 1.2rem;">
                     🔴 Team A – <span id="pointsTeamA">0</span> Punkte
                 </h3>
                 <ul id="statsTeamAList"></ul> <!-- Hier stehen die Spielernamen von Team A -->
             </div>
-            <div class="team team-b" style="background-color: #e2fce2; border-left: 6px solid #28a745; min-width: 150px;">
+            <div class="team team-b" style="background: linear-gradient(120deg, rgba(0,184,148,0.06) 60%, var(--panel) 100%); border-left: 6px solid var(--accent-b); min-width: 150px;">
                 <h3 id="statsTeamBTitle" style="text-align: center; margin-top: 0; font-size: 1.2rem;">
                     🟢 Team B – <span id="pointsTeamB">0</span> Punkte
                 </h3>
@@ -771,7 +870,7 @@
     top: 10px;
     right: 18px;
     font-size: 0.9rem;
-    color: #636e72;
+    color: var(--muted);
     opacity: 0.7;
     z-index: 2;
     pointer-events: none;
@@ -784,7 +883,7 @@
             left: 10px;
             right: 10px;
             bottom: 0;
-            background: #ffffff00;
+            background: transparent;
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -806,12 +905,12 @@
         <div style="display: flex; justify-content: center; gap: 2.5rem; flex-wrap: nowrap; margin-top: 5px;">
             <!-- Team A -->
             <div style="
-                border: 2.5px solid #ff7675;
+                border: 2.5px solid var(--accent-a);
                 border-radius: 18px;
                 padding: 1.2rem 1rem 0.5rem 1rem;
                 width: 320px;
-                background: linear-gradient(120deg, #ffe6e6 60%, #fff 100%);
-                box-shadow: 0 4px 24px #ff767522;
+                background: linear-gradient(120deg, rgba(255,118,117,0.06) 60%, var(--bg) 100%);
+                box-shadow: 0 4px 24px rgba(0,0,0,0.08);
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -819,16 +918,16 @@
                 height: 190px;
                 overflow: hidden;
 ">
-                <h3 style="color: #d63031; text-align: center; font-size: 1.4rem; margin-bottom: 0.3em;">
+                <h3 style="color: var(--accent-a); text-align: center; font-size: 1.4rem; margin-bottom: 0.3em;">
                     🔴 Team A
                 </h3>
                 <p style="text-align: center; font-size: 1.1rem; margin: 0 0 0.7em 0;">
                     <strong>Gesamtpunkte:</strong>
-                    <span id="finalPointsA" style="font-size: 1.5em; color: #d63031;">0</span>
+                    <span id="finalPointsA" style="font-size: 1.5em; color: var(--accent-a);">0</span>
                 </p>
-                <div style="width: 100%; height: 130px; overflow-y: auto; margin-top: 0px; background: #ffffff00; border-radius: 10px;">
+                <div style="width: 100%; height: 130px; overflow-y: auto; margin-top: 0px; background: transparent; border-radius: 10px;">
                     <table style="width: 100%; border-collapse: collapse;">
-                        <thead style="background: #ffe6e6;">
+                        <thead style="background: var(--panel);">
                             <tr>
                                 <th style="text-align: left;">Spielername</th>
                                 <th style="text-align: center;">Handicap</th>
@@ -840,12 +939,12 @@
             </div>
             <!-- Team B -->
             <div style="
-                border: 2.5px solid #00b894;
+                border: 2.5px solid var(--accent-b);
                 border-radius: 18px;
                 padding: 1.2rem 1rem 0.5rem 1rem;
                 width: 320px;
-                background: linear-gradient(120deg, #e2fce2 60%, #fff 100%);
-                box-shadow: 0 4px 24px #00b89422;
+                background: linear-gradient(120deg, rgba(0,184,148,0.06) 60%, var(--bg) 100%);
+                box-shadow: 0 4px 24px rgba(0,0,0,0.08);
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -853,16 +952,16 @@
                 height: 190px;
                 overflow: hidden;
 ">
-                <h3 style="color: #00b894; text-align: center; font-size: 1.4rem; margin-bottom: 0.3em;">
+                <h3 style="color: var(--accent-b); text-align: center; font-size: 1.4rem; margin-bottom: 0.3em;">
                     🟢 Team B
                 </h3>
                 <p style="text-align: center; font-size: 1.1rem; margin: 0 0 0.7em 0;">
                     <strong>Gesamtpunkte:</strong>
-                    <span id="finalPointsB" style="font-size: 1.5em; color: #00b894;">0</span>
+                    <span id="finalPointsB" style="font-size: 1.5em; color: var(--accent-b);">0</span>
                 </p>
-                <div style="width: 100%; height: 130px; overflow-y: auto; margin-top: 0px; background: #ffffff00; border-radius: 10px;">
+                <div style="width: 100%; height: 130px; overflow-y: auto; margin-top: 0px; background: transparent; border-radius: 10px;">
                     <table style="width: 100%; border-collapse: collapse;">
-                        <thead style="background: #e2fce2;">
+                        <thead style="background: var(--panel);">
                             <tr>
                                 <th style="text-align: left;">Spielername</th>
                                 <th style="text-align: center;">Handicap</th>
@@ -878,7 +977,7 @@
             left: 10px;
             right: 10px;
             bottom: 0;
-            background: #ffffff00;
+            background: transparent;
             display: flex;
             gap: 10px;
             justify-content: center;
@@ -889,10 +988,10 @@
                 font-size: 1.2rem;
                 padding: 14px 38px;
                 border-radius: 16px;
-                background: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
-                color: #fff;
+                background: var(--primary);
+                color: var(--text);
                 font-weight: bold;
-                box-shadow: 0 4px 16px #74b9ff22;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
                 border: none;
                 cursor: pointer;
                 transition: filter 0.2s;

@@ -1,12 +1,12 @@
     :root {
-      --accent: #007bff;
+      --accent: var(--accent-a);
     }
 
     body {
       font-family: sans-serif;
       padding: 10px;
       margin: 0;
-      background: #f8f9fa;
+  background: var(--bg);
     }
 
     h2, h3 {
@@ -20,12 +20,12 @@
       width: 100%;
       box-sizing: border-box;
       border-radius: 6px;
-      border: 1px solid #ccc;
+  border: 1px solid var(--divider);
     }
 
     button {
-      background-color: var(--accent);
-      color: white;
+      background-color: var(--accent-a);
+      color: var(--on-accent);
       border: none;
     }
 
@@ -43,7 +43,7 @@
       margin-top: 10px;
     }
 
-    thead { background-color: #ddd; }
+  thead { background-color: var(--panel); }
 
     th, td {
       padding: 8px;
@@ -52,7 +52,7 @@
     }
 
     td button {
-      background-color: #dc3545;
+  background-color: var(--danger);
       padding: 5px 10px;
       font-size: 1em;
     }
@@ -69,9 +69,9 @@
       }
 
       tr {
-        background: white;
+        background: var(--card-bg);
         margin-bottom: 10px;
-        border: 1px solid #ccc;
+        border: 1px solid var(--divider);
         padding: 10px;
         border-radius: 10px;
       }

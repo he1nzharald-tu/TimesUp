@@ -1,10 +1,10 @@
 :root {
-  --accent: #007bff;
-  --danger: #dc3545;
-  --bg: #f2f4f8;
-  --white: #ffffff;
-  --border: #e0e0e0;
-  --text: #333;
+  --accent: var(--accent-a);
+  --danger: var(--danger);
+  --bg: var(--bg);
+  --white: var(--card-bg);
+  --border: var(--divider);
+  --text: var(--text);
   --shadow: 0 2px 8px rgba(0,0,0,0.05);
   --radius: 12px;
   --rcolor0: #cce5ff;
@@ -29,7 +29,7 @@ html, body {
 
 body {
   font-family: 'Fredoka', 'Segoe UI', Arial, sans-serif;
-  background: #e6f2ff;
+  background: var(--bg);
   color: var(--text);
   margin: 0px;
   padding: 0px;
@@ -39,7 +39,7 @@ body {
 }
 
 .screen {
-  background: rgba(255,255,255,0.95);
+  background: var(--card-bg);
   box-shadow: 0 6px 32px rgba(0,0,0,0.07);
   max-width: 700px;
   height: 345px;
@@ -67,7 +67,7 @@ input, select, button {
   box-sizing: border-box;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background-color: var(--white);
+  background-color: var(--card-bg);
 }
 
 input:focus, select:focus {
@@ -77,8 +77,8 @@ input:focus, select:focus {
 }
 
 button {
-  background: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
-  color: #222;
+  background: var(--primary);
+  color: var(--on-accent);
   font-weight: 600;
   border: none;
   box-shadow: var(--shadow);
@@ -87,15 +87,15 @@ button {
 }
 
 button.secondary {
-  background: #dfe6e9;
-  color: #636e72;
+  background: var(--panel);
+  color: var(--muted);
   font-weight: normal;
   box-shadow: none;
   border: 1px solid #ccc;
 }
 
 button.secondary:hover {
-  background: #d5d5d5;
+  background: var(--panel);
 }
 
 button:hover {
@@ -118,15 +118,15 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 12px;
-  background-color: var(--white);
+  background-color: var(--panel);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
 }
 
 thead {
-  background-color: #e6f0ff;
-  color: #333;
+  background-color: var(--panel);
+  color: var(--muted);
 }
 
 th, td {
@@ -138,7 +138,7 @@ th, td {
 
 td button {
   background-color: var(--danger);
-  color: #fff;
+  color: var(--on-accent);
   padding: 2px 12px;
   width: auto;
   height: 38px;
@@ -156,7 +156,7 @@ td button {
 }
 
 td button:hover {
-  background-color: #a71d2a;
+  background-color: var(--danger);
 }
 
 td:nth-child(2)input[type="checkbox"] {
@@ -174,10 +174,10 @@ td:nth-child(2)input[type="checkbox"] {
 }
 #playerTableBody tr {
   transition: background 0.2s;
-  background: #e6f2ff;
+  background: var(--panel);
 }
 #playerTableBody tr:hover {
-  background: #dff9fb;
+  filter: brightness(1.03);
 }
 
 #teamTableWrapper {
@@ -186,7 +186,7 @@ td:nth-child(2)input[type="checkbox"] {
 }
 #teamPlayerTableBody tr {
   transition: background 0.2s;
-  background: #e6f2ff;
+  background: var(--bg);
 }
 
 .teams {
@@ -203,21 +203,20 @@ td:nth-child(2)input[type="checkbox"] {
   border-radius: var(--radius);
   padding: 12px;
   box-shadow: var(--shadow);
-  color: #222;
-  background-color: #f1f2f6;
+  color: var(--text);
+  background-color: var(--panel);
 }
 
 .team-a {
-  background-color: #ffe6e6;
-  border-left: 6px solid #ff4d4d;
+  background: linear-gradient(120deg, rgba(255,118,117,0.08) 60%, var(--panel) 100%);
+  border-left: 6px solid var(--accent-a);
   height: 200px;
   overflow: scroll;
   scrollbar-width: none;
-  
 }
 .team-b {
-  background-color: #e2fce2;
-  border-left: 6px solid #28a745;
+  background: linear-gradient(120deg, rgba(0,184,148,0.08) 60%, var(--panel) 100%);
+  border-left: 6px solid var(--accent-b);
   height: 200px;
   overflow: scroll;
   scrollbar-width: none;
@@ -236,7 +235,7 @@ td:nth-child(2)input[type="checkbox"] {
 }
 .team li {
   padding: 8px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card-bg);
   border-radius: 6px;
   margin-bottom: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -259,7 +258,7 @@ ul li {
 }
 
 #cardSelectionList li {
-  background: #e6f2ff;
+  background: var(--bg);
   margin-bottom: 6px;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(241, 196, 15, 0.07);
@@ -315,7 +314,7 @@ hr.divider {
     display: none;
   }
   tr {
-    background: var(--white);
+    background: var(--card-bg);
     margin-bottom: 12px;
     border: 1px solid var(--border);
     padding: 12px;
@@ -330,14 +329,13 @@ hr.divider {
   td::before {
     content: attr(data-label);
     font-weight: bold;
-    color: #555;
+    color: var(--muted);
   }
 }
 
-/* Play screen bar */
 #screen-play {
   display: none;
-  background: rgba(255,255,255,0.95);
+  background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: 0 6px 32px rgba(0,0,0,0.07);
   max-width: 700px;
@@ -358,7 +356,7 @@ hr.divider {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  background: white;
+  background: var(--panel);
   box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
 }
 
@@ -371,12 +369,12 @@ td[data-label="Entfernen"] {
   text-align: center;
 }
 :root {
-  --accent: #007bff;
-  --danger: #dc3545;
-  --bg: #f2f4f8;
-  --white: #ffffff;
-  --border: #e0e0e0;
-  --text: #333;
+  --accent: var(--accent-a);
+  --danger: var(--danger);
+  --bg: var(--bg);
+  --white: var(--card-bg);
+  --border: var(--divider);
+  --text: var(--text);
   --shadow: 0 2px 8px rgba(0,0,0,0.05);
   --radius: 12px;
 
@@ -402,7 +400,7 @@ html, body {
 
 body {
   font-family: 'Fredoka', 'Segoe UI', Arial, sans-serif;
-  background: #e6f2ff;
+  background: var(--bg);
   color: var(--text);
   margin: 0px;
   padding: 0px;
@@ -412,7 +410,7 @@ body {
 }
 
 .screen {
-  background: rgba(255,255,255,0.95);
+  background: var(--card-bg);
   box-shadow: 0 6px 32px rgba(0,0,0,0.07);
   max-width: 700px;
   height: 345px;
@@ -450,8 +448,8 @@ input:focus, select:focus {
 }
 
 button {
-  background: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
-  color: #222;
+  background: var(--primary);
+  color: var(--on-accent);
   font-weight: 600;
   border: none;
   box-shadow: var(--shadow);
@@ -460,15 +458,15 @@ button {
 }
 
 button.secondary {
-  background: #dfe6e9;
-  color: #636e72;
+  background: var(--panel);
+  color: var(--muted);
   font-weight: normal;
   box-shadow: none;
   border: 1px solid #ccc;
 }
 
 button.secondary:hover {
-  background: #d5d5d5;
+  background: var(--panel);
 }
 
 button:hover {
@@ -497,9 +495,9 @@ table {
   box-shadow: var(--shadow);
 }
 
-thead {
-  background-color: #e6f0ff;
-  color: #333;
+  thead {
+  background-color: var(--panel);
+  color: var(--muted);
 }
 
 th, td {
@@ -511,7 +509,7 @@ th, td {
 
 td button {
   background-color: var(--danger);
-  color: #fff;
+  color: var(--on-accent);
   padding: 2px 12px;
   width: auto;
   height: 38px;
@@ -529,7 +527,7 @@ td button {
 }
 
 td button:hover {
-  background-color: #a71d2a;
+  background-color: var(--danger);
 }
 
 td:nth-child(2)input[type="checkbox"] {
@@ -547,10 +545,10 @@ td:nth-child(2)input[type="checkbox"] {
 }
 #playerTableBody tr {
   transition: background 0.2s;
-  background: #e6f2ff;
+  background: var(--bg);
 }
 #playerTableBody tr:hover {
-  background: #dff9fb;
+  background: var(--panel);
 }
 
 #teamTableWrapper {
@@ -559,7 +557,7 @@ td:nth-child(2)input[type="checkbox"] {
 }
 #teamPlayerTableBody tr {
   transition: background 0.2s;
-  background: #e6f2ff;
+  background: var(--panel);
 }
 
 .teams {
@@ -576,21 +574,20 @@ td:nth-child(2)input[type="checkbox"] {
   border-radius: var(--radius);
   padding: 12px;
   box-shadow: var(--shadow);
-  color: #222;
-  background-color: #f1f2f6;
+  color: var(--text);
+  background-color: var(--panel);
 }
 
 .team-a {
-  background-color: #ffe6e6;
-  border-left: 6px solid #ff4d4d;
+  background: linear-gradient(120deg, rgba(255,118,117,0.08) 60%, var(--panel) 100%);
+  border-left: 6px solid var(--accent-a);
   height: 200px;
   overflow: scroll;
   scrollbar-width: none;
-  
 }
 .team-b {
-  background-color: #e2fce2;
-  border-left: 6px solid #28a745;
+  background: linear-gradient(120deg, rgba(0,184,148,0.08) 60%, var(--panel) 100%);
+  border-left: 6px solid var(--accent-b);
   height: 200px;
   overflow: scroll;
   scrollbar-width: none;
@@ -609,7 +606,7 @@ td:nth-child(2)input[type="checkbox"] {
 }
 .team li {
   padding: 8px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--overlay);
   border-radius: 6px;
   margin-bottom: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -632,7 +629,7 @@ ul li {
 }
 
 #cardSelectionList li {
-  background: #e6f2ff;
+  background: var(--card-bg);
   margin-bottom: 6px;
   border-radius: 8px;
   box-shadow: 0 1px 4px rgba(241, 196, 15, 0.07);
@@ -710,7 +707,7 @@ hr.divider {
 /* Play screen bar */
 #screen-play {
   display: none;
-  background: rgba(255,255,255,0.95);
+  background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: 0 6px 32px rgba(0,0,0,0.07);
   max-width: 700px;
@@ -731,7 +728,7 @@ hr.divider {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  background: white;
+  background: var(--panel);
   box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
 }
 

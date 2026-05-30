@@ -2,9 +2,9 @@
 :root {
   --accent: #007bff;
   --danger: #dc3545;
-  --bg: #f8f9fa;
-  --white: #ffffff;
-  --border: #ddd;
+  --bg: var(--bg);
+  --white: var(--card-bg);
+  --border: var(--divider);
   --radius: 12px;
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
@@ -13,7 +13,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   background-color: var(--bg);
-  color: #333;
+  color: var(--text);
   padding: 0;
 }
 
@@ -27,70 +27,74 @@ body {
 /* Headings */
 h2, h3 {
   margin-top: 0;
-  color: #222;
-}
-
+  color: var(--text);
 /* Input + Buttons */
 input, select, button {
   font-size: 1.1em;
+  --bg: var(--bg);
+  --white: var(--card-bg);
+  --border: var(--divider);
+  --radius: 12px;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   padding: 12px 14px;
   margin-bottom: 12px;
   width: 100%;
   box-sizing: border-box;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background-color: var(--white);
+  background-color: var(--card-bg);
+  background-color: var(--card-bg);
 }
 
 input:focus, select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
-}
+  color: var(--text);
 
 button {
-  background-color: var(--accent);
-  color: white;
+  background-color: var(--accent-a);
+  color: var(--on-accent);
   border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: var(--accent-a);
 }
 
 /* Spieler-Tabelle */
-table {
-  width: 100%;
+  background-color: var(--accent-a);
+  color: var(--on-accent);
   border-collapse: collapse;
   margin-top: 12px;
   background-color: var(--white);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
-}
+  filter: brightness(1.02);
 
 thead {
-  background-color: #f1f1f1;
-}
+  background-color: var(--panel);
+  background-color: var(--panel);
 
 th, td {
   padding: 12px;
-  text-align: left;
-  font-size: 1em;
-  border-bottom: 1px solid var(--border);
-}
+  background-color: var(--danger);
+  color: var(--on-accent);
+  padding: 6px 12px;
+  font-size: 0.95em;
+  border-radius: var(--radius);
 
 td button {
   background-color: var(--danger);
-  padding: 6px 12px;
+  filter: brightness(0.95);
   font-size: 0.95em;
   border-radius: var(--radius);
 }
 
 td button:hover {
-  background-color: #a71d2a;
+  background-color: var(--danger);
 }
 
 /* Responsive Tabelle */
@@ -122,7 +126,7 @@ td button:hover {
   td::before {
     content: attr(data-label);
     font-weight: bold;
-    color: #555;
+    color: var(--muted);
   }
 }
 

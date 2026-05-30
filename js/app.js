@@ -67,8 +67,8 @@ function updatePlayerTable() {
         const tr = document.createElement("tr");
         const tdName = document.createElement("td");
         tdName.setAttribute("data-label", "Spielername");
-        // Make player name bold in a box
-        tdName.innerHTML = `<span style="display:inline-block; font-weight:bold; background:#ffffff; border-radius:8px; padding:4px 12px;">${p.name}</span>`;
+    // Make player name bold in a box (theme-aware)
+    tdName.innerHTML = `<span style="display:inline-block; font-weight:bold; background:var(--card-bg); border-radius:8px; padding:4px 12px;">${p.name}</span>`;
         tr.appendChild(tdName);
 
         const tdHandicap = document.createElement("td");
@@ -122,13 +122,12 @@ function renderRoundSettings() {
     ];
 
     for (let i = 1; i <= roundCount; i++) {
-        const roundColors = [
-            "#e0f0ff", "#e2fce2", "#fff3d6", "#fce2f2", "#ede2fc",
-            "#e2f7fc", "#f6e2fc", "#fcf3e2", "#e2fcf0", "#d9d9d9"
-        ];
+        // Use CSS variables for round backgrounds so they adapt to light/dark themes
+        const roundCssVars = ['--round-1','--round-2','--round-3','--round-4','--round-5','--round-6','--round-7','--round-8','--round-9','--round-10'];
         const div = document.createElement("div");
         div.classList.add("round-settings");
-        div.style.backgroundColor = roundColors[i - 1] || "#f5f5f5";
+        const varName = roundCssVars[i - 1];
+        div.style.backgroundColor = varName ? `var(${varName})` : "#f5f5f5";
 
         const selectedRule = i <= 3 ? defaultRules[i - 1] : "";
         const defaultSkip = (i === 2) ? "yes" : "no";
@@ -255,6 +254,9 @@ function saveSettingsToStorage() {
         settings.skipLimitValue.push(skipLimitValue);
     }
     localStorage.setItem("timesup_settings", JSON.stringify(settings));
+    // also persist theme separately for quicker access
+    const themeSel = document.getElementById('themeSelect');
+    if (themeSel) localStorage.setItem('timesup_theme', themeSel.value || 'light');
 }
 
 function exitSettings() {
@@ -280,6 +282,11 @@ function loadSettingsFromStorage() {
         document.getElementById(`timer${i}`).value = settings.roundTimer?.[i - 1] || 60;
         document.getElementById(`skipAllowed${i}`).value = settings.roundSkip?.[i - 1] || "Nein";
     }
+    // load theme into selector and apply
+    const storedTheme = localStorage.getItem('timesup_theme') || 'light';
+    const themeSel = document.getElementById('themeSelect');
+    if (themeSel) themeSel.value = storedTheme;
+    applyTheme(storedTheme);
 }
 
 function resetAllSettings() {
@@ -456,7 +463,7 @@ function handleCardSelectionClick() {
     cardsWereShown = true;
     cardsForPlayer.forEach((card, index) => {
         const li = document.createElement("li");
-        li.innerHTML = `<span style="background: #ddd; padding: 2px 6px; border-radius: 6px;">${card.begriff}</span> – ${card.erklaerung}`;
+    li.innerHTML = `<span style="background: var(--panel); padding: 2px 6px; border-radius: 6px;">${card.begriff}</span> – ${card.erklaerung}`;
         li.style.padding = "8px";
         li.style.borderBottom = "1px solid #ccc";
         li.style.cursor = "pointer";
@@ -589,13 +596,14 @@ function prepareGameOverview() {
             const timer = settings.roundTimer?.[i] || "?";
             const skip = settings.roundSkip?.[i] || "Nein";
             const box = document.createElement("div");
-            box.style.border = `2px solid var(--rcolor${i})`;
-            box.style.background = `var(--rbg${i})`;
+            // Use theme-aware panel/card backgrounds; keep round accents optional
+            box.style.border = `2px solid var(--divider)`;
+            box.style.background = `var(--panel)`;
             box.style.borderRadius = "12px";
             box.style.padding = "10px";
             box.style.marginBottom = "10px";
             box.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
-            box.style.color = "#222";
+            box.style.color = "var(--text)";
             box.innerHTML = `
           <strong>Runde ${i + 1}</strong><br>
           Regel: ${rule}<br>
@@ -676,15 +684,15 @@ function showStartRoundScreen() {
     teamEl.textContent = `Team ${activeTeam}`;
     const startBtn = document.getElementById("startRoundBtn");
     if (activeTeam === "A") {
-        teamEl.style.background = "linear-gradient(90deg, #ffe6e6 0%, #ffd6d6 100%)";
-        teamEl.style.color = "#d63031";
-        document.getElementById('roundBorderWrapper').style.borderColor = '#ff7675';
-        if (startBtn) startBtn.style.background = "linear-gradient(90deg, #ff7675 0%, #ffb199 100%)";
+        teamEl.style.background = `linear-gradient(90deg, rgba(255,118,117,0.12) 60%, var(--panel) 100%)`;
+        teamEl.style.color = `var(--accent-a)`;
+        document.getElementById('roundBorderWrapper').style.borderColor = 'var(--accent-a)';
+        if (startBtn) startBtn.style.background = 'var(--primary)';
     } else {
-        teamEl.style.background = "linear-gradient(90deg, #e2fce2 0%, #b2f7b2 100%)";
-        teamEl.style.color = "#00b894";
-        document.getElementById('roundBorderWrapper').style.borderColor = '#00b894';
-        if (startBtn) startBtn.style.background = "linear-gradient(90deg, #00b894 0%, #55efc4 100%)";
+        teamEl.style.background = `linear-gradient(90deg, rgba(0,184,148,0.12) 60%, var(--panel) 100%)`;
+        teamEl.style.color = `var(--accent-b)`;
+        document.getElementById('roundBorderWrapper').style.borderColor = 'var(--accent-b)';
+        if (startBtn) startBtn.style.background = 'linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)';
     }
     showScreen("roundstart");
 }
@@ -782,19 +790,22 @@ function updateSkipButtonState() {
     const skipBtn = document.getElementById("btnSkip");
     if (skipSetting === "no") {
         skipBtn.disabled = true;
-        skipBtn.style.background = "#ccc";
+        skipBtn.style.background = "var(--panel)";
+        skipBtn.style.color = "var(--muted)";
         return;
     }
     if (skipSetting === "yes") {
         const maxSkips = parseInt(settings.skipLimitValue?.[roundIndex] || 100);
         if (skipCounter >= maxSkips) {
             skipBtn.disabled = true;
-            skipBtn.style.background = "#ccc";
+            skipBtn.style.background = "var(--panel)";
+            skipBtn.style.color = "var(--muted)";
             return;
         }
     }
     skipBtn.disabled = false;
-    skipBtn.style.background = "#f39c12";
+    skipBtn.style.background = "var(--accent-c)";
+    skipBtn.style.color = "var(--accent-c-text)";
 }
 
 function toggleExplanation() {
@@ -942,8 +953,8 @@ function pauseGame() {
         pauseOverlay.style.justifyContent = "center";
         pauseOverlay.style.zIndex = "9999";
 
-        const box = document.createElement("div");
-        box.style.background = "#fff";
+    const box = document.createElement("div");
+    box.style.background = "var(--card-bg)";
         box.style.padding = "36px 32px";
         box.style.borderRadius = "18px";
         box.style.boxShadow = "0 4px 24px #636e7233";
@@ -959,7 +970,7 @@ function pauseGame() {
         title.textContent = "⏸️ Pause";
         title.style.margin = "0 0 12px 0";
         title.style.fontSize = "2rem";
-        title.style.color = "#636e72";
+    title.style.color = "var(--muted)";
         box.appendChild(title);
 
         const btnContinue = document.createElement("button");
@@ -968,8 +979,8 @@ function pauseGame() {
         btnContinue.style.fontSize = "1.3rem";
         btnContinue.style.padding = "12px 32px";
         btnContinue.style.borderRadius = "12px";
-        btnContinue.style.background = "linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%)";
-        btnContinue.style.color = "#fff";
+    btnContinue.style.background = "var(--primary)";
+    btnContinue.style.color = "var(--on-accent)";
         btnContinue.style.border = "none";
         btnContinue.style.cursor = "pointer";
         btnContinue.onclick = function () {
@@ -983,8 +994,8 @@ function pauseGame() {
         btnPlus3.style.fontSize = "1.3rem";
         btnPlus3.style.padding = "12px 32px";
         btnPlus3.style.borderRadius = "12px";
-        btnPlus3.style.background = "linear-gradient(90deg, #00b894 0%, #55efc4 100%)";
-        btnPlus3.style.color = "#fff";
+    btnPlus3.style.background = "linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)";
+    btnPlus3.style.color = "var(--on-accent)";
         btnPlus3.style.border = "none";
         btnPlus3.style.cursor = "pointer";
         btnPlus3.onclick = function () {
@@ -1033,7 +1044,7 @@ function showGuessedCardsAfterTimer() {
     guessedOverlay.style.zIndex = "10000";
 
     const box = document.createElement("div");
-    box.style.background = "#fff";
+    box.style.background = "var(--card-bg)";
     box.style.padding = "36px 32px";
     box.style.borderRadius = "18px";
     box.style.boxShadow = "0 4px 24px #636e7233";
@@ -1053,7 +1064,7 @@ function showGuessedCardsAfterTimer() {
     title.textContent = "✅ Erratene Karten";
     title.style.margin = "0 0 5px 0";
     title.style.fontSize = "2rem";
-    title.style.color = "#636e72";
+    title.style.color = "var(--muted)";
     box.appendChild(title);
 
     // Liste der erratenen Karten
@@ -1072,7 +1083,7 @@ function showGuessedCardsAfterTimer() {
         li.style.alignItems = "center";
         li.style.justifyContent = "space-between";
         li.style.padding = "5px 0";
-        li.style.borderBottom = "1px solid #eee";
+    li.style.borderBottom = "1px solid var(--divider)";
 
         const begriff = document.createElement("span");
         begriff.textContent = card.begriff;
@@ -1082,8 +1093,8 @@ function showGuessedCardsAfterTimer() {
 
         const btn = document.createElement("button");
         btn.textContent = "Fehler";
-        btn.style.background = "#ff7675";
-        btn.style.color = "#fff";
+    btn.style.background = "var(--accent-a)";
+    btn.style.color = "var(--on-accent)";
         btn.style.border = "none";
         btn.style.borderRadius = "8px";
         btn.style.padding = "6px 18px";
@@ -1112,8 +1123,8 @@ function showGuessedCardsAfterTimer() {
     btnOk.style.fontSize = "1.2rem";
     btnOk.style.padding = "12px 32px";
     btnOk.style.borderRadius = "12px";
-    btnOk.style.background = "linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%)";
-    btnOk.style.color = "#fff";
+    btnOk.style.background = "var(--primary)";
+    btnOk.style.color = "var(--on-accent)";
     btnOk.style.border = "none";
     btnOk.style.cursor = "pointer";
     btnOk.onclick = function () {
@@ -1130,6 +1141,30 @@ function showGuessedCardsAfterTimer() {
 renderRoundSettings();
 loadSettingsFromStorage();
 loadKartenFromExcel();
+
+// === Theme (Design) Management ===
+function applyTheme(theme) {
+    // apply theme class to documentElement
+    const root = document.documentElement;
+    if (theme === 'dark') {
+        root.classList.add('dark');
+    } else {
+        root.classList.remove('dark');
+    }
+    // save selection
+    try { localStorage.setItem('timesup_theme', theme); } catch (e) { }
+    // update select if present
+    const sel = document.getElementById('themeSelect');
+    if (sel) sel.value = theme;
+}
+
+function loadThemeFromStorage() {
+    const t = localStorage.getItem('timesup_theme') || 'light';
+    applyTheme(t);
+}
+
+// run theme load after DOM ready-ish (this script is loaded at end of body in index.html)
+loadThemeFromStorage();
 
 function resetGameState() {
     // Spielverlauf-Variablen zurücksetzen (Settings & Karten bleiben erhalten)
