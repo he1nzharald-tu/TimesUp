@@ -1,0 +1,105 @@
+    :root {
+      --accent: #007bff;
+    }
+
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+      margin: 0;
+      background: #f8f9fa;
+    }
+
+    h2, h3 {
+      margin: 10px 0;
+    }
+
+    input, select, button {
+      font-size: 1.1em;
+      padding: 10px;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Spieler-Tabelle */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    thead { background-color: #ddd; }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+      font-size: 1em;
+    }
+
+    td button {
+      background-color: #dc3545;
+      padding: 5px 10px;
+      font-size: 1em;
+    }
+
+    /* Responsives Layout */
+    @media (max-width: 500px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        background: white;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 10px;
+      }
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+      }
+    }
+
+    .tab-btns button {
+      margin-right: 8px;
+      margin-bottom: 10px;
+      width: auto;
+    }
+
+    .round-settings {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.05);
+    border-left: 6px solid #999;
+  }
+
+    .hidden { display: none; }
