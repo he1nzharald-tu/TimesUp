@@ -645,7 +645,7 @@ let tickAudio = null;
 let endAudio = null;
 try {
     // prefer a short ticking/pip audio for the last seconds
-    tickAudio = new Audio('assets/analog-timer-74998.mp3');
+    tickAudio = new Audio('assets/timer5.m4a');
     tickAudio.preload = 'auto';
     tickAudio.volume = 0.7;
 } catch (e) { tickAudio = null; }
@@ -666,6 +666,15 @@ function playTick() {
         tickAudio.currentTime = 0;
         const p = tickAudio.play();
         if (p && p.catch) p.catch(() => {});
+    } catch (e) { }
+}
+
+function stopTick() {
+    if (!tickAudio) return;
+
+    try {
+        tickAudio.pause();
+        tickAudio.currentTime = 0;
     } catch (e) { }
 }
 
@@ -768,6 +777,7 @@ function startRoundTimer() {
             clearInterval(timer);
             timer = undefined;
             isTimerRunning = false;
+            stopTick();
             try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = false; } catch (e) {}
             // play final alarm sound and then show guessed cards
             try { playEndAlarm(); } catch (e) {}
@@ -1088,6 +1098,7 @@ function resumeTimer() {
             clearInterval(timer);
             timer = undefined;
             isTimerRunning = false;
+            stopTick();
             try { playEndAlarm(); } catch (e) {}
             showGuessedCardsAfterTimer();
         }
