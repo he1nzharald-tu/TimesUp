@@ -643,6 +643,7 @@ let isTimerRunning = false; // guard to prevent duplicate intervals
 // short tick/beep for last countdown seconds
 let tickAudio = null;
 let endAudio = null;
+let audiotime = false;
 try {
     // prefer a short ticking/pip audio for the last seconds
     tickAudio = new Audio('assets/timer5.m4a');
@@ -662,11 +663,13 @@ try {
 
 function playTick() {
     if (!tickAudio) return;
+    if (audiotime) return; // prevent overlapping ticks if one is still playing
     try {
         tickAudio.currentTime = 0;
         const p = tickAudio.play();
         if (p && p.catch) p.catch(() => {});
     } catch (e) { }
+    audiotime = true;
 }
 
 function stopTick() {
@@ -676,6 +679,7 @@ function stopTick() {
         tickAudio.pause();
         tickAudio.currentTime = 0;
     } catch (e) { }
+    audiotime = false;
 }
 
 function playEndAlarm() {
