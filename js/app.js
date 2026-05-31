@@ -781,10 +781,10 @@ function startRoundTimer() {
             clearInterval(timer);
             timer = undefined;
             isTimerRunning = false;
-            stopTick();
             try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = false; } catch (e) {}
             // play final alarm sound and then show guessed cards
             try { playEndAlarm(); } catch (e) {}
+            stopTick();
             showGuessedCardsAfterTimer();
         }
     }, 1000);
@@ -1102,8 +1102,8 @@ function resumeTimer() {
             clearInterval(timer);
             timer = undefined;
             isTimerRunning = false;
-            stopTick();
             try { playEndAlarm(); } catch (e) {}
+            stopTick();
             showGuessedCardsAfterTimer();
         }
     }, 1000);
@@ -1117,6 +1117,7 @@ function showGuessedCardsAfterTimer() {
     isTimerRunning = false;
     try { playEndAlarm(); } catch (e) {}
     try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = false; } catch (e) {}
+    
     // Erstelle Overlay
     let guessedOverlay = document.getElementById("guessedOverlay");
     if (guessedOverlay) guessedOverlay.remove();
@@ -1152,6 +1153,65 @@ function showGuessedCardsAfterTimer() {
     box.style.marginTop = "5vh";    // Abstand zum oberen Rand
     box.style.marginBottom = "5vh"; // Abstand zum unteren Rand
 
+    // Zuerst: Zwei Hauptoptionen anzeigen
+    const title = document.createElement("h2");
+    title.textContent = "⏱️ Zeit vorbei!";
+    title.style.margin = "0 0 24px 0";
+    title.style.fontSize = "2rem";
+    title.style.color = "var(--muted)";
+    box.appendChild(title);
+
+    const btnCorrect = document.createElement("button");
+    btnCorrect.textContent = "✏️ Karten korrigieren";
+    btnCorrect.style.marginBottom = "12px";
+    btnCorrect.style.fontSize = "1.1rem";
+    btnCorrect.style.padding = "14px 32px";
+    btnCorrect.style.borderRadius = "12px";
+    btnCorrect.style.background = "var(--primary)";
+    btnCorrect.style.color = "var(--on-accent)";
+    btnCorrect.style.border = "none";
+    btnCorrect.style.cursor = "pointer";
+    btnCorrect.style.width = "100%";
+    btnCorrect.style.maxWidth = "350px";
+    btnCorrect.onclick = function () {
+        // Zeige den Korrektur-Bildschirm mit Kartenliste
+        showCardCorrectionScreen(guessedOverlay);
+    };
+    box.appendChild(btnCorrect);
+
+    const btnSkip = document.createElement("button");
+    btnSkip.textContent = "➡️ Nächster Spieler";
+    btnSkip.style.fontSize = "1.1rem";
+    btnSkip.style.padding = "14px 32px";
+    btnSkip.style.borderRadius = "12px";
+    btnSkip.style.background = "linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)";
+    btnSkip.style.color = "var(--on-accent)";
+    btnSkip.style.border = "none";
+    btnSkip.style.cursor = "pointer";
+    btnSkip.style.width = "100%";
+    btnSkip.style.maxWidth = "350px";
+    btnSkip.onclick = function () {
+        document.body.removeChild(guessedOverlay);
+        endRound();
+    };
+    box.appendChild(btnSkip);
+
+    guessedOverlay.appendChild(box);
+    document.body.appendChild(guessedOverlay);
+}
+
+// Hilfsfunktion zum Anzeigen des Korrektur-Bildschirms
+function showCardCorrectionScreen(guessedOverlay) {
+    // Lösche den aktuellen Inhalt des box Elements
+    const guessedOverlayNew = document.getElementById("guessedOverlay");
+    if (!guessedOverlayNew) return;
+    
+    const box = guessedOverlayNew.querySelector("div");
+    if (!box) return;
+    
+    // Leere das box Element
+    box.innerHTML = "";
+
     const title = document.createElement("h2");
     title.textContent = "✅ Erratene Karten";
     title.style.margin = "0 0 5px 0";
@@ -1175,7 +1235,7 @@ function showGuessedCardsAfterTimer() {
         li.style.alignItems = "center";
         li.style.justifyContent = "space-between";
         li.style.padding = "5px 0";
-    li.style.borderBottom = "1px solid var(--divider)";
+        li.style.borderBottom = "1px solid var(--divider)";
 
         const begriff = document.createElement("span");
         begriff.textContent = card.begriff;
@@ -1185,8 +1245,8 @@ function showGuessedCardsAfterTimer() {
 
         const btn = document.createElement("button");
         btn.textContent = "Fehler";
-    btn.style.background = "var(--accent-a)";
-    btn.style.color = "var(--on-accent)";
+        btn.style.background = "var(--accent-a)";
+        btn.style.color = "var(--on-accent)";
         btn.style.border = "none";
         btn.style.borderRadius = "8px";
         btn.style.padding = "6px 18px";
@@ -1194,12 +1254,15 @@ function showGuessedCardsAfterTimer() {
         btn.style.cursor = "pointer";
         btn.style.width = "80px";
         btn.onclick = function () {
-            // Karte aus der richtigen Liste entfernen
-            correctCards[activeTeam] = correctCards[activeTeam].filter(c => c !== card);
-            // Karte zurück in den Stapel der aktuellen Runde
-            currentCards.push(card);
-            // Element aus der Liste entfernen
-            li.remove();
+            // Bestätigung vor dem Entfernen
+            if (confirm("Willst du wirklich, dass diese Karte ein Fehler war?")) {
+                // Karte aus der richtigen Liste entfernen
+                correctCards[activeTeam] = correctCards[activeTeam].filter(c => c !== card);
+                // Karte zurück in den Stapel der aktuellen Runde
+                currentCards.push(card);
+                // Element aus der Liste entfernen
+                li.remove();
+            }
         };
         li.appendChild(btn);
 
@@ -1221,12 +1284,9 @@ function showGuessedCardsAfterTimer() {
     btnOk.style.cursor = "pointer";
     btnOk.onclick = function () {
         document.body.removeChild(guessedOverlay);
-        endRound(); // oder showRoundStats(), je nach Spiellogik
+        endRound();
     };
     box.appendChild(btnOk);
-
-    guessedOverlay.appendChild(box);
-    document.body.appendChild(guessedOverlay);
 }
 
 // === Initial Load ===
