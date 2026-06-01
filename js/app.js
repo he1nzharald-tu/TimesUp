@@ -9,11 +9,16 @@ let showingExplanation = false;
 let currentRound = 0;
 let totalRounds = 1;
 const players = [];
-let teamA = [];
-let teamB = [];
+let teams = []; // Array of team arrays instead of teamA/teamB
 let currentCardPlayerIndex = 0;
 let shuffledCardPool = [];
 let playerCardCount = 0;
+let totalTeams = 2; // Default to 2 teams, can be changed in settings
+let activeTeamIndex = 0; // Index of current team (0, 1, 2, etc.)
+let activePlayerIndexInTeam = -1; // Player index within current team
+let teamTurnOrder = [];
+let teamTurnOrderPosition = -1;
+let activePlayerIndicesByTeam = [];
 
 // === Load Cards from Excel ===
 async function loadKartenFromExcel() {
@@ -215,6 +220,7 @@ function saveSettingsToStorage() {
         players,
         cardCount: parseInt(document.getElementById("cardCount").value),
         roundCount: parseInt(document.getElementById("roundCount").value),
+        teamCount: parseInt(document.getElementById("teamCount").value || 2),
         roundRules: [],
         roundTimer: [],
         roundSkip: [],
@@ -268,6 +274,8 @@ function loadSettingsFromStorage() {
     const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
     document.getElementById("cardCount").value = settings.cardCount || 40;
     document.getElementById("roundCount").value = settings.roundCount || 3;
+    document.getElementById("teamCount").value = settings.teamCount || 2;
+    totalTeams = settings.teamCount || 2;
     document.getElementById("vetoCount").value = settings.vetoCount || 1;
     document.getElementById("handicapEnabled").value = settings.handicapEnabled ? "yes" : "no";
     toggleHandicapInput();
@@ -292,6 +300,7 @@ function loadSettingsFromStorage() {
 function resetAllSettings() {
     document.getElementById("cardCount").value = 40;
     document.getElementById("roundCount").value = 3;
+    document.getElementById("teamCount").value = 2;
     document.getElementById("vetoCount").value = 1;
     document.getElementById("handicapEnabled").value = "no";
     toggleHandicapInput();
@@ -349,57 +358,102 @@ function renderTeamPlayerList() {
 }
 
 function assignRandomTeams() {
+    const teamCount = parseInt(document.getElementById("teamCount").value || 2);
+    totalTeams = teamCount;
     const shuffled = [...players].sort(() => Math.random() - 0.5);
-    teamA = [];
-    teamB = [];
+    
+    // Initialize teams array
+    teams = [];
+    for (let i = 0; i < teamCount; i++) {
+        teams.push([]);
+    }
+    
+    // Distribute players round-robin to teams
     shuffled.forEach((p, i) => {
-        if (i % 2 === 0) teamA.push(p);
-        else teamB.push(p);
+        teams[i % teamCount].push(p);
     });
-    displayTeams(teamA, teamB);
+    
+    displayTeams();
     showScreen("teamuebersicht");
 }
 
-function displayTeams(teamAList, teamBList) {
-    const listA = document.getElementById("teamAList");
-    const listB = document.getElementById("teamBList");
-    if (!listA || !listB) return;
-    listA.innerHTML = '';
-    listB.innerHTML = '';
-    teamAList.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p.name + (p.handicap ? " 🧩" : "");
-        li.style.cursor = "pointer";
-        li.onclick = () => togglePlayerTeam(p.name);
-        listA.appendChild(li);
-    });
-    teamBList.forEach(p => {
-        const li = document.createElement("li");
-        li.textContent = p.name + (p.handicap ? " 🧩" : "");
-        li.style.cursor = "pointer";
-        li.onclick = () => togglePlayerTeam(p.name);
-        listB.appendChild(li);
+function displayTeams() {
+    const container = document.getElementById("teamsContainer");
+    if (!container) return;
+    
+    container.innerHTML = '';
+    const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
+    
+    teams.forEach((team, teamIdx) => {
+        const box = document.createElement("div");
+        box.style.background = "var(--panel)";
+        box.style.border = "2px solid var(--divider)";
+        box.style.borderRadius = "12px";
+        box.style.padding = "12px";
+        box.style.marginBottom = "12px";
+        
+        const title = document.createElement("h3");
+        title.textContent = `${teamEmojis[teamIdx % teamEmojis.length]} Team ${teamIdx + 1}`;
+        title.style.margin = "0 0 8px 0";
+        title.style.color = "var(--text)";
+        box.appendChild(title);
+        
+        const list = document.createElement("ul");
+        list.style.listStyle = "none";
+        list.style.padding = "0";
+        list.style.margin = "0";
+        list.id = `teamList${teamIdx}`;
+        
+        team.forEach(p => {
+            const li = document.createElement("li");
+            li.textContent = p.name + (p.handicap ? " 🧩" : "");
+            li.style.cursor = "pointer";
+            li.style.padding = "6px";
+            li.style.borderRadius = "6px";
+            li.style.marginBottom = "4px";
+            li.style.background = "var(--card-bg)";
+            li.style.color = "var(--text)";
+            li.onclick = () => togglePlayerTeam(p.name, teamIdx);
+            list.appendChild(li);
+        });
+        
+        box.appendChild(list);
+        container.appendChild(box);
     });
 }
 
 function assignTeamsManually() {
-    teamA = [...players];
-    teamB = [];
-    displayTeams(teamA, teamB);
+    const teamCount = parseInt(document.getElementById("teamCount").value || 2);
+    totalTeams = teamCount;
+    
+    teams = [];
+    for (let i = 0; i < teamCount; i++) {
+        teams.push([]);
+    }
+    teams[0] = [...players];
+    
+    displayTeams();
     showScreen("teamuebersicht");
 }
 
-function togglePlayerTeam(name) {
-    let playerInA = teamA.find(p => p.name === name);
-    let playerInB = teamB.find(p => p.name === name);
-    if (playerInA) {
-        teamA = teamA.filter(p => p.name !== name);
-        teamB.push(playerInA);
-    } else if (playerInB) {
-        teamB = teamB.filter(p => p.name !== name);
-        teamA.push(playerInB);
+function togglePlayerTeam(name, fromTeamIdx) {
+    // Find player and remove from current team
+    const player = teams[fromTeamIdx].find(p => p.name === name);
+    if (!player) return;
+    
+    teams[fromTeamIdx] = teams[fromTeamIdx].filter(p => p.name !== name);
+    
+    // Find next empty team or next team in rotation
+    let targetTeamIdx = -1;
+    for (let i = (fromTeamIdx + 1) % totalTeams; i !== fromTeamIdx; i = (i + 1) % totalTeams) {
+        targetTeamIdx = i;
+        break;
     }
-    displayTeams(teamA, teamB);
+    
+    if (targetTeamIdx === -1) targetTeamIdx = (fromTeamIdx + 1) % totalTeams;
+    
+    teams[targetTeamIdx].push(player);
+    displayTeams();
 }
 
 // === Card Selection ===
@@ -570,15 +624,19 @@ function handleCardSelectionDone() {
 function prepareGameOverview() {
     const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
     const rounds = parseInt(settings.roundCount || 3);
+    const teamCount = parseInt(settings.teamCount || 2);
+    totalTeams = teamCount;
+    
     const roundEl = document.getElementById("roundSummary");
     if (roundEl) {
-        roundEl.textContent = `Es werden ${rounds} Runden gespielt. Bisher 0 abgeschlossen.`;
+        roundEl.textContent = `Es werden ${rounds} Runden mit ${teamCount} Teams gespielt. Bisher 0 abgeschlossen.`;
     }
     const general = document.getElementById("generalRulesList");
     if (general) {
         general.innerHTML = "";
         general.innerHTML += `<li>🃏 Anzahl Karten: ${settings.cardCount || 40}</li>`;
         general.innerHTML += `<li>🔁 Spielrunden: ${rounds}</li>`;
+        general.innerHTML += `<li>👥 Teams: ${teamCount}</li>`;
         general.innerHTML += `<li>🧩 Handicap: ${settings.handicapEnabled ? 'Ja, +' + (settings.handicapTime || 5) + 's' : 'Nein'}</li>`;
         if (settings.punishEnabled) {
             general.innerHTML += `<li>⚠️ Regelmissachtung: Ja<br>
@@ -613,26 +671,79 @@ function prepareGameOverview() {
             roundWrap.appendChild(box);
         }
     }
-    const listA = document.getElementById("overviewTeamA");
-    const listB = document.getElementById("overviewTeamB");
-    if (listA && listB) {
-        listA.innerHTML = "";
-        listB.innerHTML = "";
-        teamA.forEach(p => {
-            const li = document.createElement("li");
-            li.textContent = p.name + (p.handicap ? " 🧩" : "");
-            listA.appendChild(li);
-        });
-        teamB.forEach(p => {
-            const li = document.createElement("li");
-            li.textContent = p.name + (p.handicap ? " 🧩" : "");
-            listB.appendChild(li);
-        });
+    
+    // Display all teams - new layout for 3+ teams
+    const overviewTeamsContainer = document.getElementById("overviewTeamsContainer");
+    const teamsDiv = document.querySelector('.teams');
+    
+    if (totalTeams > 2) {
+        // Show new multi-team display and hide old 2-team display
+        if (overviewTeamsContainer) {
+            overviewTeamsContainer.style.display = 'flex';
+            overviewTeamsContainer.style.flexDirection = 'column';
+            overviewTeamsContainer.innerHTML = '';
+            const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
+            
+            teams.forEach((team, idx) => {
+                const box = document.createElement("div");
+                box.style.background = "var(--panel)";
+                box.style.border = "2px solid var(--divider)";
+                box.style.borderRadius = "12px";
+                box.style.padding = "12px";
+                box.style.marginBottom = "12px";
+                
+                const title = document.createElement("h4");
+                title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1} – 0 Punkte`;
+                title.style.margin = "0 0 8px 0";
+                title.style.color = "var(--text)";
+                box.appendChild(title);
+                
+                const list = document.createElement("ul");
+                list.style.listStyle = "none";
+                list.style.padding = "0";
+                list.style.margin = "0";
+                
+                team.forEach(player => {
+                    const li = document.createElement("li");
+                    li.textContent = player.name + (player.handicap ? " 🧩" : "");
+                    li.style.color = "var(--muted)";
+                    list.appendChild(li);
+                });
+                
+                box.appendChild(list);
+                overviewTeamsContainer.appendChild(box);
+            });
+        }
+        if (teamsDiv) teamsDiv.style.display = 'none';
+    } else {
+        // Show old 2-team display and hide new multi-team display
+        if (overviewTeamsContainer) overviewTeamsContainer.style.display = 'none';
+        if (teamsDiv) teamsDiv.style.display = 'flex';
+        
+        // Fill legacy 2-team display
+        const listA = document.getElementById("overviewTeamA");
+        const listB = document.getElementById("overviewTeamB");
+        if (listA && teams[0]) {
+            listA.innerHTML = "";
+            teams[0].forEach(p => {
+                const li = document.createElement("li");
+                li.textContent = p.name + (p.handicap ? " 🧩" : "");
+                listA.appendChild(li);
+            });
+        }
+        if (listB && teams[1]) {
+            listB.innerHTML = "";
+            teams[1].forEach(p => {
+                const li = document.createElement("li");
+                li.textContent = p.name + (p.handicap ? " 🧩" : "");
+                listB.appendChild(li);
+            });
+        }
+        const teamATitle = document.getElementById("teamATitle");
+        const teamBTitle = document.getElementById("teamBTitle");
+        if (teamATitle) teamATitle.textContent = "🔴 Team 1 – 0 Punkte";
+        if (teamBTitle) teamBTitle.textContent = "🟢 Team 2 – 0 Punkte";
     }
-    const teamATitle = document.getElementById("teamATitle");
-    const teamBTitle = document.getElementById("teamBTitle");
-    if (teamATitle) teamATitle.textContent = "🔴 Team A – 0 Punkte";
-    if (teamBTitle) teamBTitle.textContent = "🟢 Team B – 0 Punkte";
     showScreen("spieluebersicht");
 }
 
@@ -692,59 +803,80 @@ function playEndAlarm() {
 }
 let displayedCards = [];
 let skipCounter = 0;
-let activePlayerIndexA = -1;
-let activePlayerIndexB = -1;
 let isPenaltyActive = false;
-let totalPoints = { A: 0, B: 0 };
+let totalPoints = []; // Array of points per team [team0_points, team1_points, ...]
 let currentCards = [];
 let currentCard = null;
-let correctCards = { A: [], B: [] };
+let correctCards = []; // Array of arrays: [team0_cards, team1_cards, ...]
 let usedCardsThisTurn = [];
-let teamMistakes = { A: 0, B: 0 };
-let activeTeam = "A";
-let activePlayerIndex = 0;
+let teamMistakes = []; // Array of mistakes per team
 let activePlayer = null;
+
+function shuffleArray(items) {
+    const shuffled = [...items];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+function buildTeamTurnOrder() {
+    const groupedBySize = new Map();
+
+    teams.forEach((team, index) => {
+        if (!Array.isArray(team) || team.length === 0) return;
+        if (!groupedBySize.has(team.length)) {
+            groupedBySize.set(team.length, []);
+        }
+        groupedBySize.get(team.length).push(index);
+    });
+
+    return [...groupedBySize.keys()]
+        .sort((a, b) => a - b)
+        .flatMap(size => shuffleArray(groupedBySize.get(size)));
+}
 
 function startGame() {
     const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
     totalRounds = parseInt(settings.roundCount || 3);
+    totalTeams = parseInt(settings.teamCount || 2);
     currentRound = 0;
     currentCards = [...playingCards];
-    let startingTeam;
-    if (teamA.length < teamB.length) {
-        startingTeam = "B";
-    } else if (teamB.length < teamA.length) {
-        startingTeam = "A";
-    } else {
-        startingTeam = Math.random() < 0.5 ? "A" : "B";
-    }
-    activeTeam = startingTeam;
-    activePlayerIndex = 0;
-    //activePlayer = (startingTeam === "A") ? teamA[0] : teamB[0];
+    
+    // Initialize points and correctCards arrays for all teams
+    totalPoints = Array(totalTeams).fill(0);
+    correctCards = Array(totalTeams).fill(null).map(() => []);
+    teamMistakes = Array(totalTeams).fill(0);
+    
+    teamTurnOrder = buildTeamTurnOrder();
+    teamTurnOrderPosition = -1;
+    activePlayerIndicesByTeam = Array(totalTeams).fill(-1);
+    activePlayerIndexInTeam = -1;
     setNextPlayer();
-    currentRoundCards = [...currentCards];
-    correctCards = { A: [], B: [] };
-    usedCardsThisTurn = [];
-    teamMistakes = { A: 0, B: 0 };
+    
     showStartRoundScreen();
 }
 
 function showStartRoundScreen() {
+    if (!activePlayer) {
+        setNextPlayer();
+    }
+    
     document.getElementById("roundPlayerName").textContent = activePlayer.name;
     const teamEl = document.getElementById("roundPlayerTeam");
-    teamEl.textContent = `Team ${activeTeam}`;
+    teamEl.textContent = `Team ${activeTeamIndex + 1}`;
     const startBtn = document.getElementById("startRoundBtn");
-    if (activeTeam === "A") {
-        teamEl.style.background = `linear-gradient(90deg, rgba(255,118,117,0.12) 60%, var(--panel) 100%)`;
-        teamEl.style.color = `var(--accent-a)`;
-        document.getElementById('roundBorderWrapper').style.borderColor = 'var(--accent-a)';
-        if (startBtn) startBtn.style.background = 'var(--primary)';
-    } else {
-        teamEl.style.background = `linear-gradient(90deg, rgba(0,184,148,0.12) 60%, var(--panel) 100%)`;
-        teamEl.style.color = `var(--accent-b)`;
-        document.getElementById('roundBorderWrapper').style.borderColor = 'var(--accent-b)';
-        if (startBtn) startBtn.style.background = 'linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)';
-    }
+    
+    // Generate team colors dynamically
+    const teamColors = ['#ff7675', '#00b894', '#3498db', '#f39c12', '#9b59b6', '#e74c3c', '#1abc9c', '#34495e'];
+    const color = teamColors[activeTeamIndex % teamColors.length];
+    
+    teamEl.style.background = `linear-gradient(90deg, rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},0.12) 60%, var(--panel) 100%)`;
+    teamEl.style.color = color;
+    document.getElementById('roundBorderWrapper').style.borderColor = color;
+    if (startBtn) startBtn.style.background = `linear-gradient(90deg, ${color} 0%, ${color}dd 100%)`;
+    
     showScreen("roundstart");
 }
 
@@ -767,7 +899,7 @@ function startRoundTimer() {
     displayedCards = [];
     skipCounter = 0;
     document.getElementById("playRoundPlayer").textContent = activePlayer.name;
-    document.getElementById("playRoundTeam").textContent = `Team ${activeTeam}`;
+    document.getElementById("playRoundTeam").textContent = `Team ${activeTeamIndex + 1}`;
     document.getElementById("timerDisplay").textContent = `${remainingTime}s`;
     showScreen("play");
     timer = setInterval(() => {
@@ -813,7 +945,7 @@ function showNextCard() {
 
 function handleCorrect() {
     if (!currentCard) return;
-    correctCards[activeTeam].push(currentCard);
+    correctCards[activeTeamIndex].push(currentCard);
     currentCards = currentCards.filter(card => card.begriff !== currentCard.begriff);
     showingExplanation = false;
     showNextCard();
@@ -837,7 +969,7 @@ function handleSkip() {
 function handleMistake() {
     const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
     if (isPenaltyActive) return;
-    teamMistakes[activeTeam] = (teamMistakes[activeTeam] || 0) + 1;
+    teamMistakes[activeTeamIndex] = (teamMistakes[activeTeamIndex] || 0) + 1;
     displayedCards.push(currentCard.begriff);
     if (settings.punishEnabled) {
         const delay = parseInt(settings.punishTime || 3);
@@ -888,25 +1020,32 @@ function toggleExplanation() {
 }
 
 function setNextPlayer() {
-    // Team wechseln
-    activeTeam = (activeTeam === "A") ? "B" : "A";
-    if (activeTeam === "A") {
-        if (teamA.length === 0) {
-            activePlayer = null;
-        } else {
-            activePlayerIndexA = (typeof activePlayerIndexA === "number" ? activePlayerIndexA : 0);
-            activePlayerIndexA = (activePlayerIndexA + 1) % teamA.length;
-            activePlayer = teamA[activePlayerIndexA];
-        }
-    } else {
-        if (teamB.length === 0) {
-            activePlayer = null;
-        } else {
-            activePlayerIndexB = (typeof activePlayerIndexB === "number" ? activePlayerIndexB : 0);
-            activePlayerIndexB = (activePlayerIndexB + 1) % teamB.length;
-            activePlayer = teamB[activePlayerIndexB];
-        }
+    if (teamTurnOrder.length === 0) {
+        teamTurnOrder = buildTeamTurnOrder();
+        teamTurnOrderPosition = -1;
     }
+
+    if (teamTurnOrder.length === 0) {
+        activePlayer = null;
+        return;
+    }
+
+    teamTurnOrderPosition = (teamTurnOrderPosition + 1) % teamTurnOrder.length;
+    activeTeamIndex = teamTurnOrder[teamTurnOrderPosition];
+    
+    const currentTeam = teams[activeTeamIndex];
+    if (!currentTeam || currentTeam.length === 0) {
+        activePlayer = null;
+        return;
+    }
+    
+    if (!Array.isArray(activePlayerIndicesByTeam) || activePlayerIndicesByTeam.length < totalTeams) {
+        activePlayerIndicesByTeam = Array(totalTeams).fill(-1);
+    }
+
+    activePlayerIndexInTeam = ((activePlayerIndicesByTeam[activeTeamIndex] ?? -1) + 1) % currentTeam.length;
+    activePlayerIndicesByTeam[activeTeamIndex] = activePlayerIndexInTeam;
+    activePlayer = currentTeam[activePlayerIndexInTeam];
 }
 
 function endRound() {
@@ -922,30 +1061,100 @@ function endRound() {
 
 function showRoundStats() {
     document.getElementById("statsRoundNumber").textContent = currentRound + 1;
-    const pointsA = correctCards.A.length;
-    const pointsB = correctCards.B.length;
-    totalPoints.A += pointsA;
-    totalPoints.B += pointsB;
-    document.getElementById("pointsTeamA").textContent = totalPoints.A;
-    document.getElementById("pointsTeamB").textContent = totalPoints.B;
-
-    // Team A Spielernamen
-    const statsTeamAList = document.getElementById("statsTeamAList");
-    statsTeamAList.innerHTML = "";
-    teamA.forEach(player => {
-        const li = document.createElement("li");
-        li.textContent = player.name || player; // falls nur String
-        statsTeamAList.appendChild(li);
+    
+    // Update total points and calculate points for this round
+    let totalPointsThisRound = 0;
+    correctCards.forEach((teamCards, idx) => {
+        const teamPoints = teamCards.length;
+        totalPoints[idx] += teamPoints;
+        totalPointsThisRound += teamPoints;
     });
-
-    // Team B Spielernamen
-    const statsTeamBList = document.getElementById("statsTeamBList");
-    statsTeamBList.innerHTML = "";
-    teamB.forEach(player => {
-        const li = document.createElement("li");
-        li.textContent = player.name || player;
-        statsTeamBList.appendChild(li);
-    });
+    
+    // Update stats display - new layout for 3+ teams
+    const statsContainer = document.getElementById("statsContainer");
+    const statsOldTeamsDiv = document.querySelector('#screen-roundstats > div:nth-child(2)');
+    
+    if (totalTeams > 2) {
+        // Show new multi-team display and hide old 2-team display
+        if (statsContainer) {
+            statsContainer.style.display = 'flex';
+            statsContainer.innerHTML = '';
+            const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
+            
+            teams.forEach((team, idx) => {
+                const box = document.createElement("div");
+                box.style.background = "var(--panel)";
+                box.style.border = "2px solid var(--divider)";
+                box.style.borderRadius = "12px";
+                box.style.padding = "12px";
+                box.style.marginBottom = "12px";
+                
+                const title = document.createElement("h4");
+                title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1}`;
+                title.style.margin = "0 0 8px 0";
+                title.style.color = "var(--text)";
+                box.appendChild(title);
+                
+                const points = document.createElement("p");
+                points.textContent = `Punkte: ${totalPoints[idx]}`;
+                points.style.margin = "0 0 6px 0";
+                points.style.fontWeight = "bold";
+                points.style.color = "var(--text)";
+                box.appendChild(points);
+                
+                const list = document.createElement("ul");
+                list.style.listStyle = "none";
+                list.style.padding = "0";
+                list.style.margin = "0";
+                
+                team.forEach(player => {
+                    const li = document.createElement("li");
+                    li.textContent = player.name;
+                    li.style.color = "var(--muted)";
+                    list.appendChild(li);
+                });
+                
+                box.appendChild(list);
+                statsContainer.appendChild(box);
+            });
+        }
+        if (statsOldTeamsDiv) statsOldTeamsDiv.style.display = 'none';
+    } else {
+        // Show old 2-team display and hide new multi-team display
+        if (statsContainer) statsContainer.style.display = 'none';
+        if (statsOldTeamsDiv) statsOldTeamsDiv.style.display = 'flex';
+        
+        // Legacy 2-team display
+        const statsTeamAList = document.getElementById("statsTeamAList");
+        const statsTeamBList = document.getElementById("statsTeamBList");
+        if (statsTeamAList) {
+            statsTeamAList.innerHTML = "";
+            if (teams[0]) {
+                teams[0].forEach(player => {
+                    const li = document.createElement("li");
+                    li.textContent = player.name || player;
+                    statsTeamAList.appendChild(li);
+                });
+            }
+        }
+        if (statsTeamBList) {
+            statsTeamBList.innerHTML = "";
+            if (teams[1]) {
+                teams[1].forEach(player => {
+                    const li = document.createElement("li");
+                    li.textContent = player.name || player;
+                    statsTeamBList.appendChild(li);
+                });
+            }
+        }
+        
+        if (totalPoints.length >= 2) {
+            const pointsTeamAEl = document.getElementById("pointsTeamA");
+            const pointsTeamBEl = document.getElementById("pointsTeamB");
+            if (pointsTeamAEl) pointsTeamAEl.textContent = totalPoints[0];
+            if (pointsTeamBEl) pointsTeamBEl.textContent = totalPoints[1];
+        }
+    }
 
     showScreen("roundstats");
 }
@@ -959,36 +1168,104 @@ function nextGameRound() {
     }
     currentCards = [...playingCards];
     displayedCards = [];
-    correctCards = { A: [], B: [] };
-    teamMistakes = { A: 0, B: 0 };
+    correctCards = Array(totalTeams).fill(null).map(() => []);
+    teamMistakes = Array(totalTeams).fill(0);
     skipCounter = 0;
     setNextPlayer();
     showStartRoundScreen();
 }
 
 function showFinalScreen() {
-    document.getElementById("finalPointsA").textContent = totalPoints.A || 0;
-    document.getElementById("finalPointsB").textContent = totalPoints.B || 0;
-    const listA = document.getElementById("finalTeamA");
-    const listB = document.getElementById("finalTeamB");
-    listA.innerHTML = "";
-    listB.innerHTML = "";
-    teamA.forEach(player => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-        <td style="padding: 4px 12px;">${player.name}</td>
-        <td style="text-align: center;">${player.handicap ? "✔️" : ""}</td>
-      `;
-        listA.appendChild(row);
-    });
-    teamB.forEach(player => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-        <td style="padding: 4px 12px;">${player.name}</td>
-        <td style="text-align: center;">${player.handicap ? "✔️" : ""}</td>
-      `;
-        listB.appendChild(row);
-    });
+    const container = document.getElementById("finalTeamsContainer");
+    const twoTeamContainer = document.getElementById("finalTwoTeamContainer");
+
+    if (totalTeams > 2 && container) {
+        if (twoTeamContainer) twoTeamContainer.style.display = 'none';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.innerHTML = '';
+        const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
+        
+        teams.forEach((team, idx) => {
+            const box = document.createElement("div");
+            box.style.background = "var(--panel)";
+            box.style.border = "2px solid var(--divider)";
+            box.style.borderRadius = "12px";
+            box.style.padding = "12px";
+            box.style.marginBottom = "12px";
+            
+            const title = document.createElement("h3");
+            title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1}`;
+            title.style.margin = "0 0 8px 0";
+            title.style.color = "var(--text)";
+            box.appendChild(title);
+            
+            const points = document.createElement("p");
+            points.textContent = `Punkte: ${totalPoints[idx]}`;
+            points.style.margin = "0 0 6px 0";
+            points.style.fontWeight = "bold";
+            points.style.fontSize = "1.3rem";
+            points.style.color = "var(--text)";
+            box.appendChild(points);
+            
+            const list = document.createElement("ul");
+            list.style.listStyle = "none";
+            list.style.padding = "0";
+            list.style.margin = "0";
+            
+            team.forEach(player => {
+                const li = document.createElement("li");
+                li.textContent = player.name + (player.handicap ? " 🧩" : "");
+                li.style.color = "var(--muted)";
+                list.appendChild(li);
+            });
+            
+            box.appendChild(list);
+            container.appendChild(box);
+        });
+    } else if (container) {
+        container.style.display = 'none';
+    }
+    
+    // Legacy 2-team display only
+    if (totalTeams === 2) {
+        if (twoTeamContainer) twoTeamContainer.style.display = 'flex';
+        const finalTeamA = document.getElementById("finalTeamA");
+        const finalTeamB = document.getElementById("finalTeamB");
+        if (finalTeamA && teams[0]) {
+            finalTeamA.innerHTML = "";
+            teams[0].forEach(player => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td style="padding: 4px 12px;">${player.name}</td>
+                    <td style="text-align: center;">${player.handicap ? "✔️" : ""}</td>
+                `;
+                finalTeamA.appendChild(row);
+            });
+        }
+        if (finalTeamB && teams[1]) {
+            finalTeamB.innerHTML = "";
+            teams[1].forEach(player => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td style="padding: 4px 12px;">${player.name}</td>
+                    <td style="text-align: center;">${player.handicap ? "✔️" : ""}</td>
+                `;
+                finalTeamB.appendChild(row);
+            });
+        }
+        
+        // Update total points display
+        if (totalPoints[0] !== undefined) {
+            const finalPointsA = document.getElementById("finalPointsA");
+            if (finalPointsA) finalPointsA.textContent = totalPoints[0];
+        }
+        if (totalPoints[1] !== undefined) {
+            const finalPointsB = document.getElementById("finalPointsB");
+            if (finalPointsB) finalPointsB.textContent = totalPoints[1];
+        }
+    }
+    
     showScreen("end");
 }
 
@@ -1227,7 +1504,7 @@ function showCardCorrectionScreen(guessedOverlay) {
     list.style.maxWidth = "420px";
 
     // Kopie für Manipulation
-    const guessed = [...correctCards[activeTeam]];
+    const guessed = [...correctCards[activeTeamIndex]];
 
     guessed.forEach((card, idx) => {
         const li = document.createElement("li");
@@ -1257,7 +1534,7 @@ function showCardCorrectionScreen(guessedOverlay) {
             // Bestätigung vor dem Entfernen
             if (confirm("Willst du wirklich, dass diese Karte ein Fehler war?")) {
                 // Karte aus der richtigen Liste entfernen
-                correctCards[activeTeam] = correctCards[activeTeam].filter(c => c !== card);
+                correctCards[activeTeamIndex] = correctCards[activeTeamIndex].filter(c => c !== card);
                 // Karte zurück in den Stapel der aktuellen Runde
                 currentCards.push(card);
                 // Element aus der Liste entfernen
@@ -1322,28 +1599,28 @@ function resetGameState() {
     // Spielverlauf-Variablen zurücksetzen (Settings & Karten bleiben erhalten)
     currentRound = 0;
     totalRounds = 1;
-    teamA = [];
-    teamB = [];
+    teams = [];
     currentCardPlayerIndex = 0;
     shuffledCardPool = [];
     playerCardCount = 0;
     playingCards = [];
     currentCards = [];
     currentCard = null;
-    correctCards = { A: [], B: [] };
+    correctCards = [];
     usedCardsThisTurn = [];
-    teamMistakes = { A: 0, B: 0 };
-    activeTeam = "A";
-    activePlayerIndex = 0;
+    teamMistakes = [];
+    activeTeamIndex = 0;
+    activePlayerIndexInTeam = -1;
+    teamTurnOrder = [];
+    teamTurnOrderPosition = -1;
+    activePlayerIndicesByTeam = [];
     activePlayer = null;
-    activePlayerIndexA = -1;
-    activePlayerIndexB = -1;
     timer = undefined;
     remainingTime = 0;
     displayedCards = [];
     skipCounter = 0;
     isPenaltyActive = false;
-    totalPoints = { A: 0, B: 0 };
+    totalPoints = [];
     showingExplanation = false;
     cardsWereShown = false;
     allowCardClick = false;
