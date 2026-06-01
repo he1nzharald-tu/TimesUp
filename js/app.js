@@ -755,22 +755,78 @@ let isTimerRunning = false; // guard to prevent duplicate intervals
 let tickAudio = null;
 let endAudio = null;
 let audiotime = false;
+let audioUnlocked = false;
+
+function prepareAudioElement(audio) {
+    if (!audio) return null;
+    audio.preload = 'auto';
+    audio.setAttribute('preload', 'auto');
+    audio.setAttribute('playsinline', '');
+    audio.setAttribute('webkit-playsinline', '');
+    try { audio.load(); } catch (e) {}
+    return audio;
+}
+
 try {
     // prefer a short ticking/pip audio for the last seconds
-    tickAudio = new Audio('assets/timer5.m4a');
-    tickAudio.preload = 'auto';
+    tickAudio = prepareAudioElement(new Audio('assets/timer5.m4a'));
     tickAudio.volume = 0.7;
+    tickAudio.addEventListener('ended', () => { audiotime = false; });
 } catch (e) { tickAudio = null; }
 try {
     const el = document.getElementById('alarm-sound');
     if (el && el.tagName === 'AUDIO') {
-        endAudio = el;
+        endAudio = prepareAudioElement(el);
     } else {
-        endAudio = new Audio('assets/Alarm.m4a');
-        endAudio.preload = 'auto';
+        endAudio = prepareAudioElement(new Audio('assets/Alarm.m4a'));
     }
     try { endAudio.volume = 0.85; } catch (e) {}
 } catch (e) { endAudio = null; }
+
+function unlockSingleAudio(audio) {
+    if (!audio) return Promise.resolve(true);
+
+    const wasMuted = audio.muted;
+    const previousVolume = audio.volume;
+    audio.muted = true;
+    try { audio.volume = 0; } catch (e) {}
+    try { audio.currentTime = 0; } catch (e) {}
+
+    let playPromise;
+    try {
+        playPromise = audio.play();
+    } catch (e) {
+        audio.muted = wasMuted;
+        try { audio.volume = previousVolume; } catch (err) {}
+        return Promise.resolve(false);
+    }
+
+    return Promise.resolve(playPromise)
+        .then(() => true)
+        .catch(() => false)
+        .then(success => {
+            try { audio.pause(); } catch (e) {}
+            try { audio.currentTime = 0; } catch (e) {}
+            audio.muted = wasMuted;
+            try { audio.volume = previousVolume; } catch (e) {}
+            return success;
+        });
+}
+
+function unlockGameAudio() {
+    if (audioUnlocked) return Promise.resolve();
+
+    return Promise.all([
+        unlockSingleAudio(tickAudio),
+        unlockSingleAudio(endAudio)
+    ]).then(results => {
+        audioUnlocked = results.every(Boolean);
+    });
+}
+
+['pointerdown', 'touchstart', 'click'].forEach(eventName => {
+    document.addEventListener(eventName, unlockGameAudio, { once: true, passive: true });
+});
 
 function playTick() {
     if (!tickAudio) return;
@@ -778,9 +834,9 @@ function playTick() {
     try {
         tickAudio.currentTime = 0;
         const p = tickAudio.play();
-        if (p && p.catch) p.catch(() => {});
+        if (p && p.catch) p.catch(() => { audiotime = false; });
+        audiotime = true;
     } catch (e) { }
-    audiotime = true;
 }
 
 function stopTick() {
@@ -1275,8 +1331,9 @@ function setActionButtonsEnabled(enabled) {
 }
 
 function confirmStartRound() {
+    const audioReady = unlockGameAudio();
     if (confirm("Bist du bereit, deinen Timer zu starten?\nDeine Zeit beginnt sofort.")) {
-        startRoundTimer();
+        audioReady.finally(startRoundTimer);
     }
 }
 
