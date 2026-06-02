@@ -53,6 +53,77 @@ body {
   display: block;
 }
 
+#screen-start {
+  --start-bg-base: var(--card-bg);
+  --start-bg-line: rgba(116, 185, 255, 0.2);
+  --start-bg-line-soft: rgba(162, 155, 254, 0.14);
+  --start-bg-glow-a: rgba(255, 118, 117, 0.16);
+  --start-bg-glow-b: rgba(0, 184, 148, 0.14);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 18%, var(--start-bg-glow-a), transparent 30%),
+    radial-gradient(circle at 85% 8%, var(--start-bg-glow-b), transparent 28%),
+    linear-gradient(180deg, var(--start-bg-base), var(--start-bg-base));
+}
+
+.dark #screen-start {
+  --start-bg-line: rgba(92, 225, 184, 0.15);
+  --start-bg-line-soft: rgba(124, 58, 237, 0.12);
+  --start-bg-glow-a: rgba(255, 139, 148, 0.08);
+  --start-bg-glow-b: rgba(59, 130, 246, 0.12);
+}
+
+#screen-start::before,
+#screen-start::after {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+#screen-start::before {
+  background-image:
+    linear-gradient(115deg, transparent 0 46%, var(--start-bg-line) 47%, transparent 48% 100%),
+    linear-gradient(115deg, transparent 0 54%, var(--start-bg-line-soft) 55%, transparent 56% 100%);
+  background-size: 160px 160px, 220px 220px;
+  opacity: 0.72;
+  animation: startBackgroundDrift 18s linear infinite;
+}
+
+#screen-start::after {
+  background:
+    radial-gradient(circle, var(--start-bg-line) 0 2px, transparent 3px),
+    radial-gradient(circle, var(--start-bg-line-soft) 0 1px, transparent 2px);
+  background-size: 92px 92px, 136px 136px;
+  opacity: 0.55;
+  animation: startBackgroundFloat 24s ease-in-out infinite alternate;
+}
+
+#screen-start > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes startBackgroundDrift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(120px, 80px, 0); }
+}
+
+@keyframes startBackgroundFloat {
+  from { transform: translate3d(-24px, -10px, 0) rotate(0.001deg); }
+  to { transform: translate3d(24px, 18px, 0) rotate(0.001deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #screen-start::before,
+  #screen-start::after {
+    animation: none;
+  }
+}
+
 h2, h3, h4 {
   font-family: 'Fredoka', Arial, sans-serif;
   letter-spacing: 1px;
@@ -367,6 +438,106 @@ hr.divider {
 
 td[data-label="Entfernen"] {
   text-align: center;
+}
+
+#screen-start,
+#screen-start h2,
+#screen-start table,
+#screen-start thead,
+#screen-start tbody,
+#screen-start tr,
+#screen-start th,
+#screen-start td {
+  color: var(--text) !important;
+}
+
+#screen-start h2 span:first-child {
+  color: var(--text) !important;
+}
+
+#screen-start h2 span:last-child,
+#screen-start th,
+#screen-start #kartenStatusText,
+#screen-start #kartenStatusText span,
+#screen-start button.secondary,
+#screen-start td::before {
+  color: var(--muted) !important;
+}
+
+#screen-start button {
+  color: var(--text) !important;
+}
+
+#screen-start td button {
+  color: var(--text) !important;
+}
+
+#screen-start input {
+  color: var(--text) !important;
+  background-color: var(--card-bg) !important;
+}
+
+#screen-start input::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.85;
+}
+
+.dark #screen-start::before {
+  opacity: 0.24;
+}
+
+.dark #screen-start::after {
+  opacity: 0.2;
+}
+
+#screen-start,
+#screen-start h2,
+#screen-start table,
+#screen-start thead,
+#screen-start tbody,
+#screen-start tr,
+#screen-start th,
+#screen-start td {
+  color: var(--text) !important;
+}
+
+#screen-start h2 span:first-child {
+  color: var(--text) !important;
+}
+
+#screen-start h2 span:last-child,
+#screen-start th,
+#screen-start #kartenStatusText,
+#screen-start #kartenStatusText span,
+#screen-start button.secondary,
+#screen-start td::before {
+  color: var(--muted) !important;
+}
+
+#screen-start button {
+  color: var(--text) !important;
+}
+
+#screen-start td button {
+  color: var(--text) !important;
+}
+
+#screen-start input {
+  color: var(--text) !important;
+  background-color: var(--card-bg) !important;
+}
+
+#screen-start input::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.85;
+}
+
+.dark #screen-start::before {
+  opacity: 0.24;
+}
+
+.dark #screen-start::after {
+  opacity: 0.2;
 }
 :root {
   --accent: var(--accent-a);
@@ -739,4 +910,54 @@ hr.divider {
 
 td[data-label="Entfernen"] {
   text-align: center;
+}
+
+#screen-start,
+#screen-start h2,
+#screen-start table,
+#screen-start thead,
+#screen-start tbody,
+#screen-start tr,
+#screen-start th,
+#screen-start td {
+  color: var(--text) !important;
+}
+
+#screen-start h2 span:first-child {
+  color: var(--text) !important;
+}
+
+#screen-start h2 span:last-child,
+#screen-start th,
+#screen-start #kartenStatusText,
+#screen-start #kartenStatusText span,
+#screen-start button.secondary,
+#screen-start td::before {
+  color: var(--muted) !important;
+}
+
+#screen-start button {
+  color: var(--text) !important;
+}
+
+#screen-start td button {
+  color: var(--text) !important;
+}
+
+#screen-start input {
+  color: var(--text) !important;
+  background-color: var(--card-bg) !important;
+}
+
+#screen-start input::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.85;
+}
+
+.dark #screen-start::before {
+  opacity: 0.24;
+}
+
+.dark #screen-start::after {
+  opacity: 0.2;
 }
