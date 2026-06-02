@@ -1437,6 +1437,10 @@ function showFinalScreen() {
     savePlayedCardsToActiveArchive();
     const container = document.getElementById("finalTeamsContainer");
     const twoTeamContainer = document.getElementById("finalTwoTeamContainer");
+    const maxPoints = totalPoints.length ? Math.max(...totalPoints) : 0;
+    const winningTeamIndexes = new Set(totalPoints
+        .map((points, index) => points === maxPoints ? index : -1)
+        .filter(index => index !== -1));
 
     if (totalTeams > 2 && container) {
         if (twoTeamContainer) twoTeamContainer.style.display = 'none';
@@ -1447,6 +1451,9 @@ function showFinalScreen() {
         teams.forEach((team, idx) => {
             const box = document.createElement("div");
             box.className = "team-overview-card";
+            if (winningTeamIndexes.has(idx)) {
+                box.classList.add("winner-team");
+            }
             
             const title = document.createElement("h3");
             title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1}`;
@@ -1478,6 +1485,10 @@ function showFinalScreen() {
     // Legacy 2-team display only
     if (totalTeams === 2) {
         if (twoTeamContainer) twoTeamContainer.style.display = 'flex';
+        const finalTeamACard = document.getElementById("finalTeamACard");
+        const finalTeamBCard = document.getElementById("finalTeamBCard");
+        if (finalTeamACard) finalTeamACard.classList.toggle("winner-team", winningTeamIndexes.has(0));
+        if (finalTeamBCard) finalTeamBCard.classList.toggle("winner-team", winningTeamIndexes.has(1));
         const finalTeamA = document.getElementById("finalTeamA");
         const finalTeamB = document.getElementById("finalTeamB");
         if (finalTeamA && teams[0]) {

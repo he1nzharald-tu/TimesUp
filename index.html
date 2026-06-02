@@ -926,12 +926,22 @@
 
     <!-- === Endergebnis Bildschirm === -->
     <div id="screen-end" class="screen">
+        <div class="fireworks" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         <h2 style="text-align: center; font-size: 2.3rem; margin-bottom: 0px; letter-spacing: 1px;">
             🏁 Spiel beendet
         </h2>
         <div id="finalTwoTeamContainer" style="display: flex; justify-content: center; gap: 2.5rem; flex-wrap: nowrap; margin-top: 5px;">
             <!-- Team A -->
-            <div style="
+            <div id="finalTeamACard" style="
                 border: 2.5px solid var(--accent-a);
                 border-radius: 18px;
                 padding: 1.2rem 1rem 0.5rem 1rem;
@@ -965,7 +975,7 @@
                 </div>
             </div>
             <!-- Team B -->
-            <div style="
+            <div id="finalTeamBCard" style="
                 border: 2.5px solid var(--accent-b);
                 border-radius: 18px;
                 padding: 1.2rem 1rem 0.5rem 1rem;
