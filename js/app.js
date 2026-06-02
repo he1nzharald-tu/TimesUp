@@ -304,6 +304,15 @@ function continueToNext() {
     alert("Hier folgt der nächste Bildschirm…");
 }
 
+function getDefaultRuleOptions() {
+    return [
+        "Nur beschreiben",
+        "Nur ein Wort",
+        "Pantomime und Geräusche",
+        "Nur einsilbig beschreiben"
+    ];
+}
+
 // === Round Settings ===
 function renderRoundSettings() {
     const roundCount = parseInt(document.getElementById("roundCount").value);
@@ -326,22 +335,19 @@ function renderRoundSettings() {
 
         const selectedRule = i <= 3 ? defaultRules[i - 1] : "";
         const defaultSkip = (i === 2) ? "yes" : "no";
-        const ruleOptions = [
-            "Nur beschreiben",
-            "Nur ein Wort",
-            "Pantomime und Geräusche",
-            "Nur einsilbig beschreiben"
-        ];
+        const ruleOptions = getDefaultRuleOptions();
 
         div.innerHTML = `
         <h4>Runde ${i}</h4>
         <label for="rule${i}">Regel</label>
-        <select id="rule${i}">
+        <select id="rule${i}" onchange="toggleCustomRuleInput(${i}, true)">
           <option value="">-- bitte auswählen --</option>
           ${ruleOptions.map(rule =>
             `<option value="${rule}" ${selectedRule === rule ? "selected" : ""}>${rule}</option>`
         ).join("")}
+          <option value="custom">Eigene Regel</option>
         </select>
+        <input type="text" id="customRule${i}" class="hidden" placeholder="Eigene Regel eingeben" />
         <label for="timer${i}">Timer (Sekunden)</label>
         <input type="number" id="timer${i}" min="10" value="30" />
         <label for="skipAllowed${i}">Überspringen erlaubt?</label>
@@ -380,6 +386,18 @@ function toggleSkipOptions(round) {
     }
 }
 
+function toggleCustomRuleInput(round, focusInput = false) {
+    const ruleSelect = document.getElementById(`rule${round}`);
+    const customRuleInput = document.getElementById(`customRule${round}`);
+    if (!ruleSelect || !customRuleInput) return;
+
+    const isCustomRule = ruleSelect.value === "custom";
+    customRuleInput.classList.toggle("hidden", !isCustomRule);
+    if (isCustomRule && focusInput) {
+        customRuleInput.focus();
+    }
+}
+
 function toggleSkipLimitValue(round) {
     const type = document.getElementById(`skipLimitType${round}`).value;
     const valueField = document.getElementById(`skipLimitValue${round}`);
@@ -399,6 +417,13 @@ function validateSettingsAndGoBack() {
         if (!rule || !rule.value || rule.value === "") {
             alert(`⚠️ Bitte wähle eine Regel für Runde ${i}.`);
             return;
+        }
+        if (rule.value === "custom") {
+            const customRule = document.getElementById(`customRule${i}`)?.value.trim();
+            if (!customRule) {
+                alert(`⚠️ Bitte gib eine eigene Regel für Runde ${i} ein.`);
+                return;
+            }
         }
     }
     saveSettingsToStorage();
@@ -424,7 +449,11 @@ function saveSettingsToStorage() {
         punishPoints: document.getElementById("punishPoints").value
     };
     for (let i = 1; i <= settings.roundCount; i++) {
-        const rule = document.getElementById(`rule${i}`).value;
+        const ruleSelect = document.getElementById(`rule${i}`);
+        const customRuleInput = document.getElementById(`customRule${i}`);
+        const rule = ruleSelect.value === "custom"
+            ? (customRuleInput?.value.trim() || "")
+            : ruleSelect.value;
         const timer = parseInt(document.getElementById(`timer${i}`).value);
         const skipAllowed = document.getElementById(`skipAllowed${i}`).value.toLowerCase();
         const skipType = document.getElementById(`skipLimitType${i}`).value.toLowerCase();
@@ -476,7 +505,19 @@ function loadSettingsFromStorage() {
     document.getElementById("punishPoints").value = settings.punishPoints || "no";
     renderRoundSettings();
     for (let i = 1; i <= (settings.roundCount || 3); i++) {
-        document.getElementById(`rule${i}`).value = settings.roundRules?.[i - 1] || "";
+        const savedRule = settings.roundRules?.[i - 1] || "";
+        const ruleSelect = document.getElementById(`rule${i}`);
+        const customRuleInput = document.getElementById(`customRule${i}`);
+        if (ruleSelect) {
+            if (savedRule && !getDefaultRuleOptions().includes(savedRule)) {
+                ruleSelect.value = "custom";
+                if (customRuleInput) customRuleInput.value = savedRule;
+            } else {
+                ruleSelect.value = savedRule;
+                if (customRuleInput) customRuleInput.value = "";
+            }
+            toggleCustomRuleInput(i);
+        }
         document.getElementById(`timer${i}`).value = settings.roundTimer?.[i - 1] || 60;
         document.getElementById(`skipAllowed${i}`).value = settings.roundSkip?.[i - 1] || "Nein";
     }
@@ -505,6 +546,9 @@ function resetAllSettings() {
     const defaultSkips = ["Nein", "Ja", "Nein"];
     for (let i = 1; i <= 3; i++) {
         document.getElementById(`rule${i}`).value = defaultRules[i - 1] || "";
+        const customRuleInput = document.getElementById(`customRule${i}`);
+        if (customRuleInput) customRuleInput.value = "";
+        toggleCustomRuleInput(i);
         document.getElementById(`timer${i}`).value = defaultTimers[i - 1] || 30;
         document.getElementById(`skipAllowed${i}`).value = defaultSkips[i - 1] || "Nein";
     }
