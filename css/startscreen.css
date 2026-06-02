@@ -53,7 +53,11 @@ body {
   display: block;
 }
 
-#screen-start {
+#screen-start,
+#screen-teamauswahl,
+#screen-teamuebersicht,
+#screen-kartenauswahl,
+#screen-spieluebersicht {
   --start-bg-base: var(--card-bg);
   --start-bg-line: rgba(116, 185, 255, 0.2);
   --start-bg-line-soft: rgba(162, 155, 254, 0.14);
@@ -68,7 +72,11 @@ body {
     linear-gradient(180deg, var(--start-bg-base), var(--start-bg-base));
 }
 
-.dark #screen-start {
+.dark #screen-start,
+.dark #screen-teamauswahl,
+.dark #screen-teamuebersicht,
+.dark #screen-kartenauswahl,
+.dark #screen-spieluebersicht {
   --start-bg-line: rgba(92, 225, 184, 0.15);
   --start-bg-line-soft: rgba(124, 58, 237, 0.12);
   --start-bg-glow-a: rgba(255, 139, 148, 0.08);
@@ -76,7 +84,15 @@ body {
 }
 
 #screen-start::before,
-#screen-start::after {
+#screen-start::after,
+#screen-teamauswahl::before,
+#screen-teamauswahl::after,
+#screen-teamuebersicht::before,
+#screen-teamuebersicht::after,
+#screen-kartenauswahl::before,
+#screen-kartenauswahl::after,
+#screen-spieluebersicht::before,
+#screen-spieluebersicht::after {
   content: "";
   position: absolute;
   inset: -35%;
@@ -84,7 +100,11 @@ body {
   pointer-events: none;
 }
 
-#screen-start::before {
+#screen-start::before,
+#screen-teamauswahl::before,
+#screen-teamuebersicht::before,
+#screen-kartenauswahl::before,
+#screen-spieluebersicht::before {
   background-image:
     linear-gradient(115deg, transparent 0 46%, var(--start-bg-line) 47%, transparent 48% 100%),
     linear-gradient(115deg, transparent 0 54%, var(--start-bg-line-soft) 55%, transparent 56% 100%);
@@ -93,7 +113,11 @@ body {
   animation: startBackgroundDrift 18s linear infinite;
 }
 
-#screen-start::after {
+#screen-start::after,
+#screen-teamauswahl::after,
+#screen-teamuebersicht::after,
+#screen-kartenauswahl::after,
+#screen-spieluebersicht::after {
   background:
     radial-gradient(circle, var(--start-bg-line) 0 2px, transparent 3px),
     radial-gradient(circle, var(--start-bg-line-soft) 0 1px, transparent 2px);
@@ -102,7 +126,11 @@ body {
   animation: startBackgroundFloat 24s ease-in-out infinite alternate;
 }
 
-#screen-start > * {
+#screen-start > *,
+#screen-teamauswahl > *,
+#screen-teamuebersicht > *,
+#screen-kartenauswahl > *,
+#screen-spieluebersicht > * {
   position: relative;
   z-index: 1;
 }
@@ -119,7 +147,15 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   #screen-start::before,
-  #screen-start::after {
+  #screen-start::after,
+  #screen-teamauswahl::before,
+  #screen-teamauswahl::after,
+  #screen-teamuebersicht::before,
+  #screen-teamuebersicht::after,
+  #screen-kartenauswahl::before,
+  #screen-kartenauswahl::after,
+  #screen-spieluebersicht::before,
+  #screen-spieluebersicht::after {
     animation: none;
   }
 }
