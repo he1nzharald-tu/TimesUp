@@ -526,6 +526,87 @@ td[data-label="Entfernen"] {
   opacity: 0.2;
 }
 
+#screen-roundstart {
+  position: relative;
+  isolation: isolate;
+}
+
+#roundBorderWrapper {
+  --roundstart-bg-base: var(--card-bg);
+  --roundstart-orbit-a: rgba(246, 209, 0, 0.18);
+  --roundstart-orbit-b: rgba(116, 185, 255, 0.14);
+  --roundstart-orbit-c: rgba(0, 184, 148, 0.12);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 44%, transparent 0 32%, var(--roundstart-orbit-a) 33%, transparent 34%),
+    radial-gradient(circle at 50% 48%, transparent 0 45%, var(--roundstart-orbit-b) 46%, transparent 47%),
+    linear-gradient(180deg, var(--roundstart-bg-base), var(--roundstart-bg-base)) !important;
+}
+
+.dark #roundBorderWrapper {
+  --roundstart-orbit-a: rgba(245, 180, 0, 0.12);
+  --roundstart-orbit-b: rgba(92, 225, 184, 0.1);
+  --roundstart-orbit-c: rgba(124, 58, 237, 0.1);
+}
+
+#roundBorderWrapper::before,
+#roundBorderWrapper::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+#roundBorderWrapper::before {
+  background:
+    conic-gradient(from 0deg, transparent 0 18%, var(--roundstart-orbit-a) 19%, transparent 23% 48%, var(--roundstart-orbit-b) 49%, transparent 53% 100%);
+  opacity: 0.58;
+  animation: roundStartSweep 28s linear infinite;
+}
+
+#roundBorderWrapper::after {
+  background:
+    radial-gradient(circle at 28% 34%, var(--roundstart-orbit-c) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 62%, var(--roundstart-orbit-a) 0 2px, transparent 3px),
+    radial-gradient(circle at 44% 78%, var(--roundstart-orbit-b) 0 1px, transparent 2px);
+  background-size: 150px 150px, 190px 190px, 120px 120px;
+  opacity: 0.7;
+  animation: roundStartParticles 22s ease-in-out infinite alternate;
+}
+
+#roundBorderWrapper > * {
+  position: relative;
+  z-index: 1;
+}
+
+.dark #roundBorderWrapper::before {
+  opacity: 0.36;
+}
+
+.dark #roundBorderWrapper::after {
+  opacity: 0.45;
+}
+
+@keyframes roundStartSweep {
+  from { transform: rotate(0deg) scale(1); }
+  to { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes roundStartParticles {
+  from { transform: translate3d(-18px, 8px, 0); }
+  to { transform: translate3d(18px, -12px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #roundBorderWrapper::before,
+  #roundBorderWrapper::after {
+    animation: none;
+  }
+}
+
 #screen-start,
 #screen-start h2,
 #screen-start table,
