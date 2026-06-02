@@ -1125,6 +1125,16 @@ function showStartRoundScreen() {
     const teamEl = document.getElementById("roundPlayerTeam");
     teamEl.textContent = `Team ${activeTeamIndex + 1}`;
     const startBtn = document.getElementById("startRoundBtn");
+    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const roundRule = settings.roundRules?.[currentRound] || "-";
+    const roundTime = settings.roundTimer?.[currentRound] || 60;
+    const roundSkip = (settings.roundSkip?.[currentRound] || "no").toLowerCase() === "yes" ? "Ja" : "Nein";
+    const timeEl = document.getElementById("roundStartTime");
+    const ruleEl = document.getElementById("roundStartRule");
+    const skipEl = document.getElementById("roundStartSkip");
+    if (timeEl) timeEl.textContent = `Zeit: ${roundTime}s`;
+    if (ruleEl) ruleEl.textContent = `Regel: ${roundRule}`;
+    if (skipEl) skipEl.textContent = `Überspringen: ${roundSkip}`;
     
     // Generate team colors dynamically
     const teamColors = ['#ff7675', '#00b894', '#3498db', '#f39c12', '#9b59b6', '#e74c3c', '#1abc9c', '#34495e'];
