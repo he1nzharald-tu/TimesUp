@@ -786,17 +786,15 @@ try {
 function unlockSingleAudio(audio) {
     if (!audio) return Promise.resolve(true);
 
-    const wasMuted = audio.muted;
     const previousVolume = audio.volume;
-    audio.muted = true;
-    try { audio.volume = 0; } catch (e) {}
+    audio.muted = false;
+    try { audio.volume = Math.min(previousVolume || 1, 0.05); } catch (e) {}
     try { audio.currentTime = 0; } catch (e) {}
 
     let playPromise;
     try {
         playPromise = audio.play();
     } catch (e) {
-        audio.muted = wasMuted;
         try { audio.volume = previousVolume; } catch (err) {}
         return Promise.resolve(false);
     }
@@ -807,7 +805,6 @@ function unlockSingleAudio(audio) {
         .then(success => {
             try { audio.pause(); } catch (e) {}
             try { audio.currentTime = 0; } catch (e) {}
-            audio.muted = wasMuted;
             try { audio.volume = previousVolume; } catch (e) {}
             return success;
         });
@@ -823,10 +820,6 @@ function unlockGameAudio() {
         audioUnlocked = results.every(Boolean);
     });
 }
-
-['pointerdown', 'touchstart', 'click'].forEach(eventName => {
-    document.addEventListener(eventName, unlockGameAudio, { once: true, passive: true });
-});
 
 function playTick() {
     if (!tickAudio) return;
@@ -1331,9 +1324,9 @@ function setActionButtonsEnabled(enabled) {
 }
 
 function confirmStartRound() {
-    const audioReady = unlockGameAudio();
     if (confirm("Bist du bereit, deinen Timer zu starten?\nDeine Zeit beginnt sofort.")) {
-        audioReady.finally(startRoundTimer);
+        unlockGameAudio();
+        startRoundTimer();
     }
 }
 
