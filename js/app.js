@@ -21,6 +21,7 @@ let teamTurnOrder = [];
 let teamTurnOrderPosition = -1;
 let activePlayerIndicesByTeam = [];
 let activeArchiveId = null;
+let cardLoadStatusText = "Karten werden geladen...";
 
 const ARCHIVE_STORAGE_KEY = "timesup_archive";
 
@@ -187,7 +188,10 @@ function openArchive() {
             const updatedStore = readArchiveStore();
             delete updatedStore[archive.id];
             writeArchiveStore(updatedStore);
-            if (activeArchiveId === archive.id) activeArchiveId = null;
+            if (activeArchiveId === archive.id) {
+                activeArchiveId = null;
+                refreshStartCardStatus();
+            }
             overlay.remove();
             openArchive();
         };
@@ -224,10 +228,10 @@ async function loadKartenFromExcel() {
             .filter(row => row[0] && row[1])
             .map(row => ({ begriff: row[0], erklaerung: row[1] }));
 
-        updateKartenStatusText(`${cardPool.length} Karten erfolgreich geladen`);
+        setCardLoadStatusText(`${cardPool.length} Karten erfolgreich geladen`);
     } catch (err) {
         console.error("❌ Fehler beim Laden:", err);
-        updateKartenStatusText("❌ Fehler beim Laden der Karten.");
+        setCardLoadStatusText("❌ Fehler beim Laden der Karten.");
     }
 }
 
@@ -292,6 +296,9 @@ function updatePlayerTable() {
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
     document.getElementById('screen-' + id).classList.add('active');
+    if (id === "start") {
+        refreshStartCardStatus();
+    }
 }
 
 function showTab(tabId) {
@@ -704,6 +711,19 @@ function togglePlayerTeam(name, fromTeamIdx) {
 function updateKartenStatusText(text) {
     const el = document.getElementById("kartenStatusText");
     if (el) el.textContent = text;
+}
+
+function setCardLoadStatusText(text) {
+    cardLoadStatusText = text;
+    if (!activeArchiveId) {
+        updateKartenStatusText(cardLoadStatusText);
+    }
+}
+
+function refreshStartCardStatus() {
+    if (!activeArchiveId) {
+        updateKartenStatusText(cardLoadStatusText);
+    }
 }
 
 function startCardSelection(withVeto) {
@@ -1930,6 +1950,7 @@ function resetGameState() {
     cardsWereShown = false;
     allowCardClick = false;
     activeArchiveId = null;
+    refreshStartCardStatus();
     // UI zurücksetzen (optional)
     document.getElementById("playerInput").value = "";
     // ggf. weitere UI-Elemente zurücksetzen
