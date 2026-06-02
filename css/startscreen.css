@@ -526,6 +526,165 @@ td[data-label="Entfernen"] {
   opacity: 0.2;
 }
 
+#screen-teamuebersicht {
+  overflow: hidden;
+}
+
+#screen-teamuebersicht .teams {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-teamuebersicht .team {
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.teams-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+  margin-top: 55px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+.team-overview-card {
+  background: var(--panel);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 0;
+}
+
+.team-overview-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.team-overview-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.team-overview-card li {
+  background: var(--card-bg);
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+}
+
+#screen-spieluebersicht {
+  overflow: hidden;
+}
+
+#screen-spieluebersicht .teams {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-spieluebersicht .team {
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+#screen-roundstats {
+  overflow: hidden;
+}
+
+#screen-roundstats .teams,
+#screen-roundstats .teams-overview-grid {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-roundstats .team {
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+#screen-end {
+  overflow: hidden;
+}
+
+#screen-end .teams-overview-grid {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-teamuebersicht {
+  overflow: hidden;
+}
+
+#screen-teamuebersicht .teams {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-teamuebersicht .team {
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.teams-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+  margin-top: 55px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+.team-overview-card {
+  background: var(--panel);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 0;
+}
+
+.team-overview-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.team-overview-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.team-overview-card li {
+  background: var(--card-bg);
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+}
+
 #screen-roundstart {
   position: relative;
   isolation: isolate;
@@ -1077,4 +1236,106 @@ td[data-label="Entfernen"] {
 
 .dark #screen-start::after {
   opacity: 0.2;
+}
+
+#screen-teamuebersicht {
+  overflow: hidden;
+}
+
+#screen-teamuebersicht .teams {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-teamuebersicht .team {
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.teams-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 10px;
+  margin-top: 55px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+.team-overview-card {
+  background: var(--panel);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 0;
+}
+
+.team-overview-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.team-overview-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.team-overview-card li {
+  background: var(--card-bg);
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+}
+
+#screen-spieluebersicht {
+  overflow: hidden;
+}
+
+#screen-spieluebersicht .teams {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-spieluebersicht .team {
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+#screen-roundstats {
+  overflow: hidden;
+}
+
+#screen-roundstats .teams,
+#screen-roundstats .teams-overview-grid {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
+}
+
+#screen-roundstats .team {
+  min-width: 0;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+#screen-end {
+  overflow: hidden;
+}
+
+#screen-end .teams-overview-grid {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 4px 64px;
 }

@@ -467,7 +467,18 @@
             </h2>
         </div>
 
-        <div id="teamsContainer" style="margin-top: 55px; display: flex; flex-direction: column; gap: 12px;">
+        <div id="teamOverviewLegacy" class="teams" style="margin-top: 55px;">
+            <div class="team team-a">
+                <h3>🔴 Team A</h3>
+                <ul id="teamOverviewTeamA"></ul>
+            </div>
+            <div class="team team-b">
+                <h3>🟢 Team B</h3>
+                <ul id="teamOverviewTeamB"></ul>
+            </div>
+        </div>
+
+        <div id="teamsContainer" class="teams-overview-grid">
         </div>
         <!-- Fixed bottom button bar -->
         <div style="
@@ -604,7 +615,7 @@
             </div>
         </div>
         
-        <div id="overviewTeamsContainer" style="display: none; margin-top: 55px;">
+        <div id="overviewTeamsContainer" class="teams-overview-grid" style="display: none;">
         </div>
         
         <div style="
@@ -872,7 +883,7 @@
             </div>
         </div>
         
-        <div id="statsContainer" style="margin-top: 55px; display: none; flex-direction: column; gap: 12px;">
+        <div id="statsContainer" class="teams-overview-grid" style="display: none;">
         </div>
         <div style="text-align: center; margin-top: 32px;">
             <span id="statsRoundNumberInfo" style="
@@ -983,7 +994,7 @@
             </div>
         </div>
         
-        <div id="finalTeamsContainer" style="display: none; margin-top: 24px; flex-direction: column; gap: 12px; padding: 0 12px;">
+        <div id="finalTeamsContainer" class="teams-overview-grid" style="display: none;">
         </div>
         
         <div style="

@@ -13,12 +13,202 @@ let teams = []; // Array of team arrays instead of teamA/teamB
 let currentCardPlayerIndex = 0;
 let shuffledCardPool = [];
 let playerCardCount = 0;
+let cardSelectionTargetCount = 0;
 let totalTeams = 2; // Default to 2 teams, can be changed in settings
 let activeTeamIndex = 0; // Index of current team (0, 1, 2, etc.)
 let activePlayerIndexInTeam = -1; // Player index within current team
 let teamTurnOrder = [];
 let teamTurnOrderPosition = -1;
 let activePlayerIndicesByTeam = [];
+let activeArchiveId = null;
+
+const ARCHIVE_STORAGE_KEY = "timesup_archive";
+
+function readArchiveStore() {
+    try {
+        return JSON.parse(localStorage.getItem(ARCHIVE_STORAGE_KEY) || "{}");
+    } catch (e) {
+        return {};
+    }
+}
+
+function writeArchiveStore(store) {
+    try {
+        localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(store));
+    } catch (e) {}
+}
+
+function getCardKey(card) {
+    return String(card?.begriff || "").trim().toLowerCase();
+}
+
+function makeArchiveId(createdAt) {
+    const stamp = createdAt.toISOString().replace(/[-:]/g, "").replace(/\..+$/, "");
+    return `TU-${stamp}`;
+}
+
+function ensureActiveArchive() {
+    if (activeArchiveId) return activeArchiveId;
+
+    const store = readArchiveStore();
+    const createdAt = new Date();
+    const id = makeArchiveId(createdAt);
+    store[id] = {
+        id,
+        createdAt: createdAt.toISOString(),
+        players: players.map(p => ({ name: p.name, handicap: !!p.handicap })),
+        usedCards: []
+    };
+    activeArchiveId = id;
+    writeArchiveStore(store);
+    return id;
+}
+
+function getActiveArchiveUsedCardKeys() {
+    if (!activeArchiveId) return new Set();
+    const archive = readArchiveStore()[activeArchiveId];
+    return new Set((archive?.usedCards || []).map(getCardKey).filter(Boolean));
+}
+
+function getAvailableCardPoolForArchive() {
+    const usedKeys = getActiveArchiveUsedCardKeys();
+    return cardPool.filter(card => !usedKeys.has(getCardKey(card)));
+}
+
+function savePlayedCardsToActiveArchive() {
+    const id = ensureActiveArchive();
+    const store = readArchiveStore();
+    const archive = store[id];
+    if (!archive) return;
+
+    const byKey = new Map((archive.usedCards || []).map(card => [getCardKey(card), card]));
+    playingCards.forEach(card => {
+        const key = getCardKey(card);
+        if (key) byKey.set(key, { begriff: card.begriff, erklaerung: card.erklaerung || "" });
+    });
+    archive.players = players.map(p => ({ name: p.name, handicap: !!p.handicap }));
+    archive.usedCards = [...byKey.values()];
+    archive.lastPlayedAt = new Date().toISOString();
+    writeArchiveStore(store);
+}
+
+function formatArchiveDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Unbekanntes Datum";
+    return date.toLocaleString("de-DE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function loadArchiveEntry(archive) {
+    players.splice(0, players.length, ...(archive.players || []).map(p => ({ name: p.name, handicap: !!p.handicap })));
+    activeArchiveId = archive.id;
+    updatePlayerTable();
+    saveSettingsToStorage();
+    updateKartenStatusText(`Archiv ${archive.id} geladen - ${(archive.usedCards || []).length} Karten gesperrt`);
+    alert("Archiv geladen. Die Spieler wurden ubernommen. Die Teams konnen jetzt neu gemischt werden.");
+}
+
+function openArchive() {
+    const store = readArchiveStore();
+    const archives = Object.values(store).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    if (archives.length === 0) {
+        alert("Es gibt noch keine gespeicherten Spiele im Archiv.");
+        return;
+    }
+
+    const existingOverlay = document.getElementById("archiveOverlay");
+    if (existingOverlay) existingOverlay.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "archiveOverlay";
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+    overlay.style.background = "rgba(0,0,0,0.35)";
+    overlay.style.display = "flex";
+    overlay.style.alignItems = "center";
+    overlay.style.justifyContent = "center";
+    overlay.style.zIndex = "10000";
+
+    const box = document.createElement("div");
+    box.style.background = "var(--card-bg)";
+    box.style.color = "var(--text)";
+    box.style.border = "1px solid var(--divider)";
+    box.style.borderRadius = "16px";
+    box.style.boxShadow = "0 8px 32px rgba(0,0,0,0.18)";
+    box.style.padding = "24px";
+    box.style.width = "min(92vw, 680px)";
+    box.style.maxHeight = "82vh";
+    box.style.overflowY = "auto";
+
+    const title = document.createElement("h2");
+    title.textContent = "Archiv";
+    title.style.margin = "0 0 16px 0";
+    title.style.color = "var(--text)";
+    box.appendChild(title);
+
+    archives.forEach(archive => {
+        const row = document.createElement("div");
+        row.style.display = "grid";
+        row.style.gridTemplateColumns = "1fr auto auto";
+        row.style.gap = "8px";
+        row.style.alignItems = "center";
+        row.style.padding = "10px 0";
+        row.style.borderTop = "1px solid var(--divider)";
+
+        const info = document.createElement("div");
+        const names = (archive.players || []).map(p => p.name).join(", ");
+        const cardCount = (archive.usedCards || []).length;
+        info.innerHTML = `
+            <strong>${archive.id}</strong><br>
+            <span style="color: var(--muted);">${formatArchiveDate(archive.createdAt)} | ${cardCount} Karten</span><br>
+            <span>${names}</span>
+        `;
+
+        const loadBtn = document.createElement("button");
+        loadBtn.textContent = "Laden";
+        loadBtn.style.width = "auto";
+        loadBtn.onclick = () => {
+            overlay.remove();
+            loadArchiveEntry(archive);
+        };
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Loeschen";
+        deleteBtn.style.width = "auto";
+        deleteBtn.style.background = "var(--danger)";
+        deleteBtn.style.color = "var(--on-accent)";
+        deleteBtn.onclick = () => {
+            if (!confirm(`Soll der Archiv-Eintrag ${archive.id} wirklich geloescht werden?`)) return;
+            const updatedStore = readArchiveStore();
+            delete updatedStore[archive.id];
+            writeArchiveStore(updatedStore);
+            if (activeArchiveId === archive.id) activeArchiveId = null;
+            overlay.remove();
+            openArchive();
+        };
+
+        row.appendChild(info);
+        row.appendChild(loadBtn);
+        row.appendChild(deleteBtn);
+        box.appendChild(row);
+    });
+
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "Schliessen";
+    closeBtn.style.marginTop = "18px";
+    closeBtn.style.width = "auto";
+    closeBtn.className = "secondary";
+    closeBtn.onclick = () => overlay.remove();
+    box.appendChild(closeBtn);
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+}
 
 // === Load Cards from Excel ===
 async function loadKartenFromExcel() {
@@ -380,39 +570,49 @@ function assignRandomTeams() {
 function displayTeams() {
     const container = document.getElementById("teamsContainer");
     if (!container) return;
+    const legacyContainer = document.getElementById("teamOverviewLegacy");
+    const legacyTeamA = document.getElementById("teamOverviewTeamA");
+    const legacyTeamB = document.getElementById("teamOverviewTeamB");
     
     container.innerHTML = '';
+    if (legacyTeamA) legacyTeamA.innerHTML = '';
+    if (legacyTeamB) legacyTeamB.innerHTML = '';
+
+    if (totalTeams === 2 && legacyContainer && legacyTeamA && legacyTeamB) {
+        legacyContainer.style.display = 'flex';
+        container.style.display = 'none';
+
+        [legacyTeamA, legacyTeamB].forEach((list, teamIdx) => {
+            (teams[teamIdx] || []).forEach(p => {
+                const li = document.createElement("li");
+                li.textContent = p.name + (p.handicap ? " 🧩" : "");
+                li.style.cursor = "pointer";
+                li.onclick = () => togglePlayerTeam(p.name, teamIdx);
+                list.appendChild(li);
+            });
+        });
+        return;
+    }
+
+    if (legacyContainer) legacyContainer.style.display = 'none';
+    container.style.display = 'grid';
+
     const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
     
     teams.forEach((team, teamIdx) => {
         const box = document.createElement("div");
-        box.style.background = "var(--panel)";
-        box.style.border = "2px solid var(--divider)";
-        box.style.borderRadius = "12px";
-        box.style.padding = "12px";
-        box.style.marginBottom = "12px";
+        box.className = "team-overview-card";
         
         const title = document.createElement("h3");
         title.textContent = `${teamEmojis[teamIdx % teamEmojis.length]} Team ${teamIdx + 1}`;
-        title.style.margin = "0 0 8px 0";
-        title.style.color = "var(--text)";
         box.appendChild(title);
         
         const list = document.createElement("ul");
-        list.style.listStyle = "none";
-        list.style.padding = "0";
-        list.style.margin = "0";
         list.id = `teamList${teamIdx}`;
         
         team.forEach(p => {
             const li = document.createElement("li");
             li.textContent = p.name + (p.handicap ? " 🧩" : "");
-            li.style.cursor = "pointer";
-            li.style.padding = "6px";
-            li.style.borderRadius = "6px";
-            li.style.marginBottom = "4px";
-            li.style.background = "var(--card-bg)";
-            li.style.color = "var(--text)";
             li.onclick = () => togglePlayerTeam(p.name, teamIdx);
             list.appendChild(li);
         });
@@ -464,8 +664,18 @@ function updateKartenStatusText(text) {
 
 function startCardSelection(withVeto) {
     const totalCards = parseInt(document.getElementById("cardCount").value || "40");
-    const cardsPerPlayer = Math.floor(totalCards / players.length);
-    shuffledCardPool = [...cardPool].sort(() => Math.random() - 0.5);
+    const availableCardPool = getAvailableCardPoolForArchive();
+    if (availableCardPool.length === 0) {
+        alert("Fur diese Archiv-ID sind keine neuen Karten mehr verfugbar.");
+        return;
+    }
+    cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
+    const cardsPerPlayer = Math.floor(cardSelectionTargetCount / players.length);
+    if (cardSelectionTargetCount < totalCards) {
+        alert(`Fur diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfugbar.`);
+    }
+    shuffledCardPool = [...availableCardPool].sort(() => Math.random() - 0.5);
+    playingCards = [];
     playerCardCount = cardsPerPlayer;
     currentCardPlayerIndex = 0;
     const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
@@ -482,8 +692,17 @@ function startCardSelection(withVeto) {
 
 function startCardSelectionWithoutVeto() {
     const totalCards = parseInt(document.getElementById("cardCount").value || "40");
-    shuffledCardPool = [...cardPool].sort(() => Math.random() - 0.5);
-    playingCards = shuffledCardPool.slice(0, totalCards);
+    const availableCardPool = getAvailableCardPoolForArchive();
+    if (availableCardPool.length === 0) {
+        alert("Fur diese Archiv-ID sind keine neuen Karten mehr verfugbar.");
+        return;
+    }
+    cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
+    if (cardSelectionTargetCount < totalCards) {
+        alert(`Fur diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfugbar.`);
+    }
+    shuffledCardPool = [...availableCardPool].sort(() => Math.random() - 0.5);
+    playingCards = shuffledCardPool.slice(0, cardSelectionTargetCount);
 
     // Layout-Elemente holen
     const playerLabel = document.getElementById("cardSelectionPlayerName");
@@ -583,7 +802,7 @@ function handleCardSelectionDone() {
     }
     currentCardPlayerIndex++;
     if (currentCardPlayerIndex >= players.length) {
-        const targetCount = parseInt(document.getElementById("cardCount").value || "40");
+        const targetCount = cardSelectionTargetCount || parseInt(document.getElementById("cardCount").value || "40");
         const fehlendeKarten = Math.max(0, targetCount - playingCards.length);
         for (let i = 0; i < fehlendeKarten && shuffledCardPool.length > 0; i++) {
             const card = shuffledCardPool.shift();
@@ -674,39 +893,28 @@ function prepareGameOverview() {
     
     // Display all teams - new layout for 3+ teams
     const overviewTeamsContainer = document.getElementById("overviewTeamsContainer");
-    const teamsDiv = document.querySelector('.teams');
+    const teamsDiv = document.querySelector('#screen-spieluebersicht .teams');
     
     if (totalTeams > 2) {
         // Show new multi-team display and hide old 2-team display
         if (overviewTeamsContainer) {
-            overviewTeamsContainer.style.display = 'flex';
-            overviewTeamsContainer.style.flexDirection = 'column';
+            overviewTeamsContainer.style.display = 'grid';
             overviewTeamsContainer.innerHTML = '';
             const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
             
             teams.forEach((team, idx) => {
                 const box = document.createElement("div");
-                box.style.background = "var(--panel)";
-                box.style.border = "2px solid var(--divider)";
-                box.style.borderRadius = "12px";
-                box.style.padding = "12px";
-                box.style.marginBottom = "12px";
+                box.className = "team-overview-card";
                 
-                const title = document.createElement("h4");
+                const title = document.createElement("h3");
                 title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1} – 0 Punkte`;
-                title.style.margin = "0 0 8px 0";
-                title.style.color = "var(--text)";
                 box.appendChild(title);
                 
                 const list = document.createElement("ul");
-                list.style.listStyle = "none";
-                list.style.padding = "0";
-                list.style.margin = "0";
                 
                 team.forEach(player => {
                     const li = document.createElement("li");
                     li.textContent = player.name + (player.handicap ? " 🧩" : "");
-                    li.style.color = "var(--muted)";
                     list.appendChild(li);
                 });
                 
@@ -887,6 +1095,7 @@ function buildTeamTurnOrder() {
 }
 
 function startGame() {
+    ensureActiveArchive();
     const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
     totalRounds = parseInt(settings.roundCount || 3);
     totalTeams = parseInt(settings.teamCount || 2);
@@ -1126,22 +1335,16 @@ function showRoundStats() {
     if (totalTeams > 2) {
         // Show new multi-team display and hide old 2-team display
         if (statsContainer) {
-            statsContainer.style.display = 'flex';
+            statsContainer.style.display = 'grid';
             statsContainer.innerHTML = '';
             const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
             
             teams.forEach((team, idx) => {
                 const box = document.createElement("div");
-                box.style.background = "var(--panel)";
-                box.style.border = "2px solid var(--divider)";
-                box.style.borderRadius = "12px";
-                box.style.padding = "12px";
-                box.style.marginBottom = "12px";
+                box.className = "team-overview-card";
                 
-                const title = document.createElement("h4");
+                const title = document.createElement("h3");
                 title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1}`;
-                title.style.margin = "0 0 8px 0";
-                title.style.color = "var(--text)";
                 box.appendChild(title);
                 
                 const points = document.createElement("p");
@@ -1152,14 +1355,10 @@ function showRoundStats() {
                 box.appendChild(points);
                 
                 const list = document.createElement("ul");
-                list.style.listStyle = "none";
-                list.style.padding = "0";
-                list.style.margin = "0";
                 
                 team.forEach(player => {
                     const li = document.createElement("li");
                     li.textContent = player.name;
-                    li.style.color = "var(--muted)";
                     list.appendChild(li);
                 });
                 
@@ -1225,28 +1424,22 @@ function nextGameRound() {
 }
 
 function showFinalScreen() {
+    savePlayedCardsToActiveArchive();
     const container = document.getElementById("finalTeamsContainer");
     const twoTeamContainer = document.getElementById("finalTwoTeamContainer");
 
     if (totalTeams > 2 && container) {
         if (twoTeamContainer) twoTeamContainer.style.display = 'none';
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
+        container.style.display = 'grid';
         container.innerHTML = '';
         const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
         
         teams.forEach((team, idx) => {
             const box = document.createElement("div");
-            box.style.background = "var(--panel)";
-            box.style.border = "2px solid var(--divider)";
-            box.style.borderRadius = "12px";
-            box.style.padding = "12px";
-            box.style.marginBottom = "12px";
+            box.className = "team-overview-card";
             
             const title = document.createElement("h3");
             title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1}`;
-            title.style.margin = "0 0 8px 0";
-            title.style.color = "var(--text)";
             box.appendChild(title);
             
             const points = document.createElement("p");
@@ -1258,14 +1451,10 @@ function showFinalScreen() {
             box.appendChild(points);
             
             const list = document.createElement("ul");
-            list.style.listStyle = "none";
-            list.style.padding = "0";
-            list.style.margin = "0";
             
             team.forEach(player => {
                 const li = document.createElement("li");
                 li.textContent = player.name + (player.handicap ? " 🧩" : "");
-                li.style.color = "var(--muted)";
                 list.appendChild(li);
             });
             
@@ -1653,6 +1842,7 @@ function resetGameState() {
     currentCardPlayerIndex = 0;
     shuffledCardPool = [];
     playerCardCount = 0;
+    cardSelectionTargetCount = 0;
     playingCards = [];
     currentCards = [];
     currentCard = null;
@@ -1674,6 +1864,7 @@ function resetGameState() {
     showingExplanation = false;
     cardsWereShown = false;
     allowCardClick = false;
+    activeArchiveId = null;
     // UI zurücksetzen (optional)
     document.getElementById("playerInput").value = "";
     // ggf. weitere UI-Elemente zurücksetzen
@@ -1683,3 +1874,8 @@ function resetGameState() {
 document.querySelectorAll('button[onclick*="showScreen(\'start\')"]').forEach(btn => {
     btn.addEventListener('click', resetGameState);
 });
+
+const loadSavesButton = document.getElementById("loadSavesButton");
+if (loadSavesButton) {
+    loadSavesButton.addEventListener("click", openArchive);
+}
