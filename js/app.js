@@ -801,6 +801,30 @@ function canStartCardSelection() {
     return true;
 }
 
+function resetCardSelectionUi() {
+    const playerLabel = document.getElementById("cardSelectionPlayerName");
+    const info = document.getElementById("cardSelectionInfo");
+    const vetoInfo = document.getElementById("vetoInfoText");
+    const ul = document.getElementById("cardSelectionList");
+    const doneBtn = document.getElementById("cardDoneButton");
+    const startBtn = document.getElementById("startGameOverviewButton");
+
+    if (playerLabel) playerLabel.textContent = players[0]?.name || "";
+    if (info) {
+        info.textContent = "Bitte klicken, um die Kartenauswahl zu starten!";
+        info.style.display = "block";
+        info.style.cursor = "pointer";
+        info.style.pointerEvents = "";
+    }
+    if (vetoInfo) {
+        vetoInfo.textContent = "";
+        vetoInfo.style.display = "none";
+    }
+    if (ul) ul.innerHTML = "";
+    if (doneBtn) doneBtn.style.display = "none";
+    if (startBtn) startBtn.style.display = "none";
+}
+
 function startCardSelection(withVeto) {
     if (!canStartCardSelection()) return;
     const totalCards = toPositiveInt(document.getElementById("cardCount")?.value, 40);
@@ -820,11 +844,7 @@ function startCardSelection(withVeto) {
     currentCardPlayerIndex = 0;
     const settings = getSettings();
     vetoCountPerPlayer = settings.vetoCount || 1;
-    document.getElementById("cardSelectionPlayerName").textContent = players[0].name;
-    document.getElementById("cardSelectionInfo").textContent = "Bitte klicken, um die Kartenauswahl zu starten!";
-    document.getElementById("cardSelectionList").innerHTML = "";
-    document.getElementById("vetoInfoText").textContent = "";
-    document.getElementById("cardDoneButton").style.display = "none";
+    resetCardSelectionUi();
     cardsWereShown = false;
     allowCardClick = true;
     showScreen("kartenauswahl");
@@ -844,6 +864,9 @@ function startCardSelectionWithoutVeto() {
     }
     shuffledCardPool = [...availableCardPool].sort(() => Math.random() - 0.5);
     playingCards = shuffledCardPool.slice(0, cardSelectionTargetCount);
+    resetCardSelectionUi();
+    cardsWereShown = true;
+    allowCardClick = false;
 
     // Layout-Elemente holen
     const playerLabel = document.getElementById("cardSelectionPlayerName");
@@ -2108,6 +2131,7 @@ function resetGameState() {
     allowCardClick = false;
     activeArchiveId = null;
     refreshStartCardStatus();
+    resetCardSelectionUi();
     // UI zurücksetzen (optional)
     document.getElementById("playerInput").value = "";
     // ggf. weitere UI-Elemente zurücksetzen
