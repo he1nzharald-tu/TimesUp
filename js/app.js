@@ -1211,6 +1211,7 @@ let totalPoints = []; // Array of points per team [team0_points, team1_points, .
 let currentCards = [];
 let currentCard = null;
 let correctCards = []; // Array of arrays: [team0_cards, team1_cards, ...]
+let roundPointsApplied = false;
 let usedCardsThisTurn = [];
 let teamMistakes = []; // Array of mistakes per team
 let activePlayer = null;
@@ -1259,6 +1260,7 @@ function startGame() {
     // Initialize points and correctCards arrays for all teams
     totalPoints = Array(totalTeams).fill(0);
     correctCards = Array(totalTeams).fill(null).map(() => []);
+    roundPointsApplied = false;
     teamMistakes = Array(totalTeams).fill(0);
     
     teamTurnOrder = buildTeamTurnOrder();
@@ -1497,21 +1499,27 @@ function endRound() {
     if (currentCards.length > 0) {
         setNextPlayer();
         showStartRoundScreen();
+    } else if (currentRound >= totalRounds - 1) {
+        applyCurrentRoundPoints();
+        showFinalScreen();
     } else {
         showRoundStats();
     }
 }
 
-function showRoundStats() {
-    document.getElementById("statsRoundNumber").textContent = currentRound + 1;
-    
-    // Update total points and calculate points for this round
-    let totalPointsThisRound = 0;
+function applyCurrentRoundPoints() {
+    if (roundPointsApplied) return;
     correctCards.forEach((teamCards, idx) => {
         const teamPoints = teamCards.length;
         totalPoints[idx] += teamPoints;
-        totalPointsThisRound += teamPoints;
     });
+    roundPointsApplied = true;
+}
+
+function showRoundStats() {
+    document.getElementById("statsRoundNumber").textContent = currentRound + 1;
+    
+    applyCurrentRoundPoints();
     
     // Update stats display - new layout for 3+ teams
     const statsContainer = document.getElementById("statsContainer");
@@ -1602,6 +1610,7 @@ function nextGameRound() {
     currentCards = [...playingCards];
     displayedCards = [];
     correctCards = Array(totalTeams).fill(null).map(() => []);
+    roundPointsApplied = false;
     teamMistakes = Array(totalTeams).fill(0);
     skipCounter = 0;
     setNextPlayer();
@@ -2078,6 +2087,7 @@ function resetGameState() {
     currentCards = [];
     currentCard = null;
     correctCards = [];
+    roundPointsApplied = false;
     usedCardsThisTurn = [];
     teamMistakes = [];
     activeTeamIndex = 0;
