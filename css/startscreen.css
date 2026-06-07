@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --accent: var(--accent-a);
   --danger: var(--danger);
   --bg: var(--bg);
@@ -2633,4 +2633,130 @@ td[data-label="Entfernen"] {
   margin: 0 0 0 8px !important;
   max-width: 180px !important;
   white-space: nowrap !important;
+}
+
+/* Modern round-start signal lights. */
+#roundBorderWrapper > div:first-child,
+#roundBorderWrapper > div:last-child {
+  flex-basis: 64px !important;
+  width: 64px !important;
+}
+
+#roundBorderWrapper > div:first-child > div,
+#roundBorderWrapper > div:last-child > div {
+  position: relative !important;
+  width: 34px !important;
+  height: 118px !important;
+  margin: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--divider) !important;
+  background:
+    radial-gradient(circle at 50% 22%, var(--accent-a) 0 7px, rgba(255,118,117,0.22) 8px 13px, transparent 14px),
+    radial-gradient(circle at 50% 50%, var(--accent-c) 0 7px, rgba(246,209,0,0.22) 8px 13px, transparent 14px),
+    radial-gradient(circle at 50% 78%, var(--accent-b) 0 7px, rgba(0,184,148,0.22) 8px 13px, transparent 14px),
+    linear-gradient(180deg, color-mix(in srgb, var(--panel) 82%, #000 18%), var(--card-bg));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -12px 22px rgba(0,0,0,0.12),
+    0 8px 22px rgba(0,0,0,0.16) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  animation: signalGlow 2.4s ease-in-out infinite alternate !important;
+}
+
+#roundBorderWrapper > div:first-child > div::before,
+#roundBorderWrapper > div:last-child > div::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: inherit;
+  border: 1px solid rgba(255,255,255,0.16);
+  pointer-events: none;
+}
+
+#roundBorderWrapper > div:first-child > div::after,
+#roundBorderWrapper > div:last-child > div::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 78%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--accent-b);
+  box-shadow: 0 0 18px rgba(0,184,148,0.65), 0 0 34px rgba(0,184,148,0.35);
+  pointer-events: none;
+}
+
+.dark #roundBorderWrapper > div:first-child > div,
+.dark #roundBorderWrapper > div:last-child > div {
+  background:
+    radial-gradient(circle at 50% 22%, var(--accent-a) 0 7px, rgba(255,139,148,0.2) 8px 13px, transparent 14px),
+    radial-gradient(circle at 50% 50%, var(--accent-c) 0 7px, rgba(245,180,0,0.18) 8px 13px, transparent 14px),
+    radial-gradient(circle at 50% 78%, var(--accent-b) 0 7px, rgba(92,225,184,0.18) 8px 13px, transparent 14px),
+    linear-gradient(180deg, #1a2433, #0b1220);
+}
+
+@keyframes signalGlow {
+  from { filter: saturate(0.96) brightness(0.98); }
+  to { filter: saturate(1.12) brightness(1.06); }
+}
+
+/* Animated round-start signal lights. */
+#roundBorderWrapper > div:first-child > div,
+#roundBorderWrapper > div:last-child > div {
+  animation: signalBodyPulse 3.2s ease-in-out infinite !important;
+}
+
+#roundBorderWrapper > div:first-child > div::after,
+#roundBorderWrapper > div:last-child > div::after {
+  animation: signalActiveLight 3.2s ease-in-out infinite !important;
+}
+
+#roundBorderWrapper > div:last-child > div,
+#roundBorderWrapper > div:last-child > div::after {
+  animation-delay: 0.45s !important;
+}
+
+@keyframes signalBodyPulse {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: saturate(0.98) brightness(0.98);
+  }
+  45% {
+    transform: translateY(-2px) scale(1.02);
+    filter: saturate(1.08) brightness(1.05);
+  }
+  70% {
+    transform: translateY(1px) scale(0.995);
+    filter: saturate(1.02) brightness(1.01);
+  }
+}
+
+@keyframes signalActiveLight {
+  0%, 18% {
+    top: 22%;
+    background: var(--accent-a);
+    box-shadow: 0 0 16px rgba(255,118,117,0.72), 0 0 34px rgba(255,118,117,0.32);
+  }
+  34%, 52% {
+    top: 50%;
+    background: var(--accent-c);
+    box-shadow: 0 0 16px rgba(246,209,0,0.76), 0 0 34px rgba(246,209,0,0.34);
+  }
+  68%, 100% {
+    top: 78%;
+    background: var(--accent-b);
+    box-shadow: 0 0 18px rgba(0,184,148,0.76), 0 0 36px rgba(0,184,148,0.36);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #roundBorderWrapper > div:first-child > div,
+  #roundBorderWrapper > div:last-child > div,
+  #roundBorderWrapper > div:first-child > div::after,
+  #roundBorderWrapper > div:last-child > div::after {
+    animation: none !important;
+  }
 }
