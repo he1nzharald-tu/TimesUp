@@ -1,4 +1,4 @@
-// === Game State ===
+﻿// === Game State ===
 let cardPool = []; // Array of {begriff, erklaerung}
 let vetoCountPerPlayer = 0;
 let remainingVetos = 0;
@@ -24,19 +24,52 @@ let activeArchiveId = null;
 let cardLoadStatusText = "Karten werden geladen...";
 
 const ARCHIVE_STORAGE_KEY = "timesup_archive";
+const SETTINGS_STORAGE_KEY = "timesup_settings";
 
-function readArchiveStore() {
+function readJsonStore(key, fallback = {}) {
     try {
-        return JSON.parse(localStorage.getItem(ARCHIVE_STORAGE_KEY) || "{}");
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : fallback;
     } catch (e) {
-        return {};
+        return fallback;
     }
 }
 
-function writeArchiveStore(store) {
+function writeJsonStore(key, value) {
     try {
-        localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(store));
-    } catch (e) {}
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function getSettings() {
+    return readJsonStore(SETTINGS_STORAGE_KEY, {});
+}
+
+function toPositiveInt(value, fallback, min = 1, max = Number.MAX_SAFE_INTEGER) {
+    const parsed = parseInt(value, 10);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+}
+
+function appendText(parent, tagName, text, styles = {}) {
+    const el = document.createElement(tagName);
+    el.textContent = text;
+    Object.assign(el.style, styles);
+    parent.appendChild(el);
+    return el;
+}
+
+function readArchiveStore() {
+    return readJsonStore(ARCHIVE_STORAGE_KEY, {});
+}
+
+function writeArchiveStore(store) {
+    writeJsonStore(ARCHIVE_STORAGE_KEY, store);
 }
 
 function getCardKey(card) {
@@ -111,7 +144,7 @@ function loadArchiveEntry(archive) {
     updatePlayerTable();
     saveSettingsToStorage();
     updateKartenStatusText(`Archiv ${archive.id} geladen - ${(archive.usedCards || []).length} Karten gesperrt`);
-    alert("Archiv geladen. Die Spieler wurden ubernommen. Die Teams konnen jetzt neu gemischt werden.");
+    alert("Archiv geladen. Die Spieler wurden übernommen. Die Teams können jetzt neu gemischt werden.");
 }
 
 function openArchive() {
@@ -164,11 +197,13 @@ function openArchive() {
         const info = document.createElement("div");
         const names = (archive.players || []).map(p => p.name).join(", ");
         const cardCount = (archive.usedCards || []).length;
-        info.innerHTML = `
-            <strong>${archive.id}</strong><br>
-            <span style="color: var(--muted);">${formatArchiveDate(archive.createdAt)} | ${cardCount} Karten</span><br>
-            <span>${names}</span>
-        `;
+        appendText(info, "strong", archive.id || "Unbekanntes Archiv");
+        info.appendChild(document.createElement("br"));
+        appendText(info, "span", `${formatArchiveDate(archive.createdAt)} | ${cardCount} Karten`, {
+            color: "var(--muted)"
+        });
+        info.appendChild(document.createElement("br"));
+        appendText(info, "span", names);
 
         const loadBtn = document.createElement("button");
         loadBtn.textContent = "Laden";
@@ -179,12 +214,12 @@ function openArchive() {
         };
 
         const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "Loeschen";
+        deleteBtn.textContent = "Löschen";
         deleteBtn.style.width = "auto";
         deleteBtn.style.background = "var(--danger)";
         deleteBtn.style.color = "var(--on-accent)";
         deleteBtn.onclick = () => {
-            if (!confirm(`Soll der Archiv-Eintrag ${archive.id} wirklich geloescht werden?`)) return;
+            if (!confirm(`Soll der Archiv-Eintrag ${archive.id} wirklich gelöscht werden?`)) return;
             const updatedStore = readArchiveStore();
             delete updatedStore[archive.id];
             writeArchiveStore(updatedStore);
@@ -203,7 +238,7 @@ function openArchive() {
     });
 
     const closeBtn = document.createElement("button");
-    closeBtn.textContent = "Schliessen";
+    closeBtn.textContent = "Schließen";
     closeBtn.style.marginTop = "18px";
     closeBtn.style.width = "auto";
     closeBtn.className = "secondary";
@@ -218,26 +253,41 @@ function openArchive() {
 async function loadKartenFromExcel() {
     const filePath = 'js/db_Karten.xlsx';
     try {
+        if (!window.XLSX) {
+            throw new Error("XLSX-Bibliothek wurde nicht geladen.");
+        }
         const response = await fetch(filePath);
+        if (!response.ok) {
+            throw new Error(`Karten-Datei konnte nicht geladen werden (${response.status}).`);
+        }
         const data = await response.arrayBuffer();
         const workbook = XLSX.read(data, { type: "array" });
+        if (!workbook.SheetNames.length) {
+            throw new Error("Karten-Datei enthält kein Tabellenblatt.");
+        }
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
         cardPool = rows
             .filter(row => row[0] && row[1])
-            .map(row => ({ begriff: row[0], erklaerung: row[1] }));
+            .map(row => ({
+                begriff: String(row[0]).trim(),
+                erklaerung: String(row[1]).trim()
+            }))
+            .filter(card => card.begriff && card.erklaerung);
 
         setCardLoadStatusText(`${cardPool.length} Karten erfolgreich geladen`);
     } catch (err) {
-        console.error("❌ Fehler beim Laden:", err);
-        setCardLoadStatusText("❌ Fehler beim Laden der Karten.");
+        console.error("Fehler beim Laden:", err);
+        cardPool = [];
+        setCardLoadStatusText("Fehler beim Laden der Karten.");
     }
 }
 
 // === Player Management ===
 function addPlayer() {
     const input = document.getElementById("playerInput");
+    if (!input) return;
     const name = input.value.trim();
     if (name && !players.some(p => p.name === name)) {
         players.push({ name, handicap: false });
@@ -261,13 +311,20 @@ function toggleHandicap(name, checked) {
 
 function updatePlayerTable() {
     const tbody = document.getElementById("playerTableBody");
+    if (!tbody) return;
     tbody.innerHTML = '';
     players.forEach(p => {
         const tr = document.createElement("tr");
         const tdName = document.createElement("td");
         tdName.setAttribute("data-label", "Spielername");
-    // Make player name bold in a box (theme-aware)
-    tdName.innerHTML = `<span style="display:inline-block; font-weight:bold; background:var(--card-bg); border-radius:8px; padding:4px 12px;">${p.name}</span>`;
+        // Make player name bold in a box (theme-aware)
+        appendText(tdName, "span", p.name, {
+            display: "inline-block",
+            fontWeight: "bold",
+            background: "var(--card-bg)",
+            borderRadius: "8px",
+            padding: "4px 12px"
+        });
         tr.appendChild(tdName);
 
         const tdHandicap = document.createElement("td");
@@ -295,7 +352,9 @@ function updatePlayerTable() {
 // === UI Helpers ===
 function showScreen(id) {
     document.querySelectorAll('.screen').forEach(div => div.classList.remove('active'));
-    document.getElementById('screen-' + id).classList.add('active');
+    const screen = document.getElementById('screen-' + id);
+    if (!screen) return;
+    screen.classList.add('active');
     if (id === "start") {
         refreshStartCardStatus();
     }
@@ -485,7 +544,7 @@ function saveSettingsToStorage() {
         settings.skipLimitType.push(skipLimitType);
         settings.skipLimitValue.push(skipLimitValue);
     }
-    localStorage.setItem("timesup_settings", JSON.stringify(settings));
+    writeJsonStore(SETTINGS_STORAGE_KEY, settings);
     // also persist theme separately for quicker access
     const themeSel = document.getElementById('themeSelect');
     if (themeSel) localStorage.setItem('timesup_theme', themeSel.value || 'light');
@@ -497,7 +556,7 @@ function exitSettings() {
 }
 
 function loadSettingsFromStorage() {
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     document.getElementById("cardCount").value = settings.cardCount || 40;
     document.getElementById("roundCount").value = settings.roundCount || 3;
     document.getElementById("teamCount").value = settings.teamCount || 2;
@@ -526,7 +585,7 @@ function loadSettingsFromStorage() {
             toggleCustomRuleInput(i);
         }
         document.getElementById(`timer${i}`).value = settings.roundTimer?.[i - 1] || 60;
-        document.getElementById(`skipAllowed${i}`).value = settings.roundSkip?.[i - 1] || "Nein";
+        document.getElementById(`skipAllowed${i}`).value = settings.roundSkip?.[i - 1] || "no";
     }
     // load theme into selector and apply
     const storedTheme = localStorage.getItem('timesup_theme') || 'light';
@@ -550,16 +609,16 @@ function resetAllSettings() {
     renderRoundSettings();
     const defaultRules = ["Nur beschreiben", "Nur ein Wort", "Pantomime und Geräusche"];
     const defaultTimers = [30, 30, 30];
-    const defaultSkips = ["Nein", "Ja", "Nein"];
+    const defaultSkips = ["no", "yes", "no"];
     for (let i = 1; i <= 3; i++) {
         document.getElementById(`rule${i}`).value = defaultRules[i - 1] || "";
         const customRuleInput = document.getElementById(`customRule${i}`);
         if (customRuleInput) customRuleInput.value = "";
         toggleCustomRuleInput(i);
         document.getElementById(`timer${i}`).value = defaultTimers[i - 1] || 30;
-        document.getElementById(`skipAllowed${i}`).value = defaultSkips[i - 1] || "Nein";
+        document.getElementById(`skipAllowed${i}`).value = defaultSkips[i - 1] || "no";
     }
-    localStorage.removeItem("timesup_settings");
+    try { localStorage.removeItem(SETTINGS_STORAGE_KEY); } catch (e) {}
 }
 
 function toggleHandicapInput() {
@@ -576,6 +635,10 @@ function togglePunishOptions() {
 
 // === Team Management ===
 function confirmBeforeContinue() {
+    if (players.length === 0) {
+        alert("Bitte füge zuerst mindestens einen Spieler hinzu.");
+        return;
+    }
     const confirmed = confirm("Sind alle Spieler hinzugefügt und alle Einstellungen getroffen?");
     if (confirmed) {
         renderTeamPlayerList();
@@ -726,23 +789,36 @@ function refreshStartCardStatus() {
     }
 }
 
+function canStartCardSelection() {
+    if (players.length === 0) {
+        alert("Bitte füge zuerst mindestens einen Spieler hinzu.");
+        return false;
+    }
+    if (cardPool.length === 0) {
+        alert("Es wurden noch keine Karten geladen.");
+        return false;
+    }
+    return true;
+}
+
 function startCardSelection(withVeto) {
-    const totalCards = parseInt(document.getElementById("cardCount").value || "40");
+    if (!canStartCardSelection()) return;
+    const totalCards = toPositiveInt(document.getElementById("cardCount")?.value, 40);
     const availableCardPool = getAvailableCardPoolForArchive();
     if (availableCardPool.length === 0) {
-        alert("Fur diese Archiv-ID sind keine neuen Karten mehr verfugbar.");
+        alert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
         return;
     }
     cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
     const cardsPerPlayer = Math.floor(cardSelectionTargetCount / players.length);
     if (cardSelectionTargetCount < totalCards) {
-        alert(`Fur diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfugbar.`);
+        alert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
     }
     shuffledCardPool = [...availableCardPool].sort(() => Math.random() - 0.5);
     playingCards = [];
     playerCardCount = cardsPerPlayer;
     currentCardPlayerIndex = 0;
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     vetoCountPerPlayer = settings.vetoCount || 1;
     document.getElementById("cardSelectionPlayerName").textContent = players[0].name;
     document.getElementById("cardSelectionInfo").textContent = "Bitte klicken, um die Kartenauswahl zu starten!";
@@ -755,15 +831,16 @@ function startCardSelection(withVeto) {
 }
 
 function startCardSelectionWithoutVeto() {
-    const totalCards = parseInt(document.getElementById("cardCount").value || "40");
+    if (!canStartCardSelection()) return;
+    const totalCards = toPositiveInt(document.getElementById("cardCount")?.value, 40);
     const availableCardPool = getAvailableCardPoolForArchive();
     if (availableCardPool.length === 0) {
-        alert("Fur diese Archiv-ID sind keine neuen Karten mehr verfugbar.");
+        alert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
         return;
     }
     cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
     if (cardSelectionTargetCount < totalCards) {
-        alert(`Fur diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfugbar.`);
+        alert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
     }
     shuffledCardPool = [...availableCardPool].sort(() => Math.random() - 0.5);
     playingCards = shuffledCardPool.slice(0, cardSelectionTargetCount);
@@ -778,7 +855,7 @@ function startCardSelectionWithoutVeto() {
 
     // Layout wie bei showScreen("kartenauswahl")
     playerLabel.textContent = "✓ Fertig!";
-    info.innerHTML = `${playingCards.length} Karten wurden zufällig ausgewählt.`.replace(/\./g, ".<br>");
+    info.textContent = `${playingCards.length} Karten wurden zufällig ausgewählt.`;
     info.style.display = "block";
     info.style.cursor = "not-allowed";
     info.style.pointerEvents = "none";
@@ -800,7 +877,13 @@ function handleCardSelectionClick() {
     cardsWereShown = true;
     cardsForPlayer.forEach((card, index) => {
         const li = document.createElement("li");
-    li.innerHTML = `<span style="background: var(--panel); padding: 2px 6px; border-radius: 6px;">${card.begriff}</span> – ${card.erklaerung}`;
+        li._timesupCard = card;
+        appendText(li, "span", card.begriff, {
+            background: "var(--panel)",
+            padding: "2px 6px",
+            borderRadius: "6px"
+        });
+        li.appendChild(document.createTextNode(` - ${card.erklaerung}`));
         li.style.padding = "8px";
         li.style.borderBottom = "1px solid #ccc";
         li.style.cursor = "pointer";
@@ -833,7 +916,8 @@ function handleCardVeto(listItem, index) {
         return;
     }
     const newCard = shuffledCardPool.shift();
-    listItem.textContent = `🃏 ${newCard.begriff} – ${newCard.erklaerung}`;
+    listItem._timesupCard = newCard;
+    listItem.textContent = `${newCard.begriff} - ${newCard.erklaerung}`;
     listItem.onclick = null;
     listItem.style.opacity = "0.6";
     listItem.style.pointerEvents = "none";
@@ -844,7 +928,8 @@ function handleCardVeto(listItem, index) {
 }
 
 function handleCardSelectionDone() {
-    document.getElementById("startGameOverviewButton").style.display = "none";
+    const startOverviewButton = document.getElementById("startGameOverviewButton");
+    if (startOverviewButton) startOverviewButton.style.display = "none";
     if (remainingVetos > 0) {
         const confirmFinish = confirm(`Du hast noch ${remainingVetos} Veto${remainingVetos !== 1 ? 's' : ''} übrig. Möchtest du wirklich fortfahren?`);
         if (!confirmFinish) return;
@@ -854,19 +939,20 @@ function handleCardSelectionDone() {
     const info = document.getElementById("cardSelectionInfo");
     const vetoInfo = document.getElementById("vetoInfoText");
     const doneBtn = document.getElementById("cardDoneButton");
+    if (!ul || !playerLabel || !info || !vetoInfo || !doneBtn) return;
+
     for (let i = 0; i < ul.children.length; i++) {
-        const cardText = ul.children[i].textContent;
-        const clean = cardText.replace(/^🃏\s*/, "").split(" – ");
-        if (clean.length === 2) {
+        const selectedCard = ul.children[i]._timesupCard;
+        if (selectedCard) {
             playingCards.push({
-                begriff: clean[0].trim(),
-                erklaerung: clean[1].trim()
+                begriff: selectedCard.begriff,
+                erklaerung: selectedCard.erklaerung || ""
             });
         }
     }
     currentCardPlayerIndex++;
     if (currentCardPlayerIndex >= players.length) {
-        const targetCount = cardSelectionTargetCount || parseInt(document.getElementById("cardCount").value || "40");
+        const targetCount = cardSelectionTargetCount || toPositiveInt(document.getElementById("cardCount")?.value, 40);
         const fehlendeKarten = Math.max(0, targetCount - playingCards.length);
         for (let i = 0; i < fehlendeKarten && shuffledCardPool.length > 0; i++) {
             const card = shuffledCardPool.shift();
@@ -876,9 +962,7 @@ function handleCardSelectionDone() {
             });
         }
         playerLabel.textContent = "✓ Fertig!";
-        //info.style.flexWrap = "wrap";
-        info.innerHTML = `Alle Spieler haben ihre Karten. Gesamt: ${playingCards.length} Karten. Davon ${fehlendeKarten} automatisch ergänzt.`
-          .replace(/\./g, ".<br>");
+        info.textContent = `Alle Spieler haben ihre Karten. Gesamt: ${playingCards.length} Karten. Davon ${fehlendeKarten} automatisch ergänzt.`;
         info.style.display = "block";
         info.style.cursor = "not-allowed";
         info.style.pointerEvents = "none";
@@ -887,7 +971,7 @@ function handleCardSelectionDone() {
         ul.innerHTML = "";
         doneBtn.style.display = "none";
         allowCardClick = false;
-        document.getElementById("startGameOverviewButton").style.display = "inline-block";
+        if (startOverviewButton) startOverviewButton.style.display = "inline-block";
         return;
     }
     playerLabel.textContent = players[currentCardPlayerIndex].name;
@@ -902,10 +986,9 @@ function handleCardSelectionDone() {
 }
 
 
-
 // === Game Overview ===
 function prepareGameOverview() {
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     const rounds = parseInt(settings.roundCount || 3);
     const teamCount = parseInt(settings.teamCount || 2);
     totalTeams = teamCount;
@@ -917,16 +1000,14 @@ function prepareGameOverview() {
     const general = document.getElementById("generalRulesList");
     if (general) {
         general.innerHTML = "";
-        general.innerHTML += `<li>🃏 Anzahl Karten: ${settings.cardCount || 40}</li>`;
-        general.innerHTML += `<li>🔁 Spielrunden: ${rounds}</li>`;
-        general.innerHTML += `<li>👥 Teams: ${teamCount}</li>`;
-        general.innerHTML += `<li>🧩 Handicap: ${settings.handicapEnabled ? 'Ja, +' + (settings.handicapTime || 5) + 's' : 'Nein'}</li>`;
+        appendText(general, "li", `Anzahl Karten: ${settings.cardCount || 40}`);
+        appendText(general, "li", `Spielrunden: ${rounds}`);
+        appendText(general, "li", `Teams: ${teamCount}`);
+        appendText(general, "li", `Handicap: ${settings.handicapEnabled ? 'Ja, +' + (settings.handicapTime || 5) + 's' : 'Nein'}`);
         if (settings.punishEnabled) {
-            general.innerHTML += `<li>⚠️ Regelmissachtung: Ja<br>
-          ⏱️ Strafzeit: ${settings.punishTime || 3}s<br>
-          ❌ Punktabzug: ${settings.punishPoints || 'Nein'}</li>`;
+            appendText(general, "li", `Regelmissachtung: Ja | Strafzeit: ${settings.punishTime || 3}s | Punktabzug: ${settings.punishPoints || 'Nein'}`);
         } else {
-            general.innerHTML += `<li>⚠️ Regelmissachtung: Nein</li>`;
+            appendText(general, "li", "Regelmissachtung: Nein");
         }
     }
     const roundWrap = document.getElementById("overviewRoundSettings");
@@ -945,12 +1026,13 @@ function prepareGameOverview() {
             box.style.marginBottom = "10px";
             box.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
             box.style.color = "var(--text)";
-            box.innerHTML = `
-          <strong>Runde ${i + 1}</strong><br>
-          Regel: ${rule}<br>
-          Zeit: ${timer} Sekunden<br>
-          Überspringen: ${skip}
-        `;
+            appendText(box, "strong", `Runde ${i + 1}`);
+            box.appendChild(document.createElement("br"));
+            box.appendChild(document.createTextNode(`Regel: ${rule}`));
+            box.appendChild(document.createElement("br"));
+            box.appendChild(document.createTextNode(`Zeit: ${timer} Sekunden`));
+            box.appendChild(document.createElement("br"));
+            box.appendChild(document.createTextNode(`Überspringen: ${skip}`));
             roundWrap.appendChild(box);
         }
     }
@@ -1159,8 +1241,16 @@ function buildTeamTurnOrder() {
 }
 
 function startGame() {
+    if (playingCards.length === 0) {
+        alert("Bitte wähle zuerst Karten aus.");
+        return;
+    }
+    if (!teams.some(team => Array.isArray(team) && team.length > 0)) {
+        alert("Bitte teile zuerst Teams ein.");
+        return;
+    }
     ensureActiveArchive();
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     totalRounds = parseInt(settings.roundCount || 3);
     totalTeams = parseInt(settings.teamCount || 2);
     currentRound = 0;
@@ -1184,12 +1274,17 @@ function showStartRoundScreen() {
     if (!activePlayer) {
         setNextPlayer();
     }
+    if (!activePlayer) {
+        alert("Es ist kein aktiver Spieler verfügbar. Bitte prüfe die Teams.");
+        showScreen("teamuebersicht");
+        return;
+    }
     
     document.getElementById("roundPlayerName").textContent = activePlayer.name;
     const teamEl = document.getElementById("roundPlayerTeam");
     teamEl.textContent = `Team ${activeTeamIndex + 1}`;
     const startBtn = document.getElementById("startRoundBtn");
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     const roundRule = settings.roundRules?.[currentRound] || "-";
     const roundTime = settings.roundTimer?.[currentRound] || 60;
     const roundSkip = (settings.roundSkip?.[currentRound] || "no").toLowerCase() === "yes" ? "Ja" : "Nein";
@@ -1221,7 +1316,7 @@ function startRoundTimer() {
     try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
     // disable start button to avoid double start
     try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = true; } catch (e) {}
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     const roundIndex = currentRound;
     let baseTime = parseInt(settings.roundTimer?.[roundIndex] || 60);
     if (settings.handicapEnabled && activePlayer.handicap) {
@@ -1284,7 +1379,8 @@ function handleCorrect() {
 }
 
 function handleSkip() {
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    if (!currentCard) return;
+    const settings = getSettings();
     const roundIndex = currentRound;
     const skipSetting = settings.roundSkip?.[roundIndex];
     const skipAllowed = skipSetting === "yes";
@@ -1299,7 +1395,8 @@ function handleSkip() {
 }
 
 function handleMistake() {
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    if (!currentCard) return;
+    const settings = getSettings();
     if (isPenaltyActive) return;
     teamMistakes[activeTeamIndex] = (teamMistakes[activeTeamIndex] || 0) + 1;
     displayedCards.push(currentCard.begriff);
@@ -1318,7 +1415,7 @@ function handleMistake() {
 }
 
 function updateSkipButtonState() {
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     const roundIndex = currentRound;
     const skipSetting = (settings.roundSkip?.[roundIndex] || "no").toLowerCase();
     const skipBtn = document.getElementById("btnSkip");
@@ -1482,7 +1579,7 @@ function showRoundStats() {
 }
 
 function nextGameRound() {
-    const settings = JSON.parse(localStorage.getItem("timesup_settings") || "{}");
+    const settings = getSettings();
     currentRound++;
     if (currentRound >= totalRounds) {
         showFinalScreen();
@@ -1559,10 +1656,14 @@ function showFinalScreen() {
             finalTeamA.innerHTML = "";
             teams[0].forEach(player => {
                 const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td style="padding: 4px 12px;">${player.name}</td>
-                    <td style="text-align: center;">${player.handicap ? "✔️" : ""}</td>
-                `;
+                const nameCell = document.createElement("td");
+                nameCell.textContent = player.name;
+                nameCell.style.padding = "4px 12px";
+                const handicapCell = document.createElement("td");
+                handicapCell.textContent = player.handicap ? "✓" : "";
+                handicapCell.style.textAlign = "center";
+                row.appendChild(nameCell);
+                row.appendChild(handicapCell);
                 finalTeamA.appendChild(row);
             });
         }
@@ -1570,10 +1671,14 @@ function showFinalScreen() {
             finalTeamB.innerHTML = "";
             teams[1].forEach(player => {
                 const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td style="padding: 4px 12px;">${player.name}</td>
-                    <td style="text-align: center;">${player.handicap ? "✔️" : ""}</td>
-                `;
+                const nameCell = document.createElement("td");
+                nameCell.textContent = player.name;
+                nameCell.style.padding = "4px 12px";
+                const handicapCell = document.createElement("td");
+                handicapCell.textContent = player.handicap ? "✓" : "";
+                handicapCell.style.textAlign = "center";
+                row.appendChild(nameCell);
+                row.appendChild(handicapCell);
                 finalTeamB.appendChild(row);
             });
         }
@@ -1593,8 +1698,10 @@ function showFinalScreen() {
 }
 
 function setActionButtonsEnabled(enabled) {
-    document.getElementById("btnCorrect").disabled = !enabled;
-    document.getElementById("btnMistake").disabled = !enabled;
+    const correctButton = document.getElementById("btnCorrect");
+    const mistakeButton = document.getElementById("btnMistake");
+    if (correctButton) correctButton.disabled = !enabled;
+    if (mistakeButton) mistakeButton.disabled = !enabled;
 }
 
 function confirmStartRound() {
@@ -1920,6 +2027,7 @@ function loadThemeFromStorage() {
 loadThemeFromStorage();
 
 function resetGameState() {
+    try { if (timer) { clearInterval(timer); } } catch (e) {}
     // Spielverlauf-Variablen zurücksetzen (Settings & Karten bleiben erhalten)
     currentRound = 0;
     totalRounds = 1;
@@ -1941,6 +2049,7 @@ function resetGameState() {
     activePlayerIndicesByTeam = [];
     activePlayer = null;
     timer = undefined;
+    isTimerRunning = false;
     remainingTime = 0;
     displayedCards = [];
     skipCounter = 0;
