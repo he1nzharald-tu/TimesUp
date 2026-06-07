@@ -1858,8 +1858,7 @@ function showGuessedCardsAfterTimer() {
     box.style.maxWidth = "600px";
     box.style.maxHeight = "80vh";
     box.style.overflowY = "auto";
-    box.style.marginTop = "5vh";    // Abstand zum oberen Rand
-    box.style.marginBottom = "5vh"; // Abstand zum unteren Rand
+    box.style.margin = "0";
 
     // Zuerst: Zwei Hauptoptionen anzeigen
     const title = document.createElement("h2");

@@ -57,7 +57,11 @@ body {
 #screen-teamauswahl,
 #screen-teamuebersicht,
 #screen-kartenauswahl,
-#screen-spieluebersicht {
+#screen-spieluebersicht,
+#screen-roundstart,
+#screen-play,
+#screen-roundstats,
+#screen-end {
   --start-bg-base: var(--card-bg);
   --start-bg-line: rgba(116, 185, 255, 0.2);
   --start-bg-line-soft: rgba(162, 155, 254, 0.14);
@@ -76,7 +80,11 @@ body {
 .dark #screen-teamauswahl,
 .dark #screen-teamuebersicht,
 .dark #screen-kartenauswahl,
-.dark #screen-spieluebersicht {
+.dark #screen-spieluebersicht,
+.dark #screen-roundstart,
+.dark #screen-play,
+.dark #screen-roundstats,
+.dark #screen-end {
   --start-bg-line: rgba(92, 225, 184, 0.15);
   --start-bg-line-soft: rgba(124, 58, 237, 0.12);
   --start-bg-glow-a: rgba(255, 139, 148, 0.08);
@@ -92,7 +100,15 @@ body {
 #screen-kartenauswahl::before,
 #screen-kartenauswahl::after,
 #screen-spieluebersicht::before,
-#screen-spieluebersicht::after {
+#screen-spieluebersicht::after,
+#screen-roundstart::before,
+#screen-roundstart::after,
+#screen-play::before,
+#screen-play::after,
+#screen-roundstats::before,
+#screen-roundstats::after,
+#screen-end::before,
+#screen-end::after {
   content: "";
   position: absolute;
   inset: -35%;
@@ -104,7 +120,11 @@ body {
 #screen-teamauswahl::before,
 #screen-teamuebersicht::before,
 #screen-kartenauswahl::before,
-#screen-spieluebersicht::before {
+#screen-spieluebersicht::before,
+#screen-roundstart::before,
+#screen-play::before,
+#screen-roundstats::before,
+#screen-end::before {
   background-image:
     linear-gradient(115deg, transparent 0 46%, var(--start-bg-line) 47%, transparent 48% 100%),
     linear-gradient(115deg, transparent 0 54%, var(--start-bg-line-soft) 55%, transparent 56% 100%);
@@ -117,7 +137,11 @@ body {
 #screen-teamauswahl::after,
 #screen-teamuebersicht::after,
 #screen-kartenauswahl::after,
-#screen-spieluebersicht::after {
+#screen-spieluebersicht::after,
+#screen-roundstart::after,
+#screen-play::after,
+#screen-roundstats::after,
+#screen-end::after {
   background:
     radial-gradient(circle, var(--start-bg-line) 0 2px, transparent 3px),
     radial-gradient(circle, var(--start-bg-line-soft) 0 1px, transparent 2px);
@@ -130,7 +154,11 @@ body {
 #screen-teamauswahl > *,
 #screen-teamuebersicht > *,
 #screen-kartenauswahl > *,
-#screen-spieluebersicht > * {
+#screen-spieluebersicht > *,
+#screen-roundstart > *,
+#screen-play > *,
+#screen-roundstats > *,
+#screen-end > * {
   position: relative;
   z-index: 1;
 }
@@ -155,7 +183,15 @@ body {
   #screen-kartenauswahl::before,
   #screen-kartenauswahl::after,
   #screen-spieluebersicht::before,
-  #screen-spieluebersicht::after {
+  #screen-spieluebersicht::after,
+  #screen-roundstart::before,
+  #screen-roundstart::after,
+  #screen-play::before,
+  #screen-play::after,
+  #screen-roundstats::before,
+  #screen-roundstats::after,
+  #screen-end::before,
+  #screen-end::after {
     animation: none;
   }
 }
@@ -449,9 +485,67 @@ hr.divider {
   height: 345px;
   margin: 10px auto 32px auto;
   padding: 10px 24px 10px 24px;
+  overflow: hidden;
+  position: relative;
 }
 #screen-play.active {
   display: block;
+}
+
+#screen-play .play-header {
+  padding: 8px 12px !important;
+  margin-bottom: 8px !important;
+}
+
+#screen-play .play-timer {
+  font-size: 1.35rem !important;
+  padding: 5px 14px !important;
+}
+
+#screen-play .play-playerinfo {
+  min-width: 0;
+  font-size: 1.25rem !important;
+  overflow: hidden;
+}
+
+#playRoundPlayer {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#screen-play .play-main {
+  min-height: 0 !important;
+  margin: 10px 0 0 !important;
+}
+
+#currentCardDisplay {
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 20px 18px 18px !important;
+}
+
+#cardTerm {
+  font-size: 1.8rem !important;
+}
+
+#cardExplanation {
+  font-size: 1.2rem !important;
+}
+
+#screen-play .play-actions {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+}
+
+#screen-play .play-actions button {
+  height: 46px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
 }
 #screen-play .button-bar,
 #screen-play .button-bar-bottom {
@@ -602,6 +696,7 @@ td[data-label="Entfernen"] {
 
 #screen-roundstats {
   overflow: hidden;
+  position: relative;
 }
 
 #screen-roundstats .teams,
@@ -620,12 +715,183 @@ td[data-label="Entfernen"] {
 
 #screen-end {
   overflow: hidden;
+  position: relative;
 }
 
 #screen-end .teams-overview-grid {
   max-height: 220px;
   overflow-y: auto;
   padding: 4px 4px 64px;
+}
+
+#screen-roundstats > div:last-child > div:last-child,
+#screen-end > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+}
+
+#screen-roundstats > div:last-child > div:last-child button,
+#screen-end > div:last-child button {
+  margin: 0 !important;
+  height: 46px;
+}
+
+#finalTwoTeamContainer {
+  max-width: 100%;
+  gap: 14px !important;
+}
+
+#finalTeamACard,
+#finalTeamBCard {
+  width: min(300px, calc(50% - 10px)) !important;
+  height: 188px !important;
+  max-height: 188px !important;
+}
+
+/* Requested screen placement fixes. Keep interactive game screens inside the
+   same landscape app frame instead of using viewport-fixed geometry. */
+#screen-roundstats > div:last-child > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 0 !important;
+  padding: 0 0 10px !important;
+  background: transparent !important;
+}
+
+#screen-roundstats > div:last-child > div:last-child button {
+  height: 46px !important;
+  margin: 0 !important;
+}
+
+#screen-play {
+  display: none;
+}
+
+#screen-play.active {
+  display: flex !important;
+  flex-direction: column;
+}
+
+#screen-play .play-header {
+  flex: 0 0 auto;
+}
+
+#screen-play .play-main {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-bottom: 56px;
+  box-sizing: border-box;
+}
+
+#currentCardDisplay {
+  width: min(100%, 560px) !important;
+  margin: 0 auto !important;
+}
+
+#screen-play .play-actions {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+}
+
+#screen-kartenauswahl {
+  position: relative !important;
+  overflow: hidden !important;
+  max-width: 700px !important;
+  height: 345px !important;
+  margin: 10px auto 32px auto !important;
+  padding: 10px 24px !important;
+}
+
+#cardSelectionClickArea {
+  min-height: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box;
+  padding: 54px 0 58px;
+}
+
+#cardSelectionClickArea > div:first-child {
+  position: absolute !important;
+  top: 10px !important;
+  left: 24px !important;
+  right: 24px !important;
+  height: 38px !important;
+  padding: 4px 10px !important;
+  box-sizing: border-box;
+}
+
+#cardSelectionClickArea > div:first-child h2 {
+  font-size: 1.35rem !important;
+  line-height: 30px;
+}
+
+#cardSelectionPlayerName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#vetoInfoText {
+  position: absolute !important;
+  top: 8px !important;
+  right: 10px !important;
+  max-width: 210px;
+}
+
+#cardSelectionWrap {
+  width: 100%;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#cardSelectionInfo {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(420px, calc(100% - 48px));
+  box-sizing: border-box;
+  z-index: 3 !important;
+}
+
+#cardSelectionList {
+  max-height: 210px;
+  overflow-y: auto;
+  margin: 0 !important;
+  padding: 0 6px 8px !important;
+}
+
+#screen-kartenauswahl > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+}
+
+/* Keep the round stats footer anchored to the full screen, not to its text wrapper. */
+#screen-roundstats > div:last-child {
+  position: static !important;
+}
+
+#screen-roundstats > div:last-child > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
 }
 
 .round-start-info {
@@ -844,6 +1110,7 @@ td[data-label="Entfernen"] {
 #screen-roundstart {
   position: relative;
   isolation: isolate;
+  overflow: hidden;
 }
 
 #roundBorderWrapper {
@@ -858,6 +1125,57 @@ td[data-label="Entfernen"] {
     radial-gradient(circle at 50% 44%, transparent 0 32%, var(--roundstart-orbit-a) 33%, transparent 34%),
     radial-gradient(circle at 50% 48%, transparent 0 45%, var(--roundstart-orbit-b) 46%, transparent 47%),
     linear-gradient(180deg, var(--roundstart-bg-base), var(--roundstart-bg-base)) !important;
+  box-sizing: border-box;
+  height: 100% !important;
+  max-height: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 16px 18px !important;
+  border-width: 6px !important;
+  border-radius: 22px !important;
+  gap: 8px !important;
+}
+
+#roundBorderWrapper > div:first-child,
+#roundBorderWrapper > div:last-child {
+  flex-basis: 56px !important;
+  width: 56px !important;
+}
+
+#roundBorderWrapper > div:first-child > div,
+#roundBorderWrapper > div:last-child > div {
+  font-size: 4.4rem !important;
+}
+
+#roundBorderWrapper > div:nth-child(2) {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 4px !important;
+}
+
+#roundPlayerTeam {
+  font-size: 1.05rem !important;
+  margin-bottom: 0.2em !important;
+  padding: 4px 14px !important;
+}
+
+#roundPlayerName {
+  width: min(360px, 100%) !important;
+  min-width: 0 !important;
+  max-width: min(360px, 100%) !important;
+  font-size: 2.35rem !important;
+  margin-bottom: 0.15em !important;
+  padding: 14px 0 !important;
+  border-width: 4px !important;
+  outline-width: 2px !important;
+  outline-offset: 5px !important;
+}
+
+#startRoundBtn {
+  width: min(360px, 100%) !important;
+  font-size: 1.25rem !important;
+  padding: 9px 18px !important;
+  margin: 0 !important;
 }
 
 .dark #roundBorderWrapper {
@@ -1925,4 +2243,394 @@ td[data-label="Entfernen"] {
   .fireworks span::after {
     animation: none;
   }
+}
+
+/* iPhone 16 Pro landscape frame normalization.
+   These final overrides win over repeated legacy blocks and inline layout sizes. */
+#screen-roundstart,
+#screen-play,
+#screen-roundstats,
+#screen-end {
+  position: relative !important;
+  overflow: hidden !important;
+  max-width: 700px !important;
+  height: 345px !important;
+  margin: 10px auto 32px auto !important;
+  padding: 10px 24px !important;
+}
+
+#screen-roundstart.active,
+#screen-play.active,
+#screen-roundstats.active,
+#screen-end.active {
+  display: block;
+}
+
+#roundBorderWrapper {
+  height: 100% !important;
+  max-height: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 16px 18px !important;
+  border-width: 6px !important;
+  border-radius: 22px !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+}
+
+#roundBorderWrapper > div:first-child,
+#roundBorderWrapper > div:last-child {
+  flex-basis: 56px !important;
+  width: 56px !important;
+}
+
+#roundBorderWrapper > div:first-child > div,
+#roundBorderWrapper > div:last-child > div {
+  font-size: 4.4rem !important;
+}
+
+#roundBorderWrapper > div:nth-child(2) {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  gap: 4px !important;
+}
+
+#roundPlayerTeam {
+  font-size: 1.05rem !important;
+  margin-bottom: 0.2em !important;
+  padding: 4px 14px !important;
+}
+
+#roundPlayerName {
+  width: min(360px, 100%) !important;
+  min-width: 0 !important;
+  max-width: min(360px, 100%) !important;
+  font-size: 2.35rem !important;
+  margin-bottom: 0.15em !important;
+  padding: 14px 0 !important;
+  border-width: 4px !important;
+  outline-width: 2px !important;
+  outline-offset: 5px !important;
+}
+
+#startRoundBtn {
+  width: min(360px, 100%) !important;
+  font-size: 1.25rem !important;
+  padding: 9px 18px !important;
+  margin: 0 !important;
+}
+
+#screen-play .play-header {
+  padding: 8px 12px !important;
+  margin-bottom: 8px !important;
+}
+
+#screen-play .play-timer {
+  font-size: 1.35rem !important;
+  padding: 5px 14px !important;
+}
+
+#screen-play .play-playerinfo {
+  min-width: 0 !important;
+  font-size: 1.25rem !important;
+  overflow: hidden !important;
+}
+
+#playRoundPlayer {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#screen-play .play-main {
+  min-height: 0 !important;
+  margin: 10px 0 0 !important;
+}
+
+#currentCardDisplay {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 20px 18px 18px !important;
+}
+
+#cardTerm {
+  font-size: 1.8rem !important;
+}
+
+#cardExplanation {
+  font-size: 1.2rem !important;
+}
+
+#screen-play .play-actions,
+#screen-roundstats > div:last-child > div:last-child,
+#screen-end > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+}
+
+#screen-play .play-actions button,
+#screen-roundstats > div:last-child > div:last-child button,
+#screen-end > div:last-child button {
+  height: 46px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+#finalTwoTeamContainer {
+  max-width: 100% !important;
+  gap: 14px !important;
+}
+
+#finalTeamACard,
+#finalTeamBCard {
+  width: min(300px, calc(50% - 10px)) !important;
+  height: 188px !important;
+  max-height: 188px !important;
+}
+
+/* Requested screen placement fixes - final winning overrides. */
+#screen-roundstats > div:last-child > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 0 !important;
+  padding: 0 0 10px !important;
+  background: transparent !important;
+}
+
+#screen-roundstats > div:last-child > div:last-child button {
+  height: 46px !important;
+  margin: 0 !important;
+}
+
+#screen-play.active {
+  display: flex !important;
+  flex-direction: column;
+}
+
+#screen-play .play-header {
+  flex: 0 0 auto;
+}
+
+#screen-play .play-main {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-bottom: 56px;
+  box-sizing: border-box;
+}
+
+#currentCardDisplay {
+  width: min(100%, 560px) !important;
+  margin: 0 auto !important;
+}
+
+#screen-play .play-actions {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+}
+
+#screen-kartenauswahl {
+  position: relative !important;
+  overflow: hidden !important;
+  max-width: 700px !important;
+  height: 345px !important;
+  margin: 10px auto 32px auto !important;
+  padding: 10px 24px !important;
+}
+
+#cardSelectionClickArea {
+  min-height: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box;
+  padding: 54px 0 58px;
+}
+
+#cardSelectionClickArea > div:first-child {
+  position: absolute !important;
+  top: 10px !important;
+  left: 24px !important;
+  right: 24px !important;
+  height: 38px !important;
+  padding: 4px 10px !important;
+  box-sizing: border-box;
+}
+
+#cardSelectionClickArea > div:first-child h2 {
+  font-size: 1.35rem !important;
+  line-height: 30px;
+}
+
+#cardSelectionPlayerName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#vetoInfoText {
+  position: absolute !important;
+  top: 8px !important;
+  right: 10px !important;
+  max-width: 210px;
+}
+
+#cardSelectionWrap {
+  width: 100%;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#cardSelectionInfo {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(420px, calc(100% - 48px));
+  box-sizing: border-box;
+  z-index: 3 !important;
+}
+
+#cardSelectionList {
+  max-height: 210px;
+  overflow-y: auto;
+  margin: 0 !important;
+  padding: 0 6px 8px !important;
+}
+
+#screen-kartenauswahl > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+}
+
+/* Final round statistics footer anchor. */
+#screen-roundstats > div:last-child {
+  position: static !important;
+}
+
+#screen-roundstats > div:last-child > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+}
+
+/* Final team selection footer anchor. */
+#screen-teamauswahl {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#screen-teamauswahl > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  background: transparent !important;
+}
+
+#screen-teamauswahl > div:last-child button {
+  height: 46px !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+}
+
+/* Final team overview footer anchor. */
+#screen-teamuebersicht {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#screen-teamuebersicht > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  background: transparent !important;
+}
+
+#screen-teamuebersicht > div:last-child button {
+  height: 46px !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+}
+
+/* Final game overview footer anchor. */
+#screen-spieluebersicht {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+#screen-spieluebersicht > div:last-child {
+  position: absolute !important;
+  left: 24px !important;
+  right: 24px !important;
+  bottom: 10px !important;
+  padding: 0 !important;
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  background: transparent !important;
+}
+
+#screen-spieluebersicht > div:last-child button {
+  height: 46px !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+}
+
+/* Final card selection header layout. */
+#cardSelectionClickArea > div:first-child {
+  align-items: center !important;
+  display: flex !important;
+  overflow: hidden !important;
+}
+
+#cardSelectionClickArea > div:first-child h2:first-child {
+  flex: 0 0 auto !important;
+  margin: 0 8px 0 0 !important;
+  white-space: nowrap !important;
+}
+
+#cardSelectionPlayerName {
+  flex: 1 1 auto !important;
+  display: block !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  text-align: left !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#vetoInfoText {
+  flex: 0 0 auto !important;
+  position: static !important;
+  margin: 0 0 0 8px !important;
+  max-width: 180px !important;
+  white-space: nowrap !important;
 }
