@@ -1378,6 +1378,20 @@ function handleCorrect() {
     showNextCard();
 }
 
+function markCurrentCardCorrectAfterTimer() {
+    if (!currentCard) return false;
+    const cardStillOpen = currentCards.some(card => card.begriff === currentCard.begriff);
+    if (!cardStillOpen) return false;
+
+    const alreadyCounted = correctCards[activeTeamIndex].some(card => card.begriff === currentCard.begriff);
+    if (!alreadyCounted) {
+        correctCards[activeTeamIndex].push(currentCard);
+    }
+    currentCards = currentCards.filter(card => card.begriff !== currentCard.begriff);
+    showingExplanation = false;
+    return true;
+}
+
 function handleSkip() {
     if (!currentCard) return;
     const settings = getSettings();
@@ -1819,11 +1833,13 @@ function resumeTimer() {
 }
 
 // === Guessed Cards ===
-function showGuessedCardsAfterTimer() {
+function showGuessedCardsAfterTimer(playAlarm = true) {
     // ensure no timer remains running
     try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
     isTimerRunning = false;
-    try { playEndAlarm(); } catch (e) {}
+    if (playAlarm) {
+        try { playEndAlarm(); } catch (e) {}
+    }
     try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = false; } catch (e) {}
     
     // Erstelle Overlay
@@ -1885,6 +1901,30 @@ function showGuessedCardsAfterTimer() {
         showCardCorrectionScreen(guessedOverlay);
     };
     box.appendChild(btnCorrect);
+
+    if (currentCard && currentCards.some(card => card.begriff === currentCard.begriff)) {
+        const btnLastCorrect = document.createElement("button");
+        btnLastCorrect.textContent = `✅ "${currentCard.begriff}" richtig`;
+        btnLastCorrect.style.marginBottom = "12px";
+        btnLastCorrect.style.fontSize = "1.1rem";
+        btnLastCorrect.style.padding = "14px 32px";
+        btnLastCorrect.style.borderRadius = "12px";
+        btnLastCorrect.style.background = "linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)";
+        btnLastCorrect.style.color = "var(--on-accent)";
+        btnLastCorrect.style.border = "none";
+        btnLastCorrect.style.cursor = "pointer";
+        btnLastCorrect.style.width = "100%";
+        btnLastCorrect.style.maxWidth = "350px";
+        btnLastCorrect.style.whiteSpace = "normal";
+        btnLastCorrect.style.overflowWrap = "anywhere";
+        btnLastCorrect.style.lineHeight = "1.2";
+        btnLastCorrect.onclick = function () {
+            if (markCurrentCardCorrectAfterTimer()) {
+                showGuessedCardsAfterTimer(false);
+            }
+        };
+        box.appendChild(btnLastCorrect);
+    }
 
     const btnSkip = document.createElement("button");
     btnSkip.textContent = "➡️ Nächster Spieler";
@@ -1978,9 +2018,9 @@ function showCardCorrectionScreen(guessedOverlay) {
 
     box.appendChild(list);
 
-    // Button zum Schließen und Fortfahren
+    // Button zum Zurückkehren in den Zeit-vorbei-Dialog
     const btnOk = document.createElement("button");
-    btnOk.textContent = "Weiter";
+    btnOk.textContent = "Zurück";
     btnOk.style.marginTop = "18px";
     btnOk.style.fontSize = "1.2rem";
     btnOk.style.padding = "12px 32px";
@@ -1990,8 +2030,7 @@ function showCardCorrectionScreen(guessedOverlay) {
     btnOk.style.border = "none";
     btnOk.style.cursor = "pointer";
     btnOk.onclick = function () {
-        document.body.removeChild(guessedOverlay);
-        endRound();
+        showGuessedCardsAfterTimer(false);
     };
     box.appendChild(btnOk);
 }
