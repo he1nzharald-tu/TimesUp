@@ -1,5 +1,5 @@
 ﻿// === Game State ===
-let cardPool = []; // Array of {begriff, erklaerung}
+let cardPool = []; // Array of {id, begriff, erklaerung}
 let vetoCountPerPlayer = 0;
 let remainingVetos = 0;
 let cardsWereShown = false;
@@ -72,8 +72,41 @@ function writeArchiveStore(store) {
     writeJsonStore(ARCHIVE_STORAGE_KEY, store);
 }
 
+// Schlüssel alter Archiv-Einträge (vor Einführung der IDs): der Begriff in Kleinbuchstaben
 function getCardKey(card) {
     return String(card?.begriff || "").trim().toLowerCase();
+}
+
+// Stabile Karten-ID aus Begriff und Erklärung (FNV-1a, 32 Bit).
+// Muss zu scripts/export_cards.py passen.
+function hashCardText(begriff, erklaerung) {
+    const text = `${begriff}\u001f${erklaerung}`;
+    let hash = 0x811c9dc5;
+    for (const byte of new TextEncoder().encode(text)) {
+        hash ^= byte;
+        hash = Math.imul(hash, 0x01000193) >>> 0;
+    }
+    return "k" + hash.toString(16).padStart(8, "0");
+}
+
+function makeCard(begriff, erklaerung, id) {
+    const b = String(begriff ?? "").trim();
+    const e = String(erklaerung ?? "").trim();
+    return { id: id || hashCardText(b, e), begriff: b, erklaerung: e };
+}
+
+// Vergibt bei identischen Karten eindeutige IDs (-2, -3, ...)
+function ensureUniqueCardIds(cards) {
+    const seen = new Map();
+    return cards.map(card => {
+        const count = (seen.get(card.id) || 0) + 1;
+        seen.set(card.id, count);
+        return count === 1 ? card : { ...card, id: `${card.id}-${count}` };
+    });
+}
+
+function isSameCard(a, b) {
+    return !!a && !!b && a.id === b.id;
 }
 
 function makeArchiveId(createdAt) {
@@ -98,15 +131,26 @@ function ensureActiveArchive() {
     return id;
 }
 
-function getActiveArchiveUsedCardKeys() {
-    if (!activeArchiveId) return new Set();
+// Liefert die im aktiven Archiv gesperrten Karten: neue Einträge per ID,
+// alte Einträge (ohne ID) weiterhin über den Begriff
+function getActiveArchiveUsedCards() {
+    const ids = new Set();
+    const legacyKeys = new Set();
+    if (!activeArchiveId) return { ids, legacyKeys };
     const archive = readArchiveStore()[activeArchiveId];
-    return new Set((archive?.usedCards || []).map(getCardKey).filter(Boolean));
+    (archive?.usedCards || []).forEach(card => {
+        if (card?.id) ids.add(card.id);
+        else {
+            const key = getCardKey(card);
+            if (key) legacyKeys.add(key);
+        }
+    });
+    return { ids, legacyKeys };
 }
 
 function getAvailableCardPoolForArchive() {
-    const usedKeys = getActiveArchiveUsedCardKeys();
-    return cardPool.filter(card => !usedKeys.has(getCardKey(card)));
+    const { ids, legacyKeys } = getActiveArchiveUsedCards();
+    return cardPool.filter(card => !ids.has(card.id) && !legacyKeys.has(getCardKey(card)));
 }
 
 function savePlayedCardsToActiveArchive() {
@@ -115,10 +159,11 @@ function savePlayedCardsToActiveArchive() {
     const archive = store[id];
     if (!archive) return;
 
-    const byKey = new Map((archive.usedCards || []).map(card => [getCardKey(card), card]));
+    const entryKey = card => card?.id ? `id:${card.id}` : `alt:${getCardKey(card)}`;
+    const byKey = new Map((archive.usedCards || []).map(card => [entryKey(card), card]));
     playingCards.forEach(card => {
-        const key = getCardKey(card);
-        if (key) byKey.set(key, { begriff: card.begriff, erklaerung: card.erklaerung || "" });
+        if (!card?.id) return;
+        byKey.set(entryKey(card), { id: card.id, begriff: card.begriff, erklaerung: card.erklaerung || "" });
     });
     archive.players = players.map(p => ({ name: p.name, handicap: !!p.handicap }));
     archive.usedCards = [...byKey.values()];
@@ -268,13 +313,10 @@ async function loadKartenFromExcel() {
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-        cardPool = rows
+        cardPool = ensureUniqueCardIds(rows
             .filter(row => row[0] && row[1])
-            .map(row => ({
-                begriff: String(row[0]).trim(),
-                erklaerung: String(row[1]).trim()
-            }))
-            .filter(card => card.begriff && card.erklaerung);
+            .map(row => makeCard(row[0], row[1]))
+            .filter(card => card.begriff && card.erklaerung));
 
         setCardLoadStatusText(`${cardPool.length} Karten erfolgreich geladen`);
     } catch (err) {
@@ -993,10 +1035,7 @@ function handleCardSelectionDone() {
     for (let i = 0; i < ul.children.length; i++) {
         const selectedCard = ul.children[i]._timesupCard;
         if (selectedCard) {
-            playingCards.push({
-                begriff: selectedCard.begriff,
-                erklaerung: selectedCard.erklaerung || ""
-            });
+            playingCards.push(selectedCard);
         }
     }
     currentCardPlayerIndex++;
@@ -1004,11 +1043,7 @@ function handleCardSelectionDone() {
         const targetCount = cardSelectionTargetCount || toPositiveInt(document.getElementById("cardCount")?.value, 40);
         const fehlendeKarten = Math.max(0, targetCount - playingCards.length);
         for (let i = 0; i < fehlendeKarten && shuffledCardPool.length > 0; i++) {
-            const card = shuffledCardPool.shift();
-            playingCards.push({
-                begriff: card.begriff,
-                erklaerung: card.erklaerung
-            });
+            playingCards.push(shuffledCardPool.shift());
         }
         playerLabel.textContent = "✓ Fertig!";
         info.textContent = `Alle Spieler haben ihre Karten. Gesamt: ${playingCards.length} Karten. Davon ${fehlendeKarten} automatisch ergänzt.`;
@@ -1255,7 +1290,7 @@ function playEndAlarm() {
         if (p && p.catch) p.catch(() => {});
     } catch (e) { }
 }
-let displayedCards = [];
+let displayedCards = []; // IDs der in diesem Zug schon gezeigten Karten
 let skippedThisTurn = []; // übersprungene Karten, die im selben Zug zurückkommen dürfen
 let skipCounter = 0;
 let isPenaltyActive = false;
@@ -1415,13 +1450,13 @@ function skippedCardsReturn() {
 }
 
 function showNextCard() {
-    let available = currentCards.filter(card => !displayedCards.includes(card.begriff));
+    let available = currentCards.filter(card => !displayedCards.includes(card.id));
     if (available.length === 0 && skippedThisTurn.length > 0 && skippedCardsReturn()) {
         // Stapel ist durch: übersprungene Karten kommen wieder nach oben
         const returning = new Set(skippedThisTurn);
         displayedCards = displayedCards.filter(key => !returning.has(key));
         skippedThisTurn = [];
-        available = currentCards.filter(card => !displayedCards.includes(card.begriff));
+        available = currentCards.filter(card => !displayedCards.includes(card.id));
     }
     if (available.length === 0) {
         document.getElementById("cardTerm").textContent = "🔄 Keine weiteren Karten";
@@ -1431,7 +1466,7 @@ function showNextCard() {
     }
     const next = available[Math.floor(Math.random() * available.length)];
     currentCard = next;
-    displayedCards.push(next.begriff);
+    displayedCards.push(next.id);
     document.getElementById("cardTerm").textContent = currentCard.begriff;
     document.getElementById("cardExplanation").textContent = currentCard.erklaerung || "";
     document.getElementById("cardExplanation").style.display = "none";
@@ -1443,21 +1478,21 @@ function showNextCard() {
 function handleCorrect() {
     if (!currentCard) return;
     correctCards[activeTeamIndex].push(currentCard);
-    currentCards = currentCards.filter(card => card.begriff !== currentCard.begriff);
+    currentCards = currentCards.filter(card => !isSameCard(card, currentCard));
     showingExplanation = false;
     showNextCard();
 }
 
 function markCurrentCardCorrectAfterTimer() {
     if (!currentCard) return false;
-    const cardStillOpen = currentCards.some(card => card.begriff === currentCard.begriff);
+    const cardStillOpen = currentCards.some(card => isSameCard(card, currentCard));
     if (!cardStillOpen) return false;
 
-    const alreadyCounted = correctCards[activeTeamIndex].some(card => card.begriff === currentCard.begriff);
+    const alreadyCounted = correctCards[activeTeamIndex].some(card => isSameCard(card, currentCard));
     if (!alreadyCounted) {
         correctCards[activeTeamIndex].push(currentCard);
     }
-    currentCards = currentCards.filter(card => card.begriff !== currentCard.begriff);
+    currentCards = currentCards.filter(card => !isSameCard(card, currentCard));
     showingExplanation = false;
     return true;
 }
@@ -1473,8 +1508,8 @@ function handleSkip() {
         const maxSkips = parseInt(settings.skipLimitValue?.[roundIndex] || 100);
         if (skipCounter >= maxSkips) return;
     }
-    if (!displayedCards.includes(currentCard.begriff)) displayedCards.push(currentCard.begriff);
-    skippedThisTurn.push(currentCard.begriff);
+    if (!displayedCards.includes(currentCard.id)) displayedCards.push(currentCard.id);
+    skippedThisTurn.push(currentCard.id);
     skipCounter++;
     showNextCard();
 }
@@ -1484,7 +1519,7 @@ function handleMistake() {
     const settings = getSettings();
     if (isPenaltyActive) return;
     teamMistakes[activeTeamIndex] = (teamMistakes[activeTeamIndex] || 0) + 1;
-    if (!displayedCards.includes(currentCard.begriff)) displayedCards.push(currentCard.begriff);
+    if (!displayedCards.includes(currentCard.id)) displayedCards.push(currentCard.id);
     // Die Karte ist für diesen Zug erledigt und darf nach Zeitablauf nicht als "richtig" angeboten werden
     currentCard = null;
     if (settings.punishEnabled) {
@@ -2005,7 +2040,7 @@ function showGuessedCardsAfterTimer(playAlarm = true) {
     };
     box.appendChild(btnCorrect);
 
-    if (currentCard && currentCards.some(card => card.begriff === currentCard.begriff)) {
+    if (currentCard && currentCards.some(card => isSameCard(card, currentCard))) {
         const btnLastCorrect = document.createElement("button");
         btnLastCorrect.textContent = `✅ "${currentCard.begriff}" richtig`;
         btnLastCorrect.style.marginBottom = "12px";
