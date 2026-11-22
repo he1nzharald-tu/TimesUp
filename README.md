@@ -20,7 +20,9 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 
 - **Spieler und Teams:** Spieler hinzufügen, 2 oder mehr Teams zufällig oder von Hand zusammenstellen
 - **Handicap:** Ausgewählte Spieler bekommen mehr Zeit pro Zug
-- **Kartenauswahl:** Zufällig oder jeder Spieler zieht seine Karten selbst und darf per Veto Karten tauschen
+- **Über 3.700 Karten:** kurze Erklärungen (höchstens 80 Zeichen), eingeteilt in 4 Schwierigkeitsstufen (Kinder, Mittel, Schwer, Experte) und 22 Themen plus NSFW
+- **Kartenauswahl nach Geschmack:** Stufen, Themen und 16 Decks à 60 Karten frei kombinierbar (8 breite Decks wie „Fantasy-Filme & Serien“ oder „80er/90er/2000er-Kult“, 8 Franchise-Decks wie Harry Potter, Star Wars oder Pokémon). Eine Karte ist dabei, wenn ihre Stufe passt und eines ihrer Themen **oder** ihr Deck gewählt ist. NSFW-Karten nur, wenn ausdrücklich eingeschaltet. Die Einstellungen zeigen, wie viele Karten passen, und warnen, wenn es zu wenige sind
+- **Kartenauswahl im Spiel:** Zufällig oder jeder Spieler zieht seine Karten selbst und darf per Veto Karten tauschen
 - **Runden frei einstellbar:** Anzahl, Regel (auch eigene Regeln), Zeit pro Zug
 - **Überspringen:** Pro Runde erlauben oder verbieten, mit oder ohne Limit; übersprungene Karten kommen im selben Zug wieder (abschaltbar)
 - **Regelverstoß:** Karte als Fehler werten; Strafzeit und Punktabzug („Ja“ −1, „Remi“ −0,5 pro Fehler, nie unter 0) sind getrennt einstellbar
@@ -29,6 +31,7 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Auswertung:** Rundenstatistik und Endbildschirm mit Gewinnerteam
 - **Spiel fortsetzen:** Der Spielstand wird nach jeder Karte und jedem Zugwechsel gesichert. Schließt das Handy die App oder wird neu geladen, bietet der Startbildschirm „Fortsetzen“ an; ein unterbrochener Zug gilt dabei als beendet
 - **Archiv:** Gespeicherte Spiele mit Spielern; bereits gespielte Karten werden beim nächsten Spiel derselben Gruppe nicht noch einmal gezogen. Über „Exportieren“ und „Importieren“ lässt sich das Archiv als Datei auf ein anderes Gerät mitnehmen (gleiche Spiele werden zusammengeführt)
+- **Einstellungen:** Bereiche Karten · Spiel · Fairness · Design mit Symbolleiste (Hochformat oben, Querformat links), Stepper, Schaltern und Rundenkarten zum Antippen; jede Änderung wird sofort gespeichert
 - **Darstellung:** Helles und dunkles Design, Hoch- und Querformat, Handy bis Tablet
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
 - **Updates:** Liegt eine neue Version bereit, zeigt der Startbildschirm „Neue Version – neu laden“; mitten im Spiel wird nie aktualisiert
@@ -119,7 +122,9 @@ Unter `tests/` liegen automatische Tests, die die App in einem echten Browser du
 - Strafzeit (auch bei Zugende und Pause) und Punktabzug (Ja/Remi, nie unter 0)
 - Überspringen mit und ohne Zurücklegen
 - Karten-IDs, doppelte Begriffe, alte Archiv-Einträge, Archiv-Export und -Import, gleichmäßiges Mischen
-- `data/cards.json` passt zu `data/db_Karten.xlsx`
+- `data/cards.json` passt zu `data/db_Karten.xlsx`; Export- und Prüfskript (Spalten, Stufen, Themen, Decks, Regeln für Erklärungen)
+- Kartenfilter (Stufen, Themen, Decks, NSFW) in Logik, Spiel und Einstellungen
+- Neue Einstellungen: Reiter, Stepper, Schalter, Rundenkarten, sofortiges Speichern
 - Offline-Modus, Hinweis auf neue Version, keine Anfragen an fremde Server
 - Spiel fortsetzen nach Neuladen (zwischen Zügen, mitten im Zug, in der Rundenstatistik)
 - Dialoge, Standardwerte, Skalierung im Querformat
@@ -160,10 +165,13 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `index.html` | Alle Bildschirme der App |
 | `css/startscreen.css` | Hauptstile, Animationen, responsives Layout, Dialoge |
 | `css/app.css` | Grundstil, Farben (hell/dunkel) und Komponenten |
+| `css/settings.css` | Einstellungsseite (Symbolleiste, Stepper, Schalter, Kacheln) |
 | `css/fonts.css`, `fonts/` | Schrift Fredoka (lokal, SIL Open Font License) |
 | `js/main.js` | Einstieg: lädt Einstellungen und Karten |
 | `js/state.js` | Gemeinsamer Spielzustand |
-| `js/settings.js` | Einstellungen und Design |
+| `js/settings.js` | Einstellungen speichern/laden, Runden, Design |
+| `js/settingsui.js` | Bedienung der Einstellungsseite (Reiter, Stepper, Filter-Kacheln) |
+| `js/filter.js` | Kartenfilter nach Stufen, Themen, Decks und NSFW |
 | `js/cards.js` | Karten laden, IDs, Archiv, Kartenauswahl |
 | `js/game.js` | Spieler, Teams, Runden, Timer, Punkte |
 | `js/ui.js` | Bildschirmwechsel, Dialoge, Listen |
@@ -172,7 +180,10 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `js/persist.js` | Spielstand sichern und fortsetzen |
 | `data/db_Karten.xlsx` | Kartendatenbank zum Bearbeiten |
 | `data/cards.json` | Exportierte Karten, die die App lädt |
+| `data/kategorien.json` | Stufen, Themen und Decks (Namen, Symbole) |
 | `scripts/export_cards.py` | Export von Excel nach JSON |
+| `scripts/check_cards.py` | Prüft Karten auf die Regeln (Länge, Begriff in der Erklärung, Dubletten …) |
+| `scripts/kartendaten.py` | Gemeinsame Funktionen der Kartenskripte |
 | `tests/` | Automatische Tests und Screenshot-Vergleich |
 | `.github/workflows/tests.yml` | Führt die Tests auf GitHub aus |
 | `assets/` | Töne |
