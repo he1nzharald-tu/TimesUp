@@ -76,7 +76,7 @@ Jede Karte bekommt eine feste ID, die aus Begriff und Erklärung berechnet wird.
 Installierte Apps laden ihre Dateien aus dem Offline-Speicher, nicht aus dem Netz. Damit Änderungen bei den Spielern ankommen, muss bei **jeder Änderung an App-Dateien** (HTML, CSS, JavaScript, Karten, Töne, Icons) die Version in `service-worker.js` erhöht werden:
 
 ```js
-const CACHE_VERSION = 'v3';   // vorher 'v2'
+const CACHE_VERSION = 'v4';   // vorher 'v3'
 ```
 
 Beim nächsten Online-Start lädt die App die neue Version im Hintergrund. Auf dem Startbildschirm erscheint dann „Neue Version – neu laden“; nach dem Antippen läuft die neue Version, der alte Speicher wird gelöscht.
