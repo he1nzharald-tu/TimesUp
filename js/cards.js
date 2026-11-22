@@ -14,7 +14,8 @@ export function getCardKey(card) {
     return String(card?.begriff || "").trim().toLowerCase();
 }
 // Stabile Karten-ID aus Begriff und Erklärung (FNV-1a, 32 Bit).
-// Muss zu scripts/export_cards.py passen.
+// Muss zu card_id() in scripts/kartendaten.py passen. Karten aus cards.json bringen ihre feste ID mit;
+// der Hash gilt nur für Karten ohne ID (z. B. alte Archiv-Einträge).
 export function hashCardText(begriff, erklaerung) {
     const text = `${begriff}\u001f${erklaerung}`;
     let hash = 0x811c9dc5;

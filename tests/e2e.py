@@ -217,12 +217,15 @@ def test_shuffle(b, base):
 
 
 def test_cards_json(b, base):
-    """Karten kommen aus data/cards.json, IDs passen zur App-Berechnung, kein SheetJS (Todo 5)."""
+    """Karten kommen aus data/cards.json mit ihren festen IDs, App-Hash passt zum Exportskript, kein SheetJS (Todo 5, AP 0)."""
     page = new_page(b, base, None)
-    n, mismatch = page.evaluate("""() => [TimesUp.state.cardPool.length,
-        TimesUp.state.cardPool.filter(c => !/-\\d+$/.test(c.id) && c.id !== hashCardText(c.begriff, c.erklaerung)).length]""")
-    assert n == len(CARDS), n
-    assert mismatch == 0, mismatch
+    ids = page.evaluate("TimesUp.state.cardPool.map(c => c.id)")
+    assert ids == [c["id"] for c in CARDS], "IDs der App weichen von cards.json ab"
+    assert len(set(ids)) == len(ids), "doppelte IDs"
+    sys.path.insert(0, str(REPO / "scripts"))
+    from kartendaten import card_id
+    for begriff, erklaerung in [("Gabel", "Besteck mit Zinken"), ("Ärger", "Wut „äußern“ – 3× ß")]:
+        assert page.evaluate("([b, e]) => hashCardText(b, e)", [begriff, erklaerung]) == card_id(begriff, erklaerung)
     assert page.evaluate("typeof window.XLSX") == "undefined", "SheetJS wird noch geladen"
     html = open(REPO / "index.html").read()
     assert "xlsx" not in html.lower()
@@ -474,14 +477,14 @@ def test_card_export_columns_and_ids(b, base):
         src, out = Path(tmp) / "k.xlsx", Path(tmp) / "cards.json"
         # Spalten absichtlich in anderer Reihenfolge
         _excel(src, [
-            ("kfest", "Elefant", "Großes Tier mit Rüssel", "Kinder", "Tiere & Natur, Allgemeinwissen"),
+            ("kfest", "Elefant", "Großes Tier mit Rüssel", "Kinder", "Tiere & Natur, 80er, 90er & 2000er, Allgemeinwissen"),
             (None, "Gabel", "Besteck mit Zinken", "mittel", "alltag"),
         ], header=("ID", "Begriff", "Erklärung", "Schwierigkeit", "Themen"))
         r = _run("export_cards.py", src, out)
         assert r.returncode == 0, r.stdout + r.stderr
         cards = json.loads(out.read_text(encoding="utf-8"))["cards"]
         assert cards[0] == {"id": "kfest", "begriff": "Elefant", "erklaerung": "Großes Tier mit Rüssel",
-                            "level": "kinder", "themes": ["tiere-natur", "allgemeinwissen"]}, cards[0]
+                            "level": "kinder", "themes": ["tiere-natur", "popkultur", "allgemeinwissen"]}, cards[0]
         assert cards[1]["id"] == card_id("Gabel", "Besteck mit Zinken") and cards[1]["level"] == "mittel", cards[1]
         assert "ohne ID" in r.stdout, r.stdout
         r = _run("export_cards.py", src, out, "--ids-eintragen")
@@ -515,6 +518,7 @@ def test_check_cards_rules(b, base):
             ("Schreibtischunterlage", "Unterlage auf dem Tisch", "Mittel", "Alltag & Haushalt", "k2"),
             ("Gabel", "x" * 81, "Mittel", "Alltag & Haushalt", "k3"),
             ("Olaf Scholz", "Deutscher Bundeskanzler ab 2021", "Mittel", "Politik & Gesellschaft, Berühmte Personen", "k4"),
+            ("Fake-Taxi", "Erwachsenenfilm-Reihe", "Experte", "NSFW, Internet & Memes", "k5"),
         ])
         r = _run("check_cards.py", src, "--liste")
         assert r.returncode == 1, r.stdout
@@ -522,6 +526,7 @@ def test_check_cards_rules(b, base):
         assert "Zeile 3: Schreibtischunterlage – Begriff in Erklärung" in lines, lines
         assert "Zeile 4: Gabel – zu lang: 81 Zeichen" in lines, lines
         assert "Zeile 5: Olaf Scholz – Politiker zu leicht" in lines, lines
+        assert "Zeile 6: Fake-Taxi – NSFW mit weiterem Thema" in lines, lines
         assert "Zeile 2:" not in lines, lines
         r = _run("check_cards.py", src, "--zeilen", "2-2", "--vollstaendig")
         assert r.returncode == 0 and "Keine Auffälligkeiten" in r.stdout, r.stdout

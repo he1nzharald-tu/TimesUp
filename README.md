@@ -66,7 +66,7 @@ Die Karten werden in Excel gepflegt und für die App nach JSON exportiert.
    | Begriff | das zu erratende Wort |
    | Erklärung | wird im Spiel auf Antippen angezeigt, siehe Regeln unten |
    | Schwierigkeit | genau eine Stufe: Kinder, Mittel, Schwer oder Experte (Auswahlliste) |
-   | Themen | ein oder mehrere Themen, mit Komma getrennt, z. B. `Tiere & Natur, Allgemeinwissen` |
+   | Themen | ein oder mehrere Themen, mit Komma getrennt, z. B. `Tiere & Natur, Allgemeinwissen`; Namen mit Komma wie `80er, 90er & 2000er` werden erkannt |
    | ID | feste Kennung der Karte – nicht ändern, bei neuen Karten leer lassen |
 
    Erlaubte Stufen und Themen stehen in `data/kategorien.json` (zum Nachschlagen auch im Blatt **Kategorien**). Zeilen ohne Begriff oder Erklärung werden ignoriert.
@@ -94,15 +94,16 @@ Die ID steht fest in der Excel-Datei. Eine Erklärung kann darum überarbeitet w
 - Personen: Rolle + bekanntestes Werk oder größter Erfolg
 - einfache Sprache, neutral, ohne Wertung; Kinder-Karten kindgerecht
 - Politikerinnen und Politiker erst ab Stufe Schwer
+- Karten nur für Erwachsene bekommen ausschließlich das Thema **NSFW**; sie kommen nur ins Spiel, wenn NSFW ausdrücklich gewählt ist
 
-`check_cards.py` prüft Länge, Begriff/Wortstamm, doppelte Begriffe und die Politik-Regel automatisch.
+`check_cards.py` prüft Länge, Begriff/Wortstamm, doppelte Begriffe, die Politik- und die NSFW-Regel automatisch.
 
 ## Wichtig: CACHE_VERSION hochzählen
 
 Installierte Apps laden ihre Dateien aus dem Offline-Speicher, nicht aus dem Netz. Damit Änderungen bei den Spielern ankommen, muss bei **jeder Änderung an App-Dateien** (HTML, CSS, JavaScript, Karten, Töne, Icons) die Version in `service-worker.js` erhöht werden:
 
 ```js
-const CACHE_VERSION = 'v6';   // vorher 'v5'
+const CACHE_VERSION = 'v7';   // vorher 'v6'
 ```
 
 Beim nächsten Online-Start lädt die App die neue Version im Hintergrund. Auf dem Startbildschirm erscheint dann „Neue Version – neu laden“; nach dem Antippen läuft die neue Version, der alte Speicher wird gelöscht.

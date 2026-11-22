@@ -94,8 +94,21 @@ def read_rows(path=EXCEL):
         yield {key: str(values.get(col, "") or "").strip() for key, col in cols.items()} | {"zeile": nr}
 
 
-def split_themen(text):
-    return [t.strip() for t in re.split(r"[,;]", text or "") if t.strip()]
+def split_themen(text, bekannt=None):
+    """Trennt an Komma/Semikolon. Bekannte Namen, die selbst Kommas enthalten
+    (z. B. „80er, 90er & 2000er“), bleiben zusammen."""
+    teile = [t.strip() for t in re.split(r"[,;]", text or "") if t.strip()]
+    if not bekannt:
+        return teile
+    ergebnis, i = [], 0
+    while i < len(teile):
+        for j in range(len(teile), i, -1):  # längste passende Folge zuerst
+            name = ", ".join(teile[i:j])
+            if j - i == 1 or name.lower() in bekannt:
+                ergebnis.append(name)
+                i = j
+                break
+    return ergebnis
 
 
 def build_cards(rows, kategorien=None):
@@ -126,7 +139,7 @@ def build_cards(rows, kategorien=None):
                 card["level"] = stufe
         else:
             hinweise["ohne_stufe"] += 1
-        themen_liste = split_themen(row.get("themen", ""))
+        themen_liste = split_themen(row.get("themen", ""), themen)
         if themen_liste:
             ids_themen = []
             for t in themen_liste:

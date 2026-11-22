@@ -1,5 +1,5 @@
 {
-  "hinweis": "Erlaubte Werte für die Spalten Schwierigkeit und Themen in db_Karten.xlsx. In der Excel-Datei stehen die Namen; mehrere Themen mit Komma trennen.",
+  "hinweis": "Erlaubte Werte für die Spalten Schwierigkeit und Themen in db_Karten.xlsx. In der Excel-Datei stehen die Namen; mehrere Themen mit Komma trennen. Karten mit dem Thema NSFW (nur für Erwachsene) kommen nur ins Spiel, wenn NSFW ausdrücklich gewählt ist – sie bekommen kein weiteres Thema.",
   "stufen": [
     { "id": "kinder",  "name": "Kinder",  "beschreibung": "Für Kinder ab ca. 8 Jahren" },
     { "id": "mittel",  "name": "Mittel",  "beschreibung": "Kennt fast jeder Erwachsene" },
@@ -27,6 +27,7 @@
     { "id": "wissenschaft",    "name": "Naturwissenschaft & Technik", "gruppe": "nerd", "symbol": "🔬" },
     { "id": "spiele",          "name": "Brett- & Rollenspiele",   "gruppe": "nerd", "symbol": "🎲" },
     { "id": "internet",        "name": "Internet & Memes",        "gruppe": "nerd", "symbol": "📱" },
-    { "id": "popkultur",       "name": "80er, 90er & 2000er",     "gruppe": "nerd", "symbol": "📼" }
+    { "id": "popkultur",       "name": "80er, 90er & 2000er",     "gruppe": "nerd", "symbol": "📼" },
+    { "id": "nsfw",       "name": "NSFW",     "gruppe": "erwachsene", "symbol": "🔞" }
   ]
 }

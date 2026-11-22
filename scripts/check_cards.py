@@ -13,6 +13,7 @@ Regeln:
   - Begriff (auch Wortteile wie „Unterlage“ in „Schreibtischunterlage“) kommt in der Erklärung nicht vor
   - Schwierigkeit und Themen aus data/kategorien.json
   - Politiker (Themen Politik + Berühmte Personen) erst ab Stufe Schwer
+  - NSFW-Karten haben kein weiteres Thema (sonst kämen sie über das andere Thema ins Spiel)
 Rückgabewert 1, wenn Regeln verletzt sind.
 """
 import argparse
@@ -62,6 +63,8 @@ def pruefe(cards, max_laenge=MAX_LAENGE, vollstaendig=False):
         themes = c.get("themes", [])
         if "politik" in themes and "personen" in themes and c.get("level") in ("kinder", "mittel"):
             befunde.append((z, b, "Politiker zu leicht", c.get("level")))
+        if "nsfw" in themes and len(themes) > 1:
+            befunde.append((z, b, "NSFW mit weiterem Thema", ", ".join(t for t in themes if t != "nsfw")))
         if vollstaendig and "level" not in c:
             befunde.append((z, b, "ohne Schwierigkeit", ""))
         if vollstaendig and not themes:
