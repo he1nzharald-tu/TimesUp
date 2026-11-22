@@ -318,6 +318,15 @@ def test_screen_fills_device(b, base):
         assert page.evaluate("getComputedStyle(document.querySelector('.screen.active')).zoom") in ("1", "normal"), vp
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), vp
         page.context.close()
+    # Jeder Bildschirm liegt im Gerät und scrollt selbst (Einstellungen: früher position: relative → nicht scrollbar)
+    for vp in [(874, 402), (402, 874)]:
+        page = new_page(b, base, None, viewport=vp)
+        page.click("button[aria-label='Einstellungen']")
+        r = page.evaluate("(() => { const s = document.getElementById('screen-settings'); const b = s.getBoundingClientRect();"
+                          " s.scrollTop = 400; return [b.top, b.bottom, s.scrollTop, s.scrollHeight > s.clientHeight]; })()")
+        assert r[0] == 0 and r[1] == vp[1], (vp, r)
+        assert r[3] and r[2] > 0, ("Einstellungen scrollen nicht", vp, r)
+        page.context.close()
     # Simulierte Dynamic Island / Home-Leiste: Inhalt rückt ein, Aktionsleiste endet über der Home-Leiste
     page = new_page(b, base, None, viewport=(402, 874))
     page.add_style_tag(content=":root{--sa-top:62px!important;--sa-bottom:34px!important}")

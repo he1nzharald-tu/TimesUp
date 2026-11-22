@@ -181,6 +181,18 @@ AUDIT = r"""([sa, primary]) => {
     else if (/auto|scroll/.test(s.overflowY) && e.scrollHeight > e.clientHeight + 2) out.hints.push(`eigener Scrollbereich (${e.clientHeight} von ${e.scrollHeight} px sichtbar): ${label(e)}`);
     if (/auto|scroll/.test(s.overflowX) && e.scrollWidth > e.clientWidth + 2) out.hints.push(`seitlicher Scrollbereich (${e.clientWidth} von ${e.scrollWidth} px sichtbar): ${label(e)}`);
   }
+  // Bildschirm länger als das Gerät = Inhalt unten nicht erreichbar (Seite selbst scrollt nicht)
+  if (sc) {
+    const r = sc.getBoundingClientRect();
+    if (r.bottom > vh + 1 || r.top < -1) out.errors.push(`Bildschirm ${Math.round(r.height)} px hoch bei ${vh} px Gerät – nicht scrollbar`);
+  }
+  // Overlay: Inhalt muss erreichbar sein (Overlay oder Box scrollt)
+  if (dlg) {
+    const box = dlg.querySelector('.overlay-box, .app-dialog') || dlg;
+    const b = box.getBoundingClientRect();
+    const scrolls = el => /auto|scroll/.test(getComputedStyle(el).overflowY);
+    if ((b.bottom > vh + 1 || b.top < -1) && !scrolls(dlg) && !scrolls(box)) out.errors.push('Overlay länger als Gerät und nicht scrollbar');
+  }
   // Seite selbst breiter als Bildschirm
   if (document.documentElement.scrollWidth > vw + 1) out.errors.push(`Seite scrollt seitlich (${document.documentElement.scrollWidth} px)`);
   // Kleiner Text
@@ -295,6 +307,8 @@ class Run:
         shot("02b-einstellungen-spiel")
         page.click("[data-round='1'] .round-head")
         shot("02c-einstellungen-runde")
+        page.evaluate("(() => { const s = document.getElementById('screen-settings'); s.scrollTop = s.scrollHeight; })()")
+        shot("02d-einstellungen-unten")
         page.evaluate("showScreen('start')")
         page.click(".start-continue-btn")
         ok(page)
@@ -339,6 +353,9 @@ class Run:
                 continue
             if a == "screen-end":
                 shot("10-ende")
+                page.click("#screen-end .back-to-start-btn")
+                page.click("#loadSavesButton")
+                shot("11-archiv")
                 break
             if page.locator("#guessedOverlay").count():
                 page.locator("#guessedOverlay button", has_text="Nächster Spieler").click()

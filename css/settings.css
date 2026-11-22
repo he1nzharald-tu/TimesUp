@@ -15,7 +15,6 @@
   --set-warn-bg: #fff4d1;
   --set-warn-text: #6b4e00;
   --set-on-blue: #ffffff;
-  position: relative;
 }
 .dark #screen-settings {
   --set-blue: #7aa2ff;

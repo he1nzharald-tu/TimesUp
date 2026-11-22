@@ -142,6 +142,16 @@ export function openArchive() {
     title.textContent = "Archiv";
     box.appendChild(title);
 
+    // Schließen oben rechts und durch Tippen neben das Fenster
+    const closeTop = document.createElement("button");
+    closeTop.type = "button";
+    closeTop.className = "overlay-close";
+    closeTop.setAttribute("aria-label", "Archiv schließen");
+    closeTop.appendChild(icon("x"));
+    closeTop.onclick = () => overlay.remove();
+    box.appendChild(closeTop);
+    overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
+
     archives.forEach(archive => {
         const row = document.createElement("div");
         row.className = "archive-row";
