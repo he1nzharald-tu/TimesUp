@@ -1,5 +1,7 @@
 # TimesUp
 
+[![Tests](https://github.com/he1nzharald-tu/TimesUp/actions/workflows/tests.yml/badge.svg)](https://github.com/he1nzharald-tu/TimesUp/actions/workflows/tests.yml)
+
 Das Partyspiel **Time's Up!** als Web-App für Handy und Tablet. Die App läuft im Browser, lässt sich wie eine normale App auf den Startbildschirm legen und funktioniert danach auch ohne Internet.
 
 ## Spielidee
@@ -108,6 +110,8 @@ Alle Tests ausführen (im Repo-Ordner):
 python3 tests/e2e.py
 ```
 
+Auf GitHub laufen alle Tests automatisch bei jedem Push und Pull Request (`.github/workflows/tests.yml`, Reiter „Actions“); das Abzeichen oben zeigt den letzten Stand.
+
 Einzelne Tests: `python3 tests/e2e.py test_dialogs test_full_game_two_teams`. Ein eigener Chrome lässt sich mit `CHROME_PATH=/pfad/zu/chrome` nutzen.
 
 ### Aussehen prüfen
@@ -142,6 +146,7 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `data/cards.json` | Exportierte Karten, die die App lädt |
 | `scripts/export_cards.py` | Export von Excel nach JSON |
 | `tests/` | Automatische Tests und Screenshot-Vergleich |
+| `.github/workflows/tests.yml` | Führt die Tests auf GitHub aus |
 | `assets/` | Töne |
 | `icons/` | App-Icons; `icon-1024.png` ist die Vorlage |
 | `manifest.json` | Angaben für die Installation als App |
