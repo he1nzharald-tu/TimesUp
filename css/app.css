@@ -1069,15 +1069,33 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   font-weight: bold;
   font-size: 1.2rem;
 }
-#guessedOverlay .correction-mistake-btn {
-  background: var(--accent-a);
-  color: var(--on-accent);
+#guessedOverlay .correction-item {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+#guessedOverlay .correction-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+#guessedOverlay .correction-actions button {
+  width: auto;
+  margin: 0;
+  padding: 6px 12px;
   border: none;
   border-radius: 8px;
-  padding: 6px 18px;
-  margin-left: 18px;
+  font-size: 0.95rem;
   cursor: pointer;
-  width: 80px;
+  white-space: nowrap;
+}
+#guessedOverlay .correction-not-guessed-btn {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--divider);
+}
+#guessedOverlay .correction-violation-btn {
+  background: var(--accent-a);
+  color: var(--on-accent);
 }
 #guessedOverlay .correction-back-btn {
   margin-top: 18px;

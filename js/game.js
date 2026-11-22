@@ -914,21 +914,36 @@ export function showCardCorrectionScreen(guessedOverlay) {
         begriff.textContent = card.begriff;
         li.appendChild(begriff);
 
-        const btn = document.createElement("button");
-        btn.className = "correction-mistake-btn";
-        btn.textContent = "Fehler";
-        btn.onclick = async function () {
-            // Bestätigung vor dem Entfernen
-            if (await appConfirm("Willst du wirklich, dass diese Karte ein Fehler war?", { okText: "Ja, Fehler" })) {
-                // Karte aus der richtigen Liste entfernen
-                state.correctCards[state.activeTeamIndex] = state.correctCards[state.activeTeamIndex].filter(c => c !== card);
-                // Karte zurück in den Stapel der aktuellen Runde
-                state.currentCards.push(card);
-                // Element aus der Liste entfernen
-                li.remove();
+        // Karte war doch nicht (regelgerecht) erraten: zurück in den Stapel, bei Regelverstoß zusätzlich Punktabzug
+        const takeBack = asRuleViolation => {
+            state.correctCards[state.activeTeamIndex] = state.correctCards[state.activeTeamIndex].filter(c => c !== card);
+            state.currentCards.push(card);
+            if (asRuleViolation) {
+                state.teamMistakes[state.activeTeamIndex] = (state.teamMistakes[state.activeTeamIndex] || 0) + 1;
+            }
+            li.remove();
+        };
+        const actions = document.createElement("div");
+        actions.className = "correction-actions";
+
+        const notGuessedBtn = appendText(actions, "button", "Nicht erraten");
+        notGuessedBtn.className = "correction-not-guessed-btn";
+        notGuessedBtn.onclick = async () => {
+            if (await appConfirm(`„${card.begriff}“ wurde nicht erraten und kommt zurück in den Stapel.`, { okText: "Zurücklegen" })) {
+                takeBack(false);
             }
         };
-        li.appendChild(btn);
+
+        const perMistake = getPenaltyPerMistake();
+        const violationBtn = appendText(actions, "button", perMistake ? `Regelverstoß (−${formatPoints(perMistake)})` : "Regelverstoß");
+        violationBtn.className = "correction-violation-btn";
+        violationBtn.onclick = async () => {
+            const penaltyText = perMistake ? ` Das Team bekommt ${formatPoints(perMistake)} ${perMistake === 1 ? "Punkt" : "Punkte"} Abzug.` : "";
+            if (await appConfirm(`„${card.begriff}“ war ein Regelverstoß und kommt zurück in den Stapel.${penaltyText}`, { okText: "Regelverstoß" })) {
+                takeBack(true);
+            }
+        };
+        li.appendChild(actions);
 
         list.appendChild(li);
     });

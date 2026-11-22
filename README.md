@@ -21,9 +21,9 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Kartenauswahl:** Zufällig oder jeder Spieler zieht seine Karten selbst und darf per Veto Karten tauschen
 - **Runden frei einstellbar:** Anzahl, Regel (auch eigene Regeln), Zeit pro Zug
 - **Überspringen:** Pro Runde erlauben oder verbieten, mit oder ohne Limit; übersprungene Karten kommen im selben Zug wieder (abschaltbar)
-- **Regelverstoß:** Karte als Fehler werten, optional mit Strafzeit und Punktabzug („Ja“ −1, „Remi“ −0,5 pro Fehler, nie unter 0)
+- **Regelverstoß:** Karte als Fehler werten; Strafzeit und Punktabzug („Ja“ −1, „Remi“ −0,5 pro Fehler, nie unter 0) sind getrennt einstellbar
 - **Pause:** Pausieren, auf Wunsch mit 3 Sekunden extra
-- **Nach Zeitablauf:** Erratene Karten korrigieren oder die letzte Karte noch als richtig werten
+- **Nach Zeitablauf:** Erratene Karten korrigieren („Nicht erraten“ oder „Regelverstoß“ mit Punktabzug) oder die letzte Karte noch als richtig werten
 - **Auswertung:** Rundenstatistik und Endbildschirm mit Gewinnerteam
 - **Archiv:** Gespeicherte Spiele mit Spielern; bereits gespielte Karten werden beim nächsten Spiel derselben Gruppe nicht noch einmal gezogen. Über „Exportieren“ und „Importieren“ lässt sich das Archiv als Datei auf ein anderes Gerät mitnehmen (gleiche Spiele werden zusammengeführt)
 - **Darstellung:** Helles und dunkles Design, Hoch- und Querformat, Handy bis Tablet

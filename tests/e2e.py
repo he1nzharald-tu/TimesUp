@@ -576,6 +576,51 @@ def test_penalty_setting_migration(b, base):
         assert st["penaltyPoints"] == expected and "punishPoints" not in st, st
         page.context.close()
 
+def _correction_game(b, base, mode, button):
+    """1 Runde, 4 Karten: Team 1 errät alles, korrigiert dann eine Karte; Team 2 errät sie danach."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s.update({"cardCount": 4, "roundCount": 1, "roundTimer": [60], "roundSkip": ["no"], "punishEnabled": False, "penaltyPoints": mode})
+    s.pop("punishPoints", None)
+    page = new_page(b, base, s)
+    setup_game(page, ["Anna", "Ben"], veto=False)
+    first = page.evaluate("TimesUp.state.activeTeamIndex")
+    page.click("#startRoundBtn"); ok(page)
+    page.click("#btnCorrect"); page.click("#btnCorrect"); page.click("#btnCorrect")
+    tick(page, 61000)
+    overlay_button(page, "korrigieren").click()
+    items = page.locator("#guessedOverlay .correction-item")
+    assert items.count() == 3
+    labels = items.first.locator("button").all_text_contents()
+    page.locator("#guessedOverlay .correction-item").first.locator("button", has_text=button).click(); ok(page)
+    assert page.locator("#guessedOverlay .correction-item").count() == 2
+    overlay_button(page, "Zurück").click()
+    overlay_button(page, "Nächster Spieler").click()
+    page.click("#startRoundBtn"); ok(page)
+    while not page.locator("#guessedOverlay").count():
+        page.click("#btnCorrect")
+    overlay_button(page, "Nächster Spieler").click()
+    assert active(page) == "screen-end", active(page)
+    return page, first, page.evaluate("TimesUp.state.totalPoints"), labels
+
+def test_correction_not_guessed(b, base):
+    """Korrektur "Nicht erraten": Karte zurück in den Stapel, kein Abzug."""
+    page, first, pts, labels = _correction_game(b, base, "yes", "Nicht erraten")
+    assert labels == ["Nicht erraten", "Regelverstoß (−1)"], labels
+    assert pts[first] == 2 and pts[1 - first] == 2, pts
+
+def test_correction_rule_violation(b, base):
+    """Korrektur "Regelverstoß": Karte zurück in den Stapel und Punktabzug laut Einstellung."""
+    page, first, pts, labels = _correction_game(b, base, "draw", "Regelverstoß")
+    assert labels == ["Nicht erraten", "Regelverstoß (−0,5)"], labels
+    assert pts[first] == 1.5 and pts[1 - first] == 2, pts
+    note = page.text_content("#finalPenaltyA" if first == 0 else "#finalPenaltyB")
+    assert "−0,5 Strafe" in note, note
+
+def test_correction_violation_without_penalty(b, base):
+    page, first, pts, labels = _correction_game(b, base, "no", "Regelverstoß")
+    assert labels == ["Nicht erraten", "Regelverstoß"], labels
+    assert pts[first] == 2, pts
+
 ALL = [n for n in dir() if n.startswith("test_")]
 
 if __name__ == "__main__":
