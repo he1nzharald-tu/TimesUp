@@ -1,6 +1,7 @@
 // Einstieg: lädt Einstellungen und Karten und verbindet die HTML-Handler
 import { state } from "./state.js";
 import { initServiceWorker, restorePlayersAfterUpdate } from "./pwa.js";
+import { initSavedGameBanner } from "./persist.js";
 import { applyTheme, getDefaultRuleOptions, getSettings, loadSettingsFromStorage, loadThemeFromStorage, readJsonStore, renderRoundSettings, resetAllSettings, restoreSkipOptions, saveSettingsToStorage, toPositiveInt, toggleCustomRuleInput, toggleHandicapInput, togglePunishOptions, toggleSkipLimitValue, toggleSkipOptions, validateSettingsAndGoBack, writeJsonStore } from "./settings.js";
 import { canStartCardSelection, ensureActiveArchive, ensureUniqueCardIds, formatArchiveDate, getActiveArchiveUsedCards, getAvailableCardPoolForArchive, getCardKey, handleCardSelectionClick, handleCardSelectionDone, handleCardVeto, hashCardText, isSameCard, loadArchiveEntry, loadCards, makeArchiveId, makeCard, openArchive, readArchiveStore, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray, startCardSelection, startCardSelectionWithoutVeto, updateVetoDisplay, writeArchiveStore } from "./cards.js";
 import { playEndAlarm, playTick, prepareAudioElement, stopTick, unlockGameAudio, unlockSingleAudio } from "./audio.js";
@@ -18,6 +19,7 @@ initServiceWorker();
 renderRoundSettings();
 loadSettingsFromStorage();
 if (restorePlayersAfterUpdate()) updatePlayerTable();
+initSavedGameBanner();
 loadCards();
 // run theme load after DOM ready-ish (this script is loaded at end of body in index.html)
 loadThemeFromStorage();

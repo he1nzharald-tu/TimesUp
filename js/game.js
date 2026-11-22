@@ -2,6 +2,7 @@
 import { DEFAULT_TURN_SECONDS, state } from "./state.js";
 import { getPenaltyMode, getSettings, toPositiveInt } from "./settings.js";
 import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray } from "./cards.js";
+import { clearSavedGame, saveGameState } from "./persist.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
 import { appendText, appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
 
@@ -235,7 +236,8 @@ export function startGame() {
     state.activePlayerIndicesByTeam = Array(state.totalTeams).fill(-1);
     state.activePlayerIndexInTeam = -1;
     setNextPlayer();
-    
+    saveGameState("roundstart");
+
     showStartRoundScreen();
 }
 export function showStartRoundScreen() {
@@ -317,6 +319,7 @@ export function startRoundTimer() {
             showGuessedCardsAfterTimer();
         }
     }, 1000);
+    saveGameState("turn");
     state.isTimerRunning = true;
     showNextCard();
 }
@@ -353,6 +356,7 @@ export function handleCorrect() {
     state.correctCards[state.activeTeamIndex].push(state.currentCard);
     state.currentCards = state.currentCards.filter(card => !isSameCard(card, state.currentCard));
     state.showingExplanation = false;
+    saveGameState("turn");
     showNextCard();
 }
 export function markCurrentCardCorrectAfterTimer() {
@@ -366,6 +370,7 @@ export function markCurrentCardCorrectAfterTimer() {
     }
     state.currentCards = state.currentCards.filter(card => !isSameCard(card, state.currentCard));
     state.showingExplanation = false;
+    saveGameState("turn");
     return true;
 }
 export function handleSkip() {
@@ -389,6 +394,7 @@ export function handleMistake() {
     const settings = getSettings();
     if (state.isPenaltyActive) return;
     state.teamMistakes[state.activeTeamIndex] = (state.teamMistakes[state.activeTeamIndex] || 0) + 1;
+    saveGameState("turn");
     if (!state.displayedCards.includes(state.currentCard.id)) state.displayedCards.push(state.currentCard.id);
     // Die Karte ist für diesen Zug erledigt und darf nach Zeitablauf nicht als "richtig" angeboten werden
     state.currentCard = null;
@@ -483,6 +489,7 @@ export function endRound() {
     state.isTimerRunning = false;
     if (state.currentCards.length > 0) {
         setNextPlayer();
+        saveGameState("roundstart");
         showStartRoundScreen();
     } else if (state.currentRound >= state.totalRounds - 1) {
         applyCurrentRoundPoints();
@@ -525,7 +532,8 @@ export function showRoundStats() {
     document.getElementById("statsRoundNumber").textContent = state.currentRound + 1;
     
     applyCurrentRoundPoints();
-    
+    saveGameState("roundstats");
+
     // Update stats display - new layout for 3+ teams
     const statsContainer = document.getElementById("statsContainer");
     const statsOldTeamsDiv = document.querySelector('#screen-roundstats > div:nth-child(2)');
@@ -620,9 +628,11 @@ export function nextGameRound() {
     state.teamMistakes = Array(state.totalTeams).fill(0);
     state.skipCounter = 0;
     setNextPlayer();
+    saveGameState("roundstart");
     showStartRoundScreen();
 }
 export function showFinalScreen() {
+    clearSavedGame();             // Spiel ist zu Ende, nichts mehr fortzusetzen
     savePlayedCardsToActiveArchive();
     const container = document.getElementById("finalTeamsContainer");
     const twoTeamContainer = document.getElementById("finalTwoTeamContainer");
@@ -922,6 +932,7 @@ export function showCardCorrectionScreen(guessedOverlay) {
                 state.teamMistakes[state.activeTeamIndex] = (state.teamMistakes[state.activeTeamIndex] || 0) + 1;
             }
             li.remove();
+            saveGameState("turn");
         };
         const actions = document.createElement("div");
         actions.className = "correction-actions";

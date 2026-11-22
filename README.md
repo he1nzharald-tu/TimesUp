@@ -27,6 +27,7 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Pause:** Pausieren, auf Wunsch mit 3 Sekunden extra
 - **Nach Zeitablauf:** Erratene Karten korrigieren („Nicht erraten“ oder „Regelverstoß“ mit Punktabzug) oder die letzte Karte noch als richtig werten
 - **Auswertung:** Rundenstatistik und Endbildschirm mit Gewinnerteam
+- **Spiel fortsetzen:** Der Spielstand wird nach jeder Karte und jedem Zugwechsel gesichert. Schließt das Handy die App oder wird neu geladen, bietet der Startbildschirm „Fortsetzen“ an; ein unterbrochener Zug gilt dabei als beendet
 - **Archiv:** Gespeicherte Spiele mit Spielern; bereits gespielte Karten werden beim nächsten Spiel derselben Gruppe nicht noch einmal gezogen. Über „Exportieren“ und „Importieren“ lässt sich das Archiv als Datei auf ein anderes Gerät mitnehmen (gleiche Spiele werden zusammengeführt)
 - **Darstellung:** Helles und dunkles Design, Hoch- und Querformat, Handy bis Tablet
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
@@ -95,6 +96,7 @@ Unter `tests/` liegen automatische Tests, die die App in einem echten Browser du
 - Karten-IDs, doppelte Begriffe, alte Archiv-Einträge, Archiv-Export und -Import, gleichmäßiges Mischen
 - `data/cards.json` passt zu `data/db_Karten.xlsx`
 - Offline-Modus, Hinweis auf neue Version, keine Anfragen an fremde Server
+- Spiel fortsetzen nach Neuladen (zwischen Zügen, mitten im Zug, in der Rundenstatistik)
 - Dialoge, Standardwerte, Skalierung im Querformat
 
 Einmalig einrichten:
@@ -142,6 +144,7 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `js/ui.js` | Bildschirmwechsel, Dialoge, Listen |
 | `js/audio.js` | Countdown-Ton und Alarm |
 | `js/pwa.js` | Offline-Modus und Hinweis auf neue Version |
+| `js/persist.js` | Spielstand sichern und fortsetzen |
 | `data/db_Karten.xlsx` | Kartendatenbank zum Bearbeiten |
 | `data/cards.json` | Exportierte Karten, die die App lädt |
 | `scripts/export_cards.py` | Export von Excel nach JSON |

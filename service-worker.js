@@ -29,6 +29,7 @@ const APP_FILES = [
   './fonts/fredoka/fredoka-latin-ext-400-normal.woff2',
   './fonts/fredoka/fredoka-latin-ext-700-normal.woff2',
   './js/main.js',
+  './js/persist.js',
   './js/pwa.js',
   './js/state.js',
   './js/settings.js',

@@ -65,9 +65,18 @@
             <button class="start-icon-btn start-continue-btn" onclick="confirmBeforeContinue()">➡️
                 Weiter</button>
         </div>
-        <div id="updateBanner" class="update-banner" role="status" hidden>
-            <span>Neue Version verfügbar</span>
-            <button id="updateReloadButton" type="button">Neu laden</button>
+        <div class="start-banners">
+            <div id="resumeBanner" class="update-banner resume-banner" role="status" hidden>
+                <span id="resumeBannerText">Nicht beendetes Spiel</span>
+                <span class="banner-actions">
+                    <button id="resumeDiscardButton" type="button" class="secondary">Verwerfen</button>
+                    <button id="resumeGameButton" type="button">Fortsetzen</button>
+                </span>
+            </div>
+            <div id="updateBanner" class="update-banner" role="status" hidden>
+                <span>Neue Version verfügbar</span>
+                <button id="updateReloadButton" type="button">Neu laden</button>
+            </div>
         </div>
         <!-- Wrap the table for scrolling -->
         <div id="playerTableWrapper">

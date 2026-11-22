@@ -621,6 +621,105 @@ def test_correction_violation_without_penalty(b, base):
     assert labels == ["Nicht erraten", "Regelverstoß"], labels
     assert pts[first] == 2, pts
 
+def _reload_and_resume(page):
+    page.reload()
+    page.wait_for_function("document.getElementById('kartenStatusText').textContent.includes('Karten')")
+    tick(page, 50)
+    assert page.locator("#resumeBanner").is_visible(), "Hinweis \"Spiel fortsetzen\" fehlt"
+    assert "Nicht beendetes Spiel" in page.text_content("#resumeBannerText")
+    page.click("#resumeGameButton")
+    assert page.locator("#resumeBanner").is_hidden()
+
+def _finish_with_correct(page):
+    """Spielt das Spiel nur mit "Richtig" zu Ende (keine Fehler, keine Strafen)."""
+    for _ in range(60):
+        a = active(page)
+        if a == "screen-end": return
+        if a == "screen-roundstats":
+            page.click("text=Nächste Runde starten"); continue
+        page.click("#startRoundBtn"); ok(page)
+        while not page.locator("#guessedOverlay").count():
+            page.click("#btnCorrect")
+        overlay_button(page, "Nächster Spieler").click()
+    raise AssertionError("Spiel endet nicht")
+
+def _resume_settings():
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s.update({"cardCount": 6, "roundCount": 2, "roundTimer": [10, 10], "roundSkip": ["no", "no"],
+              "punishEnabled": False, "penaltyPoints": "yes"})
+    s.pop("punishPoints", None)
+    return s
+
+def test_resume_between_turns(b, base):
+    """Neuladen zwischen zwei Zügen: Fortsetzen beim richtigen Spieler, Punkte und Karten bleiben."""
+    page = new_page(b, base, _resume_settings())
+    setup_game(page, ["Anna", "Ben", "Cem", "Dora"], veto=False)
+    page.click("#startRoundBtn"); ok(page)
+    page.click("#btnCorrect"); page.click("#btnMistake"); page.click("#btnCorrect")
+    tick(page, 11000)
+    overlay_button(page, "Nächster Spieler").click()
+    expected_player = page.text_content("#roundPlayerName")
+    before = page.evaluate("[TimesUp.state.currentCards.length, TimesUp.state.correctCards.map(c => c.length), TimesUp.state.teamMistakes]")
+    _reload_and_resume(page)
+    assert active(page) == "screen-roundstart", active(page)
+    assert page.text_content("#roundPlayerName") == expected_player
+    after = page.evaluate("[TimesUp.state.currentCards.length, TimesUp.state.correctCards.map(c => c.length), TimesUp.state.teamMistakes]")
+    assert after == before, (before, after)
+    _finish_with_correct(page)
+    pts = page.evaluate("TimesUp.state.totalPoints")
+    assert sum(pts) == 6 * 2 - 1, pts            # 1 Punkt Abzug für den Fehler
+    page.reload(); tick(page, 50)
+    assert page.locator("#resumeBanner").is_hidden(), "nach Spielende kein Fortsetzen mehr"
+    assert not page.errors, page.errors
+
+def test_resume_mid_turn(b, base):
+    """Neuladen mitten im Zug: der Zug gilt als beendet, erratene Karten zählen, nächster Spieler ist dran."""
+    page = new_page(b, base, _resume_settings())
+    setup_game(page, ["Anna", "Ben", "Cem", "Dora"], veto=False)
+    first_team = page.evaluate("TimesUp.state.activeTeamIndex")
+    page.click("#startRoundBtn"); ok(page)
+    page.click("#btnCorrect"); page.click("#btnCorrect")
+    _reload_and_resume(page)
+    assert active(page) == "screen-roundstart", active(page)
+    assert page.evaluate("TimesUp.state.activeTeamIndex") != first_team, "unterbrochener Zug wurde nicht beendet"
+    assert page.evaluate("TimesUp.state.correctCards[%d].length" % first_team) == 2
+    assert page.evaluate("TimesUp.state.currentCards.length") == 4
+    _finish_with_correct(page)
+    assert sum(page.evaluate("TimesUp.state.totalPoints")) == 12
+
+def test_resume_round_stats(b, base):
+    """Neuladen in der Rundenstatistik: Punkte werden nicht doppelt gezählt."""
+    page = new_page(b, base, _resume_settings())
+    setup_game(page, ["Anna", "Ben"], veto=False)
+    for _ in range(10):
+        if active(page) != "screen-roundstart": break
+        page.click("#startRoundBtn"); ok(page)
+        while not page.locator("#guessedOverlay").count():
+            page.click("#btnCorrect")
+        overlay_button(page, "Nächster Spieler").click()
+    assert active(page) == "screen-roundstats"
+    pts = page.evaluate("TimesUp.state.totalPoints")
+    _reload_and_resume(page)
+    assert active(page) == "screen-roundstats"
+    assert page.evaluate("TimesUp.state.totalPoints") == pts
+    _finish_with_correct(page)
+    assert sum(page.evaluate("TimesUp.state.totalPoints")) == 12
+
+def test_resume_discard(b, base):
+    """Verwerfen löscht den Spielstand nach Rückfrage; ohne Spiel kein Hinweis."""
+    page = new_page(b, base, _resume_settings())
+    assert page.locator("#resumeBanner").is_hidden()
+    setup_game(page, ["Anna", "Ben"], veto=False)
+    page.reload(); tick(page, 50)
+    page.click("#resumeDiscardButton")
+    page.click(".app-dialog [data-dialog-cancel]")
+    assert page.locator("#resumeBanner").is_visible(), "Abbrechen darf nicht verwerfen"
+    page.click("#resumeDiscardButton"); ok(page)
+    assert page.locator("#resumeBanner").is_hidden()
+    assert page.evaluate("localStorage.getItem('timesup_game')") is None
+    page.reload(); tick(page, 50)
+    assert page.locator("#resumeBanner").is_hidden()
+
 ALL = [n for n in dir() if n.startswith("test_")]
 
 if __name__ == "__main__":
