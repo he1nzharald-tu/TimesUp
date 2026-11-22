@@ -141,11 +141,6 @@ export function showScreen(id) {
         refreshStartCardStatus();
     }
 }
-export function showTab(tabId) {
-    if (tabId === "rules") {
-        document.getElementById("tab-rules").classList.remove("hidden");
-    }
-}
 export function renderTeamPlayerList() {
     const tbody = document.getElementById("teamPlayerTableBody");
     tbody.innerHTML = '';

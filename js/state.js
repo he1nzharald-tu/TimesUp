@@ -48,7 +48,6 @@ export const state = {
     currentCard: null,
     correctCards: [], // Array of arrays: [team0_cards, team1_cards, ...]
     roundPointsApplied: false,
-    usedCardsThisTurn: [],
     teamMistakes: [], // Array of mistakes per team
     penaltyPoints: [], // insgesamt abgezogene Strafpunkte je Team
     activePlayer: null,

@@ -3,7 +3,7 @@ import { DEFAULT_TURN_SECONDS, state } from "./state.js";
 import { getSettings } from "./settings.js";
 import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray } from "./cards.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
-import { appAlert, appConfirm, appendText, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
+import { appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
 
 // === Player Management ===
 export function addPlayer() {
@@ -95,49 +95,8 @@ export function togglePlayerTeam(name, fromTeamIdx) {
 // === Game Overview ===
 export function prepareGameOverview() {
     const settings = getSettings();
-    const rounds = parseInt(settings.roundCount || 3);
     const teamCount = parseInt(settings.teamCount || 2);
     state.totalTeams = teamCount;
-    
-    const roundEl = document.getElementById("roundSummary");
-    if (roundEl) {
-        roundEl.textContent = `Es werden ${rounds} Runden mit ${teamCount} Teams gespielt. Bisher 0 abgeschlossen.`;
-    }
-    const general = document.getElementById("generalRulesList");
-    if (general) {
-        general.innerHTML = "";
-        appendText(general, "li", `Anzahl Karten: ${settings.cardCount || 40}`);
-        appendText(general, "li", `Spielrunden: ${rounds}`);
-        appendText(general, "li", `Teams: ${teamCount}`);
-        appendText(general, "li", `Handicap: ${settings.handicapEnabled ? 'Ja, +' + (settings.handicapTime || 5) + 's' : 'Nein'}`);
-        if (settings.punishEnabled) {
-            const penaltyLabel = { yes: "Ja, −1 pro Fehler", draw: "Remi, −0,5 pro Fehler" }[settings.punishPoints] || "Nein";
-            appendText(general, "li", `Regelmissachtung: Ja | Strafzeit: ${settings.punishTime || 3}s | Punktabzug: ${penaltyLabel}`);
-        } else {
-            appendText(general, "li", "Regelmissachtung: Nein");
-        }
-    }
-    const roundWrap = document.getElementById("overviewRoundSettings");
-    if (roundWrap) {
-        roundWrap.innerHTML = "";
-        for (let i = 0; i < rounds; i++) {
-            const rule = settings.roundRules?.[i] || "-";
-            const timer = settings.roundTimer?.[i] || DEFAULT_TURN_SECONDS;
-            const skip = settings.roundSkip?.[i] === "yes"
-                ? (settings.skipReturn?.[i] === "no" ? "Ja, ohne Zurücklegen" : "Ja")
-                : "Nein";
-            const box = document.createElement("div");
-            box.className = "round-overview-box";
-            appendText(box, "strong", `Runde ${i + 1}`);
-            box.appendChild(document.createElement("br"));
-            box.appendChild(document.createTextNode(`Regel: ${rule}`));
-            box.appendChild(document.createElement("br"));
-            box.appendChild(document.createTextNode(`Zeit: ${timer} Sekunden`));
-            box.appendChild(document.createElement("br"));
-            box.appendChild(document.createTextNode(`Überspringen: ${skip}`));
-            roundWrap.appendChild(box);
-        }
-    }
     
     // Display all teams - new layout for 3+ teams
     const overviewTeamsContainer = document.getElementById("overviewTeamsContainer");
@@ -195,10 +154,6 @@ export function prepareGameOverview() {
                 listB.appendChild(li);
             });
         }
-        const teamATitle = document.getElementById("teamATitle");
-        const teamBTitle = document.getElementById("teamBTitle");
-        if (teamATitle) teamATitle.textContent = "🔴 Team 1 – 0 Punkte";
-        if (teamBTitle) teamBTitle.textContent = "🟢 Team 2 – 0 Punkte";
     }
     showScreen("spieluebersicht");
 }
@@ -969,7 +924,6 @@ export function resetGameState() {
     state.currentCard = null;
     state.correctCards = [];
     state.roundPointsApplied = false;
-    state.usedCardsThisTurn = [];
     state.teamMistakes = [];
     state.activeTeamIndex = 0;
     state.activePlayerIndexInTeam = -1;

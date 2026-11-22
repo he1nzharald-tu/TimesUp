@@ -224,10 +224,6 @@ export function saveSettingsToStorage() {
     const themeSel = document.getElementById('themeSelect');
     if (themeSel) localStorage.setItem('timesup_theme', themeSel.value || 'light');
 }
-export function exitSettings() {
-    saveSettingsToStorage();
-    showScreen("start");
-}
 export function loadSettingsFromStorage() {
     const settings = getSettings();
     document.getElementById("cardCount").value = settings.cardCount || 40;
