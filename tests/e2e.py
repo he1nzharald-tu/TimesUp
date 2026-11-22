@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 
 
-from harness import CARDS, DEFAULT_SETTINGS, REPO, browser, new_page, ok, server, tick
+from harness import CARDS, DEFAULT_SETTINGS, REPO, browser, maybe_ok, new_page, ok, server, tick
 
 def active(page):
     return page.evaluate("document.querySelector('.screen.active')?.id")
@@ -31,9 +31,9 @@ def setup_game(page, names, veto=True, team_mode="random"):
     page.click("text=Zufällige Teams" if team_mode == "random" else "text=Manuelle Zuteilung")
     assert active(page) == "screen-teamuebersicht"
     if not veto:
-        page.click("text=Kartenauswahl ohne Veto"); ok(page)
+        page.click("text=Kartenauswahl ohne Veto"); maybe_ok(page)
     else:
-        page.click("text=Kartenauswahl mit Veto"); ok(page)
+        page.click("text=Kartenauswahl mit Veto"); maybe_ok(page)
         for i in range(len(names)):
             tick(page, 200)
             page.click("#cardSelectionInfo")
@@ -41,7 +41,7 @@ def setup_game(page, names, veto=True, team_mode="random"):
             items = page.locator("#cardSelectionList li")
             assert items.count() > 0, "keine Karten angezeigt"
             items.first.click(); ok(page)              # Veto bestätigen
-            page.click("#cardDoneButton"); ok(page)
+            page.click("#cardDoneButton"); maybe_ok(page)
     page.click("#startGameOverviewButton")
     assert active(page) == "screen-spieluebersicht"
     page.click("#screen-spieluebersicht >> text=Spiel starten")
@@ -148,7 +148,7 @@ def test_skip_returns_cards(b, base):
     page = new_page(b, base, s)
     setup_game(page, ["Anna", "Ben"], veto=False)
     page.click("#startRoundBtn"); ok(page)
-    for _ in range(4): page.click("#btnSkip", timeout=2000)
+    for _ in range(4): page.click("#btnSkip", timeout=5000)
     assert page.locator("#guessedOverlay").count() == 0, "Zug endete trotz Restzeit"
     page.click("#btnCorrect"); page.click("#btnCorrect"); page.click("#btnCorrect")
     assert page.locator("#guessedOverlay").count() == 1, "alle Karten erraten, Overlay fehlt"
@@ -734,5 +734,9 @@ if __name__ == "__main__":
                 globals()[n](b, base); print("PASS", n)
             except Exception as e:
                 failed.append(n); print("FAIL", n, "->", (str(e) or type(e).__name__)[:300])
+            finally:
+                # Seiten jedes Tests schließen, sonst bremsen sich die vielen offenen Seiten gegenseitig aus
+                for ctx in list(b.contexts):
+                    ctx.close()
     print("\n%d/%d bestanden" % (len(names) - len(failed), len(names)))
     sys.exit(1 if failed else 0)

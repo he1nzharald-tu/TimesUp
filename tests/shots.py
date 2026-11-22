@@ -69,7 +69,7 @@ def run(out, theme="light", vps=None):
             page.click("text=Weiter"); shot("03_dialog"); ok(page)
             shot("04_teamauswahl")
             page.click("text=Zufällige Teams"); shot("05_teamuebersicht")
-            page.click("text=Kartenauswahl mit Veto"); ok(page); tick(page, 200)
+            page.click("text=Kartenauswahl mit Veto"); maybe_ok(page); tick(page, 200)
             shot("06_kartenauswahl_start")
             page.click("#cardSelectionInfo"); shot("07_kartenauswahl_karten")
             for i in range(4):
@@ -127,13 +127,15 @@ def run_three_teams(b, base, out, vp_name, vp, theme, report):
     add_players(page, ["Anna", "Ben", "Cem", "Dora", "Emil", "Fritz"])
     page.click("text=Weiter"); ok(page)
     page.click("text=Zufällige Teams"); shot("31_teamuebersicht_3")
-    page.click("text=Kartenauswahl mit Veto"); ok(page); tick(page, 200)
+    page.click("text=Kartenauswahl mit Veto"); maybe_ok(page); tick(page, 200)
     page.click("#cardSelectionInfo")
     page.locator("#cardSelectionList li").first.click(); ok(page)
     shot("32_kartenauswahl_veto")
     for i in range(6):
         if i: tick(page, 200); page.click("#cardSelectionInfo")
-        page.click("#cardDoneButton"); ok(page)
+        page.click("#cardDoneButton")
+        if i: ok(page)          # ohne benutztes Veto fragt die App nach
+        else: maybe_ok(page)
     page.click("#startGameOverviewButton"); shot("33_spieluebersicht_3")
     page.click("#screen-spieluebersicht >> text=Spiel starten")
     for turn in range(30):

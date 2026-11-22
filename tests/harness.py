@@ -102,8 +102,8 @@ def tick(page, ms):
         page.wait_for_timeout(ms)
 
 
-def ok(page, timeout=800):
-    """Bestätigt einen App-Dialog, falls einer offen ist."""
+def ok(page, timeout=5000):
+    """Bestätigt den App-Dialog, der jetzt erscheinen soll (wartet bis zu 5 s, auch unter Last)."""
     loc = page.locator(".app-dialog [data-dialog-ok]")
     try:
         loc.first.wait_for(state="visible", timeout=timeout)
@@ -112,3 +112,8 @@ def ok(page, timeout=800):
         return True
     except Exception:
         return False
+
+
+def maybe_ok(page):
+    """Bestätigt einen App-Dialog, falls gerade einer erscheint (nur kurz warten)."""
+    return ok(page, timeout=300)
