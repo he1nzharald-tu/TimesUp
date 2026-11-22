@@ -1259,6 +1259,8 @@ let displayedCards = [];
 let skippedThisTurn = []; // übersprungene Karten, die im selben Zug zurückkommen dürfen
 let skipCounter = 0;
 let isPenaltyActive = false;
+let penaltyTimeout = null;
+let penaltyInterruptedByPause = false;
 let totalPoints = []; // Array of points per team [team0_points, team1_points, ...]
 let currentCards = [];
 let currentCard = null;
@@ -1482,19 +1484,34 @@ function handleMistake() {
     const settings = getSettings();
     if (isPenaltyActive) return;
     teamMistakes[activeTeamIndex] = (teamMistakes[activeTeamIndex] || 0) + 1;
-    displayedCards.push(currentCard.begriff);
+    if (!displayedCards.includes(currentCard.begriff)) displayedCards.push(currentCard.begriff);
+    // Die Karte ist für diesen Zug erledigt und darf nach Zeitablauf nicht als "richtig" angeboten werden
+    currentCard = null;
     if (settings.punishEnabled) {
         const delay = parseInt(settings.punishTime || 3);
         isPenaltyActive = true;
         document.getElementById("cardTerm").textContent = "⏱️ Strafzeit…";
+        document.getElementById("cardExplanation").style.display = "none";
         setActionButtonsEnabled(false);
-        setTimeout(() => {
+        penaltyTimeout = setTimeout(() => {
+            penaltyTimeout = null;
             isPenaltyActive = false;
             showNextCard();
         }, delay * 1000);
     } else {
         showNextCard();
     }
+}
+
+// Bricht eine laufende Strafzeit ab (Zugende, Pause, Spielabbruch)
+function cancelPenalty() {
+    const wasActive = isPenaltyActive;
+    if (penaltyTimeout) {
+        clearTimeout(penaltyTimeout);
+        penaltyTimeout = null;
+    }
+    isPenaltyActive = false;
+    return wasActive;
 }
 
 function updateSkipButtonState() {
@@ -1562,6 +1579,7 @@ function setNextPlayer() {
 
 function endRound() {
     try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
+    cancelPenalty();
     isTimerRunning = false;
     if (currentCards.length > 0) {
         setNextPlayer();
@@ -1805,6 +1823,7 @@ function confirmStartRound() {
 function pauseGame() {
     try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
     isTimerRunning = false;
+    if (cancelPenalty()) penaltyInterruptedByPause = true;
 
     // Erstelle Overlay
     let pauseOverlay = document.getElementById("pauseOverlay");
@@ -1885,6 +1904,12 @@ function pauseGame() {
 function resumeTimer() {
     // prevent duplicate starts
     if (isTimerRunning) return;
+    if (penaltyInterruptedByPause) {
+        // Strafzeit wurde durch die Pause beendet: direkt mit der nächsten Karte weitermachen
+        penaltyInterruptedByPause = false;
+        showNextCard();
+        if (document.getElementById("guessedOverlay")) return;
+    }
     // mark as running immediately to prevent re-entrant starts
     isTimerRunning = true;
     // ensure no duplicate timer
@@ -1912,6 +1937,8 @@ function resumeTimer() {
 function showGuessedCardsAfterTimer(playAlarm = true) {
     // ensure no timer remains running
     try { if (timer) { clearInterval(timer); timer = undefined; } } catch (e) {}
+    cancelPenalty();
+    penaltyInterruptedByPause = false;
     isTimerRunning = false;
     if (playAlarm) {
         try { playEndAlarm(); } catch (e) {}
@@ -2169,7 +2196,8 @@ function resetGameState() {
     displayedCards = [];
     skippedThisTurn = [];
     skipCounter = 0;
-    isPenaltyActive = false;
+    cancelPenalty();
+    penaltyInterruptedByPause = false;
     totalPoints = [];
     showingExplanation = false;
     cardsWereShown = false;
