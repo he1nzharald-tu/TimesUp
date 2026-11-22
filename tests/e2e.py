@@ -310,15 +310,25 @@ def test_full_game_portrait_phone(b, base):
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "horizontales Scrollen"
     assert not page.errors, page.errors
 
-def test_landscape_scale(b, base):
-    """Querformat: Rahmen wird auf kleine Handys verkleinert und auf Tablets vergrößert."""
-    for vp, lo, hi in [((640, 360), 0.8, 0.9), ((844, 390), 1.0, 1.0), ((1024, 768), 1.3, 1.4)]:
+def test_screen_fills_device(b, base):
+    """App-Gerüst (M1): Bildschirm füllt jedes Gerät, kein zoom mehr, Safe Areas werden eingerechnet."""
+    for vp in [(640, 360), (874, 402), (402, 874), (1180, 820)]:
         page = new_page(b, base, None, viewport=vp)
-        scale = float(page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--ui-scale')"))
-        assert lo <= scale <= hi, (vp, scale)
-        bottom = page.evaluate("document.querySelector('.screen.active').getBoundingClientRect().bottom")
-        assert bottom <= vp[1], ("Rahmen ragt unten heraus", vp, bottom)
+        r = page.evaluate("(() => { const b = document.querySelector('.screen.active').getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; })()")
+        assert r == [0, 0, vp[0], vp[1]], (vp, r)
+        assert page.evaluate("getComputedStyle(document.querySelector('.screen.active')).zoom") in ("1", "normal"), vp
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), vp
         page.context.close()
+    # Simulierte Dynamic Island / Home-Leiste: Inhalt rückt ein, Aktionsleiste endet über der Home-Leiste
+    page = new_page(b, base, None, viewport=(402, 874))
+    page.add_style_tag(content=":root{--sa-top:62px!important;--sa-bottom:34px!important}")
+    add_players(page, ["Anna", "Ben"])
+    top = page.evaluate("document.querySelector('#screen-start .start-header').getBoundingClientRect().top")
+    assert top >= 62, top
+    page.click("text=Weiter"); ok(page)
+    bar = page.evaluate("document.querySelector('#screen-teamauswahl .bottom-bar button').getBoundingClientRect().bottom")
+    assert bar <= 874 - 34, bar
+    page.context.close()
 
 def _penalty_game(b, base, mode, mistakes):
     """1 Runde, 4 Karten: Team des ersten Zugs macht Fehler, rät dann den Rest; zweites Team rät die übrigen Karten."""
@@ -777,7 +787,9 @@ def test_overview_rules(b, base):
         pen = page.text_content("#overviewRules .overview-penalties")
         assert "Strafzeit 4 s" in pen and "Punktabzug −0,5 pro Fehler" in pen and "Handicap +7 s" in pen, pen
         # nichts überlappt die Start-Leiste, kein horizontales Scrollen
-        assert page.evaluate("""(() => { const t = [...document.querySelectorAll('#screen-spieluebersicht .teams, #overviewTeamsContainer')]
+        # (nach Scrollen ans Ende liegt der letzte Inhalt über der Start-Leiste)
+        assert page.evaluate("""(() => { const sc = document.getElementById('screen-spieluebersicht'); sc.scrollTop = sc.scrollHeight;
+            const t = [...document.querySelectorAll('#screen-spieluebersicht .teams, #overviewTeamsContainer')]
             .filter(e => e.offsetParent); const bar = document.querySelector('#screen-spieluebersicht .bottom-bar').getBoundingClientRect();
             return t.every(e => e.getBoundingClientRect().bottom <= bar.top + 1); })()"""), "Teams überlappen die Start-Leiste"
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")

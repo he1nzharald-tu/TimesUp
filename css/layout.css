@@ -1,0 +1,212 @@
+/* TimesUp – Fundament für alle Geräte (M1)
+   Wird nach startscreen.css und app.css geladen und legt fest:
+   - Design-Variablen (Abstände, Schriftstufen, Tippgröße, Inhaltsbreite)
+   - Safe Areas (Dynamic Island, Notch, Home-Leiste) als --sa-*
+   - App-Gerüst: jeder Bildschirm füllt das Gerät, Inhalt scrollt innen,
+     Aktionsleiste klebt unten über der Home-Leiste
+   - Verhalten auf Touch-Geräten (kein Doppeltipp-Zoom, kein Gummiband)
+
+   Breitenstufen (Media Queries, mobile first):
+     XS  < 360 px     iPad Slide Over, kleine Androids
+     S   360–429 px   iPhone 16 Pro, SE, Galaxy S24   (Referenz)
+     M   430–599 px   Pro Max, iPad halber Split View
+     L   600–959 px   iPad hochkant
+     XL  ≥ 960 px     iPad quer, iPad Pro
+     Niedrig: Höhe < 500 px (Handy quer)
+*/
+
+:root {
+  /* Safe Areas; die Layouttests überschreiben diese Variablen */
+  --sa-top: env(safe-area-inset-top, 0px);
+  --sa-right: env(safe-area-inset-right, 0px);
+  --sa-bottom: env(safe-area-inset-bottom, 0px);
+  --sa-left: env(safe-area-inset-left, 0px);
+
+  /* Abstände */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --pad-x: clamp(12px, 4vw, 28px);
+  --pad-top: clamp(8px, 2vh, 20px);
+
+  /* Schriftstufen, wachsen stufenlos mit der Breite */
+  --fs-xs: 0.8125rem;                          /* 13 px */
+  --fs-s: 0.9375rem;                           /* 15 px */
+  --fs-m: 1.0625rem;                           /* 17 px, Fließtext */
+  --fs-l: clamp(1.2rem, 1.05rem + 0.8vw, 1.5rem);
+  --fs-xl: clamp(1.5rem, 1.2rem + 1.6vw, 2.2rem);
+  --fs-hero: clamp(2rem, 1.2rem + 5vw, 4rem);
+
+  /* Bedienung */
+  --tap: 48px;                                 /* Mindesthöhe von Knöpfen */
+  --tap-min: 44px;
+  --bar-btn-h: 52px;
+
+  /* Inhaltsbreite: auf dem Handy volle Breite, auf Tablets begrenzt */
+  --content-max: 100%;
+}
+
+@media (min-width: 600px) {
+  :root { --content-max: 720px; }
+}
+@media (min-width: 960px) {
+  :root { --content-max: 960px; }
+}
+@media (max-height: 499px) {
+  :root { --pad-top: 8px; }
+}
+
+/* --- Seite --------------------------------------------------------- */
+
+html {
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--card-bg);
+}
+
+body {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  background: var(--card-bg);
+}
+
+button,
+a,
+input,
+select,
+label {
+  touch-action: manipulation;
+}
+
+/* --- App-Gerüst ------------------------------------------------------ */
+
+.screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--card-bg);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--sa-top) + var(--pad-top))
+           calc(var(--sa-right) + var(--pad-x))
+           calc(var(--sa-bottom) + var(--sp-3))
+           calc(var(--sa-left) + var(--pad-x));
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Inhalt liegt über der Hintergrund-Animation und ist auf Tablets begrenzt.
+   :where() hält die Spezifität bei null, damit Bildschirm-Regeln gewinnen. */
+:where(.screen) > :where(:not(.fireworks)) {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--content-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Hintergrund-Animation bleibt stehen, während der Inhalt scrollt */
+.screen::before,
+.screen::after {
+  position: fixed !important;
+}
+
+/* Aktionsleiste: klebt unten und schließt über der Home-Leiste ab */
+.screen:has(> .bottom-bar, > .play-actions, > .stats-footer) {
+  padding-bottom: 0;
+}
+.screen > .bottom-bar,
+.screen > .play-actions,
+.screen > .stats-footer {
+  position: sticky;
+  left: auto;
+  right: auto;
+  bottom: 0;
+  z-index: 5;
+  margin-top: auto;
+  padding: var(--sp-4) 0 calc(var(--sa-bottom) + var(--sp-3));
+  background: linear-gradient(to bottom, transparent, var(--card-bg) var(--sp-4));
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-3);
+}
+.screen > .stats-footer {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--sp-2);
+}
+.screen > .stats-footer > br {
+  display: none;
+}
+.screen > .stats-footer > .bottom-bar {
+  position: static;
+  display: flex;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: 0;
+}
+.screen > .bottom-bar > button,
+.screen > .play-actions > button,
+.screen > .stats-footer > .bottom-bar > button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: var(--bar-btn-h);
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  white-space: normal;
+  line-height: 1.15;
+}
+
+/* --- Overlays füllen den sichtbaren Bereich ------------------------- */
+
+#pauseOverlay,
+#guessedOverlay,
+#archiveOverlay {
+  width: auto !important;
+  height: auto !important;
+  inset: 0;
+  box-sizing: border-box;
+  padding: calc(var(--sa-top) + var(--sp-3)) calc(var(--sa-right) + var(--sp-3))
+           calc(var(--sa-bottom) + var(--sp-3)) calc(var(--sa-left) + var(--sp-3));
+  overscroll-behavior: contain;
+}
+
+/* --- Spiel: keine versehentliche Textauswahl ------------------------- */
+
+#screen-play,
+#screen-roundstart,
+#screen-kartenauswahl {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* --- Einstellungen nutzen das Gerüst ohne eigenen Außenabstand ------- */
+
+#screen-settings > * {
+  max-width: var(--content-max);
+}

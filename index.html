@@ -3,33 +3,23 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" id="themeColorMeta" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TimesUp" />
+    <meta name="format-detection" content="telephone=no" />
     <title>Times Up – Mobile App</title>
     <link rel="stylesheet" href="css/startscreen.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/layout.css" />
     <link rel="stylesheet" href="css/settings.css" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <!-- Schrift Fredoka, lokal eingebunden -->
     <link rel="stylesheet" href="css/fonts.css">
-    <script>
-        // Querformat: Spielrahmen (748 x 365 px + Rand) passend zur Bildschirmgröße skalieren
-        (function () {
-            function updateUiScale() {
-                var w = window.innerWidth, h = window.innerHeight, scale = 1;
-                if (w >= h) {
-                    scale = Math.min(w / 764, h / 385);
-                    if (scale > 1 && scale < 1.15) scale = 1; // Handys im Querformat: Originalgröße
-                    scale = Math.max(0.6, Math.min(scale, 2.2));
-                }
-                document.documentElement.style.setProperty('--ui-scale', scale.toFixed(3));
-            }
-            updateUiScale();
-            window.addEventListener('resize', updateUiScale);
-            window.addEventListener('orientationchange', updateUiScale);
-        })();
-    </script>
     <script>
         // Apply persisted theme as early as possible to avoid flash of light theme
         try {

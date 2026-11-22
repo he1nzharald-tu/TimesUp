@@ -340,6 +340,9 @@ export function applyTheme(theme) {
     } else {
         root.classList.remove('dark');
     }
+    // Farbe der Browser-/Statusleiste an das Design anpassen
+    const meta = document.getElementById('themeColorMeta');
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#ffffff');
     // save selection
     try { localStorage.setItem('timesup_theme', theme); } catch (e) { }
     // update select if present

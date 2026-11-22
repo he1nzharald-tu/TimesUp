@@ -273,18 +273,7 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
 }
 
 /* === Button-Leisten unten === */
-.bottom-bar-full {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: transparent;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  padding: 16px 0 12px 0;
-  z-index: 100;
-}
+
 #teamOverviewLegacy {
   margin-top: 55px;
 }
@@ -364,18 +353,7 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   margin-top: 20px;
   font-size: 1.2rem;
 }
-.bottom-bar {
-  position: fixed;
-  left: 10px;
-  right: 10px;
-  bottom: 0;
-  background: transparent;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  padding: 16px 0 12px 0;
-  z-index: 100;
-}
+
 #cardDoneButton {
   display: none;
 }
@@ -383,15 +361,7 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   display: none;
 }
 
-/* Vorher gewann hier der Inline-Stil gegen "#screen-… > * { z-index: 1 }" aus startscreen.css */
-#screen-teamauswahl > .bottom-bar,
-#screen-teamuebersicht > .bottom-bar,
-#screen-kartenauswahl > .bottom-bar,
-#screen-spieluebersicht > .bottom-bar,
-#screen-end > .bottom-bar,
-#screen-play > .play-actions {
-  z-index: 100;
-}
+
 
 /* === Teams === */
 .teams-spaced {
@@ -614,17 +584,7 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   color: var(--divider);
   opacity: 0.7;
 }
-.play-actions {
-  position: fixed;
-  left: 10px;
-  right: 10px;
-  bottom: 0;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  padding: 10px 0 8px 0;
-  z-index: 100;
-}
+
 #btnMistake {
   background: var(--accent-a);
   color: var(--on-accent);
@@ -816,8 +776,9 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: auto;
+  height: auto;
+  inset: 0;
   background: rgba(0,0,0,0.35);
   display: flex;
   flex-direction: column;
@@ -866,8 +827,9 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: auto;
+  height: auto;
+  inset: 0;
   background: rgba(0,0,0,0.35);
   display: flex;
   flex-direction: column;

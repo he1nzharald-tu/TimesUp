@@ -43,35 +43,9 @@
   --rbg5: #f1f3f5;
 }
 
-:root {
-  --accent: var(--accent-a);
-  --danger: var(--danger);
-  --bg: var(--bg);
-  --white: var(--card-bg);
-  --border: var(--divider);
-  --text: var(--text);
-  --shadow: 0 2px 8px rgba(0,0,0,0.05);
-  --radius: 12px;
-  --rcolor0: #cce5ff;
-  --rbg0: #e6f2ff;
-  --rcolor1: #d4edda;
-  --rbg1: #edf7ef;
-  --rcolor2: #f8d7da;
-  --rbg2: #fcebec;
-  --rcolor3: #fff3cd;
-  --rbg3: #fffbea;
-  --rcolor4: #e2e3e5;
-  --rbg4: #f8f9fa;
-  --rcolor5: #d6d8d9;
-  --rbg5: #f1f3f5;
-}
 
-html,
-body {
-  height: 100%;
-  overflow: hidden;
-  touch-action: none;
-}
+
+
 
 body {
   font-family: 'Fredoka', 'Segoe UI', Arial, sans-serif;
@@ -246,9 +220,7 @@ hr.divider {
   --start-bg-line-soft: rgba(162, 155, 254, 0.14);
   --start-bg-glow-a: rgba(255, 118, 117, 0.16);
   --start-bg-glow-b: rgba(0, 184, 148, 0.14);
-  position: relative;
   isolation: isolate;
-  overflow: hidden;
   background: radial-gradient(circle at 15% 18%, var(--start-bg-glow-a), transparent 30%),
     radial-gradient(circle at 85% 8%, var(--start-bg-glow-b), transparent 28%),
     linear-gradient(180deg, var(--start-bg-base), var(--start-bg-base));
@@ -326,56 +298,17 @@ hr.divider {
   animation: startBackgroundFloat 24s ease-in-out infinite alternate;
 }
 
-#screen-start > *,
-#screen-teamauswahl > *,
-#screen-teamuebersicht > *,
-#screen-kartenauswahl > *,
-#screen-spieluebersicht > *,
-#screen-roundstart > *,
-#screen-play > *,
-#screen-roundstats > *,
-#screen-end > * {
-  position: relative;
-  z-index: 1;
-}
 
-#screen-roundstats > div:last-child > div:last-child,
-#screen-end > div:last-child {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-  padding: 0;
-}
 
-#screen-roundstats > div:last-child > div:last-child button,
-#screen-end > div:last-child button {
-  margin: 0;
-  height: 46px;
-}
 
-.screen {
-  background: var(--card-bg);
-  box-shadow: 0 6px 32px rgba(0,0,0,0.07);
-  max-width: 700px;
-  height: 345px;
-  margin: 10px auto 32px auto;
-  padding: 10px 24px 10px 24px;
-  display: none;
-  border-radius: var(--radius);
-  overflow: scroll;
-}
 
-.screen.active {
-  display: block;
-}
 
-#screen-roundstart.active,
-#screen-play.active,
-#screen-roundstats.active,
-#screen-end.active {
-  display: block;
-}
+
+
+
+
+
+
 
 /* ====================================================================
    Startbildschirm
@@ -616,17 +549,9 @@ td[data-label="Entfernen"] {
   padding: 4px 4px 64px;
 }
 
-#screen-teamauswahl {
-  position: relative;
-  overflow: hidden;
-}
+
 
 #screen-teamauswahl > div:last-child {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-  padding: 0;
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -639,17 +564,9 @@ td[data-label="Entfernen"] {
   min-width: 0;
 }
 
-#screen-teamuebersicht {
-  position: relative;
-  overflow: hidden;
-}
+
 
 #screen-teamuebersicht > div:last-child {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-  padding: 0;
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -684,12 +601,7 @@ td[data-label="Entfernen"] {
 }
 
 #screen-kartenauswahl {
-  position: relative;
-  overflow: hidden;
   max-width: 700px;
-  height: 345px;
-  margin: 10px auto 32px auto !important;
-  padding: 10px 24px !important;
 }
 
 #cardSelectionClickArea {
@@ -744,13 +656,7 @@ td[data-label="Entfernen"] {
   padding: 0 6px 8px !important;
 }
 
-#screen-kartenauswahl > div:last-child {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-  padding: 0;
-}
+
 
 #cardSelectionClickArea > div:first-child h2:first-child {
   flex: 0 0 auto;
@@ -780,11 +686,6 @@ td[data-label="Entfernen"] {
 }
 
 #screen-spieluebersicht > div:last-child {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-  padding: 0;
   display: flex;
   gap: 10px;
   justify-content: center;
@@ -812,9 +713,7 @@ td[data-label="Entfernen"] {
   --roundstart-orbit-a: rgba(246, 209, 0, 0.18);
   --roundstart-orbit-b: rgba(116, 185, 255, 0.14);
   --roundstart-orbit-c: rgba(0, 184, 148, 0.12);
-  position: relative;
   isolation: isolate;
-  overflow: hidden;
   background: radial-gradient(circle at 50% 44%, transparent 0 32%, var(--roundstart-orbit-a) 33%, transparent 34%),
     radial-gradient(circle at 50% 48%, transparent 0 45%, var(--roundstart-orbit-b) 46%, transparent 47%),
     linear-gradient(180deg, var(--roundstart-bg-base), var(--roundstart-bg-base)) !important;
@@ -1019,14 +918,10 @@ td[data-label="Entfernen"] {
   padding: 10px 24px 10px 24px;
 }
 
-#screen-play .play-actions {
-  padding: 0;
-}
+
 
 #screen-play .play-actions button {
-  height: 46px;
   min-width: 0;
-  margin: 0;
 }
 
 #screen-play .button-bar,
@@ -1082,29 +977,14 @@ td[data-label="Entfernen"] {
   font-size: 1.2rem !important;
 }
 
-#screen-play .play-actions,
-#screen-roundstats > div:last-child > div:last-child,
-#screen-end > div:last-child {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-  padding: 0;
-}
 
-#screen-play .play-actions {
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-}
+
+
 
 #screen-play .play-actions button,
 #screen-roundstats > div:last-child > div:last-child button,
 #screen-end > div:last-child button {
-  height: 46px;
   min-width: 0;
-  margin: 0;
 }
 
 #screen-play.active {
@@ -1134,21 +1014,11 @@ td[data-label="Entfernen"] {
 
 #screen-roundstats > div:last-child > div:last-child {
   background: transparent;
-  position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 10px;
-  padding: 0;
 }
 
-#screen-roundstats > div:last-child > div:last-child button {
-  height: 46px;
-  margin: 0;
-}
 
-#screen-roundstats > div:last-child {
-  position: static;
-}
+
+
 
 /* ====================================================================
    Endbildschirm und Feuerwerk
@@ -1404,12 +1274,7 @@ td[data-label="Entfernen"] {
 #screen-play,
 #screen-roundstats,
 #screen-end {
-  position: relative;
-  overflow: hidden;
   max-width: 700px;
-  height: 345px;
-  margin: 10px auto 32px auto !important;
-  padding: 10px 24px !important;
 }
 
 #finalTwoTeamContainer {
@@ -1498,17 +1363,7 @@ td[data-label="Entfernen"] {
    Responsives Layout (Hoch-/Querformat, schmale Bildschirme)
    ==================================================================== */
 
-@media (max-width: 700px) {
-  .screen {
-    padding: 16px 4vw 16px 4vw;
-    margin: 12px 0;
-  }
 
-  .teams {
-    flex-direction: column;
-    gap: 12px;
-  }
-}
 
 @media (max-width: 500px) {
   table,
@@ -1547,311 +1402,9 @@ td[data-label="Entfernen"] {
   }
 }
 
-@media (orientation: landscape) {
-  .screen {
-    zoom: var(--ui-scale, 1);
-    padding: 10px 24px !important;
-    margin: 10px auto 32px auto !important;
-  }
-}
 
-@media (orientation: portrait) {
-  html,
-  body {
-    overflow: hidden;
-  }
 
-  .screen,
-  #screen-start,
-  #screen-settings,
-  #screen-teamauswahl,
-  #screen-teamuebersicht,
-  #screen-kartenauswahl,
-  #screen-spieluebersicht,
-  #screen-roundstart,
-  #screen-play,
-  #screen-roundstats,
-  #screen-end {
-    box-sizing: border-box;
-    width: auto;
-    max-width: 700px;
-    height: calc(100vh - 20px);
-    height: calc(100dvh - 20px);
-    margin: 10px auto !important;
-    padding: 12px 14px !important;
-  }
 
-  #screen-start,
-  #screen-settings,
-  #screen-teamauswahl,
-  #screen-teamuebersicht,
-  #screen-spieluebersicht,
-  #screen-roundstats,
-  #screen-end {
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding-bottom: 76px !important;
-    touch-action: pan-y;
-  }
-
-  #screen-teamauswahl > div:last-child,
-  #screen-teamuebersicht > div:last-child,
-  #screen-spieluebersicht > div:last-child,
-  #screen-kartenauswahl > div:last-child,
-  #screen-roundstats > div:last-child > div:last-child,
-  #screen-end > div:last-child,
-  #screen-play .play-actions {
-    position: fixed;
-    left: 24px;
-    right: 24px;
-    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-    flex-wrap: nowrap;
-  }
-
-  #screen-teamauswahl > div:last-child button,
-  #screen-teamuebersicht > div:last-child button,
-  #screen-play .play-actions button {
-    flex: 1 1 0;
-    padding-left: 8px;
-    padding-right: 8px;
-    white-space: normal;
-    line-height: 1.15;
-  }
-
-  #screen-teamauswahl > div:first-child,
-  #screen-teamuebersicht > div:first-child,
-  #screen-spieluebersicht > div:first-child,
-  #screen-roundstats > div:first-child {
-    position: static;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    min-height: 44px;
-    margin: 0 0 8px;
-  }
-
-  #screen-teamauswahl > div:first-child > *,
-  #screen-teamuebersicht > div:first-child > *,
-  #screen-spieluebersicht > div:first-child > *,
-  #screen-roundstats > div:first-child > * {
-    position: static;
-    margin: 0;
-  }
-
-  #screen-teamauswahl > div:first-child h2,
-  #screen-teamuebersicht > div:first-child h2,
-  #screen-spieluebersicht > div:first-child h2,
-  #screen-roundstats > div:first-child h2 {
-    flex: 1 1 auto;
-    min-width: 0;
-    font-size: 1.35rem;
-    text-align: left;
-  }
-
-  #teamPlayerTable,
-  #teamOverviewLegacy,
-  #teamsContainer,
-  #screen-spieluebersicht .teams,
-  #overviewTeamsContainer,
-  #screen-roundstats > div:nth-child(2),
-  #statsContainer {
-    margin-top: 8px !important;
-    max-height: none !important;
-  }
-
-  #screen-start > div:first-child h2 {
-    font-size: 1.7rem;
-    margin-top: 22px;
-  }
-
-  #screen-start > div:nth-child(2) {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 8px;
-  }
-
-  #screen-start > div:nth-child(2) > button:last-child {
-    grid-column: 1 / -1;
-  }
-
-  #playerInput {
-    width: 100% !important;
-    min-width: 0;
-    box-sizing: border-box;
-  }
-
-  #playerTable tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    box-sizing: border-box;
-  }
-
-  #playerTable td {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: auto;
-    min-width: 0;
-    padding: 0;
-  }
-
-  #playerTable td::before {
-    content: none;
-  }
-
-  #playerTable td:first-child span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
-  }
-
-  #playerTable td:nth-child(2)::after {
-    content: "🧩";
-  }
-
-  #playerTable td button {
-    width: auto;
-    margin: 0;
-    padding: 6px 10px;
-    font-size: 0.95rem;
-  }
-
-  #teamPlayerTable {
-    display: table;
-  }
-
-  #teamPlayerTable thead {
-    display: table-header-group;
-  }
-
-  #teamPlayerTable tbody {
-    display: table-row-group;
-  }
-
-  #teamPlayerTable tr {
-    display: table-row;
-  }
-
-  #teamPlayerTable th,
-  #teamPlayerTable td {
-    display: table-cell;
-    width: auto;
-  }
-
-  #screen-end table,
-  #screen-end thead,
-  #screen-end tbody,
-  #screen-end tr,
-  #screen-end th,
-  #screen-end td {
-    display: revert;
-    width: auto;
-  }
-
-  #screen-end thead {
-    display: table-header-group;
-  }
-
-  #screen-end td::before {
-    content: none;
-  }
-
-  #roundBorderWrapper {
-    flex-direction: column !important;
-    justify-content: center !important;
-    padding: 18px 12px !important;
-  }
-
-  #roundBorderWrapper > div:first-child,
-  #roundBorderWrapper > div:last-child {
-    display: none;
-  }
-
-  #roundBorderWrapper > div:nth-child(2) {
-    width: 100%;
-    gap: 14px;
-  }
-
-  #roundPlayerName {
-    width: 100% !important;
-    max-width: 100% !important;
-    font-size: clamp(1.6rem, 9vw, 2.6rem) !important;
-  }
-
-  .round-start-info {
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 100%;
-  }
-
-  #startRoundBtn {
-    width: 100% !important;
-    min-height: 52px;
-  }
-
-  #screen-play .play-header {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  #screen-play .play-playerinfo {
-    order: 3;
-    flex: 1 1 100%;
-    justify-content: center;
-  }
-
-  #screen-play .play-actions button {
-    height: 64px;
-  }
-
-  #screen-play .play-main {
-    padding-bottom: 90px;
-  }
-
-  #cardSelectionClickArea > div:first-child {
-    left: 14px;
-    right: 14px;
-    height: auto;
-    min-height: 38px;
-    flex-wrap: wrap;
-  }
-
-  #cardSelectionClickArea > div:first-child h2 {
-    font-size: 1.15rem;
-  }
-
-  #vetoInfoText {
-    position: static !important;
-    margin: 2px 0 0 !important;
-  }
-
-  #cardSelectionClickArea {
-    padding: 76px 0 76px;
-  }
-
-  #cardSelectionList {
-    max-height: none;
-  }
-
-  #finalTwoTeamContainer {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px !important;
-  }
-
-  #finalTeamACard,
-  #finalTeamBCard {
-    width: 100% !important;
-    box-sizing: border-box;
-    height: auto !important;
-    max-height: none !important;
-  }
-}
 
 @media (orientation: portrait) and (max-width: 380px) {
   #screen-start > div:first-child h2 span:last-child {
