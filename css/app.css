@@ -1144,3 +1144,33 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   color: var(--danger);
   white-space: nowrap;
 }
+
+/* === Hinweis auf neue Version (Startbildschirm) === */
+#screen-start > .update-banner {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--accent-c);
+  color: var(--accent-c-text);
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+#screen-start > .update-banner[hidden] {
+  display: none;
+}
+#screen-start .update-banner button {
+  width: auto;
+  height: 36px;
+  margin: 0;
+  padding: 0 16px;
+  background: var(--card-bg);
+  color: var(--text);
+}

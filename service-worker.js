@@ -10,6 +10,8 @@
 const CACHE_VERSION = 'v2';
 const CACHE_PREFIX = 'timesup-';
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
+// Caches von Versionen ohne Update-Hinweis
+const LEGACY_CACHES = ['timesup-v1', 'timesup-v2'];
 
 // Alle App-Dateien: müssen alle geladen werden, sonst schlägt die Installation fehl.
 const APP_FILES = [
@@ -27,6 +29,7 @@ const APP_FILES = [
   './fonts/fredoka/fredoka-latin-ext-400-normal.woff2',
   './fonts/fredoka/fredoka-latin-ext-700-normal.woff2',
   './js/main.js',
+  './js/pwa.js',
   './js/state.js',
   './js/settings.js',
   './js/cards.js',
@@ -43,8 +46,15 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
     // cache: 'reload' umgeht den HTTP-Cache des Browsers, damit wirklich der neue Stand landet.
     await cache.addAll(APP_FILES.map((url) => new Request(url, { cache: 'reload' })));
-    await self.skipWaiting();
+    // Neue Versionen warten, bis in der App "Neu laden" angetippt wird (nie mitten im Spiel).
+    // Ausnahme: Versionen v1/v2 kennen diesen Hinweis noch nicht – dort direkt übernehmen.
+    const keys = await caches.keys();
+    if (keys.some((key) => LEGACY_CACHES.includes(key))) await self.skipWaiting();
   })());
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

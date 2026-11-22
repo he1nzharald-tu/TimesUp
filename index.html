@@ -10,13 +10,6 @@
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
-                .then(() => console.log('Service Worker registriert'))
-                .catch(err => console.error('SW Fehler:', err));
-        }
-    </script>
     <!-- Schrift Fredoka, lokal eingebunden -->
     <link rel="stylesheet" href="css/fonts.css">
     <script>
@@ -71,6 +64,10 @@
                 title="Spieler hinzufügen">➕</button>
             <button class="start-icon-btn start-continue-btn" onclick="confirmBeforeContinue()">➡️
                 Weiter</button>
+        </div>
+        <div id="updateBanner" class="update-banner" role="status" hidden>
+            <span>Neue Version verfügbar</span>
+            <button id="updateReloadButton" type="button">Neu laden</button>
         </div>
         <!-- Wrap the table for scrolling -->
         <div id="playerTableWrapper">
