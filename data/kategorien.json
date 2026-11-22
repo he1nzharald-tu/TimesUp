@@ -18,6 +18,7 @@
     { "id": "sport",           "name": "Sport",                   "gruppe": "allgemein", "symbol": "⚽" },
     { "id": "personen",        "name": "Berühmte Personen",       "gruppe": "allgemein", "symbol": "⭐" },
     { "id": "politik",         "name": "Politik & Gesellschaft",  "gruppe": "allgemein", "symbol": "🗳️" },
+    { "id": "wirtschaft",         "name": "Wirtschaft & Finanzen",  "gruppe": "allgemein", "symbol": "💶" },
     { "id": "gaming",          "name": "Gaming & Videospiele",    "gruppe": "nerd", "symbol": "🎮" },
     { "id": "fantasy",         "name": "Fantasy",                 "gruppe": "nerd", "symbol": "🧙" },
     { "id": "science-fiction", "name": "Science-Fiction",         "gruppe": "nerd", "symbol": "🚀" },
