@@ -32,7 +32,11 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Spiel fortsetzen:** Der Spielstand wird nach jeder Karte und jedem Zugwechsel gesichert. Schließt das Handy die App oder wird neu geladen, bietet der Startbildschirm „Fortsetzen“ an; ein unterbrochener Zug gilt dabei als beendet
 - **Archiv:** Gespeicherte Spiele mit Spielern; bereits gespielte Karten werden beim nächsten Spiel derselben Gruppe nicht noch einmal gezogen. Über „Exportieren“ und „Importieren“ lässt sich das Archiv als Datei auf ein anderes Gerät mitnehmen (gleiche Spiele werden zusammengeführt)
 - **Einstellungen:** Bereiche Karten · Spiel · Fairness · Design mit Symbolleiste (Hochformat oben, Querformat links), Stepper, Schaltern und Rundenkarten zum Antippen; jede Änderung wird sofort gespeichert
-- **Darstellung:** Helles und dunkles Design, Hoch- und Querformat, Handy bis Tablet
+- **Für Handy gebaut:** Gestaltet für das iPhone 16 Pro, getestet auf 13 Geräteprofilen von 320 bis 1376 px Breite (iPhone SE bis iPad Pro, Galaxy S24, iPad Split View). Notch, Dynamic Island und Home-Leiste werden freigehalten
+- **Querformat im Spiel:** Begriff groß links, Richtig/Überspringen/Fehler senkrecht rechts in Daumenreichweite; Hochformat funktioniert genauso
+- **Bildschirm bleibt an:** Während eines Zugs geht das Display nicht aus (Screen Wake Lock, iOS ab 16.4)
+- **Nochmal spielen:** Am Spielende mit denselben Teams und neuen Karten weitermachen
+- **Darstellung:** Helles und dunkles Design (Kontraste nach WCAG AA), Linien-Symbole, funktioniert auch mit 130 % Systemschrift
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
 - **Updates:** Liegt eine neue Version bereit, zeigt der Startbildschirm „Neue Version – neu laden“; mitten im Spiel wird nie aktualisiert
 
@@ -52,8 +56,8 @@ Zum Testen auf dem Handy im selben WLAN `http://<IP-des-Rechners>:8000` aufrufen
 
 Die App muss dafür über HTTPS erreichbar sein, zum Beispiel über GitHub Pages (Repository → Settings → Pages → Branch `main`).
 
-- **iPhone/iPad (Safari):** Teilen-Symbol → „Zum Home-Bildschirm“
-- **Android (Chrome):** Menü ⋮ → „App installieren“ oder „Zum Startbildschirm hinzufügen“
+- **iPhone/iPad (Safari):** Teilen-Symbol → „Zum Home-Bildschirm“ (die App zeigt dazu einmalig einen Hinweis). Startbilder für alle aktuellen Geräte sind hinterlegt (`scripts/make_splash.py`)
+- **Android (Chrome):** Knopf „Installieren“ im Hinweis auf dem Startbildschirm oder Menü ⋮ → „App installieren“
 - **Rechner (Chrome/Edge):** Installations-Symbol rechts in der Adressleiste
 
 Nach dem ersten Start sind alle Dateien gespeichert, und die App läuft auch offline.
@@ -107,7 +111,7 @@ Die ID steht fest in der Excel-Datei. Eine Erklärung kann darum überarbeitet w
 Installierte Apps laden ihre Dateien aus dem Offline-Speicher, nicht aus dem Netz. Damit Änderungen bei den Spielern ankommen, muss bei **jeder Änderung an App-Dateien** (HTML, CSS, JavaScript, Karten, Töne, Icons) die Version in `service-worker.js` erhöht werden:
 
 ```js
-const CACHE_VERSION = 'v13';  // vorher 'v12'
+const CACHE_VERSION = 'v18';  // vorher 'v17'
 ```
 
 Beim nächsten Online-Start lädt die App die neue Version im Hintergrund. Auf dem Startbildschirm erscheint dann „Neue Version – neu laden“; nach dem Antippen läuft die neue Version, der alte Speicher wird gelöscht.
@@ -127,7 +131,8 @@ Unter `tests/` liegen automatische Tests, die die App in einem echten Browser du
 - Neue Einstellungen: Reiter, Stepper, Schalter, Rundenkarten, sofortiges Speichern
 - Offline-Modus, Hinweis auf neue Version, keine Anfragen an fremde Server
 - Spiel fortsetzen nach Neuladen (zwischen Zügen, mitten im Zug, in der Rundenstatistik)
-- Dialoge, Standardwerte, Skalierung im Querformat
+- Dialoge, Standardwerte, App-Gerüst füllt jedes Gerät, Safe Areas
+- Bildschirm bleibt im Zug an, „Nochmal spielen“, Installationshinweis auf dem iPhone
 
 Einmalig einrichten:
 
@@ -146,9 +151,25 @@ Auf GitHub laufen alle Tests automatisch bei jedem Push und Pull Request (`.gith
 
 Einzelne Tests: `python3 tests/e2e.py test_dialogs test_full_game_two_teams`. Ein eigener Chrome lässt sich mit `CHROME_PATH=/pfad/zu/chrome` nutzen.
 
-### Aussehen prüfen
+### Layout auf allen Geräten prüfen
 
-Bei Änderungen, die nichts am Aussehen ändern sollen (z. B. CSS aufräumen), lassen sich vorher und nachher alle Bildschirme in sechs Größen vergleichen:
+`tests/layout.py` spielt auf 13 Geräteprofilen (iPhone 16 Pro hoch/quer/Safari, SE, Pro Max, Galaxy S24, iPad mini, Air, Pro, Split View, Slide Over) eine Partie durch, fotografiert jeden Bildschirm mit eingeblendeten Systembereichen (Dynamic Island, Home-Leiste) und prüft automatisch:
+
+- **Fehler:** Bedienelement unter Insel/Home-Leiste oder außerhalb des Bildschirms, abgeschnittener Inhalt, zu kleine Liste trotz freiem Platz, Hauptaktion nicht sichtbar
+- **Hinweise:** Tippfläche unter 44 × 44 px, Text unter 12 px, Eingabefeld unter 16 px, Kontrast unter WCAG AA
+
+```bash
+python3 tests/layout.py                         # alle Geräte, hell
+python3 tests/layout.py iphone16pro --dark      # ein Gerät, hell und dunkel
+python3 tests/layout.py --font-scale 1.3        # mit größerer Systemschrift
+python3 tests/layout.py --strict                # Exit-Code 1 bei Fehlern
+```
+
+Ergebnis in `tests/layout-out/`: `report.txt` und je Gerät ein Übersichtsbild `sheet_<gerät>.png`. Auf GitHub läuft die Prüfung bei jedem Push mit; die Aufnahmen liegen im Lauf unter „Artifacts → layout-aufnahmen“.
+
+**Layoutregeln** (siehe Kopf von `css/layout.css`): Breitenstufen XS < 360, S 360–429 (Referenz iPhone 16 Pro), M 430–599, L 600–959, XL ≥ 960 px und „Handy quer“ (Höhe < 500 px). Jeder Bildschirm ist eine Spalte aus Kopfzeile, scrollendem Inhalt und Aktionsleiste unten; Abstände zum Rand immer über `--sa-top/right/bottom/left`.
+
+### Aussehen vorher/nachher vergleichen
 
 ```bash
 python3 tests/shots.py /tmp/vorher light      # vor der Änderung (auch: dark)
@@ -163,8 +184,10 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | Pfad | Inhalt |
 |---|---|
 | `index.html` | Alle Bildschirme der App |
-| `css/startscreen.css` | Hauptstile, Animationen, responsives Layout, Dialoge |
-| `css/app.css` | Grundstil, Farben (hell/dunkel) und Komponenten |
+| `css/base.css` | Farben (hell/dunkel), Schrift, Knöpfe, Kopfzeile, Teamkarten, Overlays |
+| `css/layout.css` | App-Gerüst, Safe Areas, Breitenstufen, Design-Variablen |
+| `css/screens.css` | Die einzelnen Bildschirme inkl. Querformat und Tablet |
+| `css/effects.css` | Feuerwerk, eigene Dialoge, Animationen |
 | `css/settings.css` | Einstellungsseite (Symbolleiste, Stepper, Schalter, Kacheln) |
 | `css/fonts.css`, `fonts/` | Schrift Fredoka (lokal, SIL Open Font License) |
 | `js/main.js` | Einstieg: lädt Einstellungen und Karten |
@@ -175,8 +198,10 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `js/cards.js` | Karten laden, IDs, Archiv, Kartenauswahl |
 | `js/game.js` | Spieler, Teams, Runden, Timer, Punkte |
 | `js/ui.js` | Bildschirmwechsel, Dialoge, Listen |
+| `js/teamview.js` | Teamkarten, Teamnamen/-farben, Linien-Symbole |
+| `js/wakelock.js` | Bildschirm bleibt während eines Zugs an |
 | `js/audio.js` | Countdown-Ton und Alarm |
-| `js/pwa.js` | Offline-Modus und Hinweis auf neue Version |
+| `js/pwa.js` | Offline-Modus, Hinweis auf neue Version, Installationshinweis |
 | `js/persist.js` | Spielstand sichern und fortsetzen |
 | `data/db_Karten.xlsx` | Kartendatenbank zum Bearbeiten |
 | `data/cards.json` | Exportierte Karten, die die App lädt |
@@ -184,7 +209,8 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `scripts/export_cards.py` | Export von Excel nach JSON |
 | `scripts/check_cards.py` | Prüft Karten auf die Regeln (Länge, Begriff in der Erklärung, Dubletten …) |
 | `scripts/kartendaten.py` | Gemeinsame Funktionen der Kartenskripte |
-| `tests/` | Automatische Tests und Screenshot-Vergleich |
+| `scripts/make_splash.py` | Erzeugt die Startbilder in `icons/splash/` |
+| `tests/` | Spieltests (`e2e.py`), Layoutprüfung (`layout.py`), Screenshot-Vergleich |
 | `.github/workflows/tests.yml` | Führt die Tests auf GitHub aus |
 | `assets/` | Töne |
 | `icons/` | App-Icons; `icon-1024.png` ist die Vorlage |

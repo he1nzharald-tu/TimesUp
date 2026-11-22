@@ -40,7 +40,7 @@ jobs:
 
       - name: Layoutprüfung auf allen Geräten
         if: always()
-        run: python tests/layout.py --dark --out layout-out
+        run: python tests/layout.py --dark --strict --out layout-out
 
       - name: Layout-Aufnahmen hochladen
         if: always()

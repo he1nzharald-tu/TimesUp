@@ -64,7 +64,7 @@ def run(out, theme="light", vps=None):
             add_players(page, ["Anna", "Benedikt", "Cem", "Dorothea"])
             page.evaluate("TimesUp.state.players[1].handicap = true; updatePlayerTable()")
             shot("01_start")
-            page.click("button:has-text('⚙️')"); shot("02_settings")
+            page.click("button[aria-label='Einstellungen']"); shot("02_settings")
             page.evaluate("validateSettingsAndGoBack()")
             page.click("text=Weiter"); shot("03_dialog"); ok(page)
             shot("04_teamauswahl")
@@ -122,7 +122,7 @@ def run_three_teams(b, base, out, vp_name, vp, theme, report):
     def shot(name):
         snap(page, out, f"{vp_name}__{name}")
         report[f"{vp_name}__{name}"] = overflow(page)
-    page.click("button:has-text('⚙️')"); shot("30_settings_details")
+    page.click("button[aria-label='Einstellungen']"); shot("30_settings_details")
     page.evaluate("validateSettingsAndGoBack()")
     add_players(page, ["Anna", "Ben", "Cem", "Dora", "Emil", "Fritz"])
     page.click("text=Weiter"); ok(page)
