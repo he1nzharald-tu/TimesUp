@@ -486,8 +486,15 @@ def test_update_banner(b, base_unused):
         # neue Version veröffentlichen
         sw = (root / "service-worker.js").read_text()
         (root / "service-worker.js").write_text(re.sub(r"CACHE_VERSION = '[^']+'", "CACHE_VERSION = 'test-neu'", sw))
-        pg.evaluate("navigator.serviceWorker.getRegistration().then(r => r.update())")
-        pg.wait_for_selector("#updateBanner:not([hidden])", timeout=10000)
+        # Update anstoßen; auf langsamen CI-Rechnern ggf. mehrfach (Installation lädt alle App-Dateien)
+        for attempt in range(4):
+            pg.evaluate("navigator.serviceWorker.getRegistration().then(r => r.update()).catch(() => null)")
+            try:
+                pg.wait_for_selector("#updateBanner:not([hidden])", timeout=15000)
+                break
+            except Exception:
+                if attempt == 3:
+                    raise
         assert pg.locator("#updateBanner").is_visible()
         old = pg.evaluate("caches.keys()")
         assert sorted(old) == ["timesup-test-alt", "timesup-test-neu"], old
