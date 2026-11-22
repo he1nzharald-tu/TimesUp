@@ -1,6 +1,6 @@
 // Spiel: Spieler und Teams, Runden, Timer, Punkte, Pause und Zugende
 import { DEFAULT_TURN_SECONDS, state } from "./state.js";
-import { getSettings, toPositiveInt } from "./settings.js";
+import { getPenaltyMode, getSettings, toPositiveInt } from "./settings.js";
 import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray } from "./cards.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
 import { appendText, appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
@@ -491,11 +491,11 @@ export function endRound() {
         showRoundStats();
     }
 }
-// Abzug pro Regelverstoß laut Einstellung "Strafe": Ja = 1 Punkt, Remi = 0,5 Punkte
+// Abzug pro Regelverstoß laut Einstellung "Punktabzug": Ja = 1 Punkt, Remi = 0,5 Punkte
 export function getPenaltyPerMistake(settings = getSettings()) {
-    if (!settings.punishEnabled) return 0;
-    if (settings.punishPoints === "yes") return 1;
-    if (settings.punishPoints === "draw") return 0.5;
+    const mode = getPenaltyMode(settings);
+    if (mode === "yes") return 1;
+    if (mode === "draw") return 0.5;
     return 0;
 }
 

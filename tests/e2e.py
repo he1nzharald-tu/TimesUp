@@ -537,6 +537,45 @@ def test_overview_rules(b, base):
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
         page.context.close()
 
+def test_penalty_independent_of_penalty_time(b, base):
+    """Punktabzug wirkt auch ohne Strafzeit (eigene Einstellung); ohne Strafzeit keine Wartezeit."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s.update({"cardCount": 4, "roundCount": 1, "roundTimer": [60], "roundSkip": ["no"],
+              "punishEnabled": False, "penaltyPoints": "yes"})
+    s.pop("punishPoints", None)
+    page = new_page(b, base, s)
+    setup_game(page, ["Anna", "Ben"], veto=False)
+    first = page.evaluate("TimesUp.state.activeTeamIndex")
+    page.click("#startRoundBtn"); ok(page)
+    page.click("#btnMistake")
+    assert "Strafzeit" not in page.text_content("#cardTerm"), "ohne Strafzeit darf es keine Wartezeit geben"
+    while not page.locator("#guessedOverlay").count():
+        page.click("#btnCorrect")
+    overlay_button(page, "Nächster Spieler").click()
+    page.click("#startRoundBtn"); ok(page)
+    while not page.locator("#guessedOverlay").count():
+        page.click("#btnCorrect")
+    overlay_button(page, "Nächster Spieler").click()
+    pts = page.evaluate("TimesUp.state.totalPoints")
+    assert pts[first] == 2 and pts[1 - first] == 1, pts
+
+def test_penalty_setting_migration(b, base):
+    """Alte Einstellungen (Strafe an der Strafzeit) werden übernommen und neu gespeichert."""
+    cases = [({"punishEnabled": True, "punishPoints": "draw"}, "draw"),
+             ({"punishEnabled": False, "punishPoints": "yes"}, "no"),     # war unwirksam
+             ({"punishEnabled": True, "punishPoints": "no"}, "no"),
+             ({"punishEnabled": False, "penaltyPoints": "yes"}, "yes")]
+    for extra, expected in cases:
+        s = copy.deepcopy(DEFAULT_SETTINGS); s.pop("punishPoints", None); s.update(extra)
+        page = new_page(b, base, s)
+        page.click("button:has-text('⚙️')")
+        assert page.is_visible("#penaltyPoints"), "Punktabzug muss ohne Strafzeit sichtbar sein"
+        assert page.input_value("#penaltyPoints") == expected, (extra, page.input_value("#penaltyPoints"))
+        page.click("text=Zurück")
+        st = page.evaluate("JSON.parse(localStorage.getItem('timesup_settings'))")
+        assert st["penaltyPoints"] == expected and "punishPoints" not in st, st
+        page.context.close()
+
 ALL = [n for n in dir() if n.startswith("test_")]
 
 if __name__ == "__main__":

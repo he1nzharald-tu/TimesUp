@@ -342,10 +342,10 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
 .settings-inline-label {
   margin-left: 5px;
 }
-#punishPoints {
+#penaltyPoints {
   width: auto;
   min-width: 93px;
-  margin-left: 5px;
+  margin-left: 150px;
   height: 38px;
 }
 #vetoCount {

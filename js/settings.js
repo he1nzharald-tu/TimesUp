@@ -20,6 +20,15 @@ export function writeJsonStore(key, value) {
         return false;
     }
 }
+// Punktabzug pro Regelverstoß: "no" | "yes" (−1) | "draw" (Remi, −0,5).
+// Früher hing er an der Strafzeit (punishPoints galt nur bei aktiver Strafzeit) – alte Einstellungen so übernehmen.
+export function getPenaltyMode(settings) {
+    const valid = ["no", "yes", "draw"];
+    if (valid.includes(settings.penaltyPoints)) return settings.penaltyPoints;
+    if (settings.punishEnabled && valid.includes(settings.punishPoints)) return settings.punishPoints;
+    return "no";
+}
+
 export function getSettings() {
     return readJsonStore(SETTINGS_STORAGE_KEY, {});
 }
@@ -186,7 +195,7 @@ export function saveSettingsToStorage() {
         handicapTime: parseInt(document.getElementById("handicapTime").value || 5),
         punishEnabled: document.getElementById("punishEnabled").value === "yes",
         punishTime: parseInt(document.getElementById("punishTime").value || 3),
-        punishPoints: document.getElementById("punishPoints").value
+        penaltyPoints: document.getElementById("penaltyPoints").value
     };
     for (let i = 1; i <= settings.roundCount; i++) {
         const ruleSelect = document.getElementById(`rule${i}`);
@@ -237,7 +246,7 @@ export function loadSettingsFromStorage() {
     document.getElementById("punishEnabled").value = settings.punishEnabled ? "yes" : "no";
     togglePunishOptions();
     document.getElementById("punishTime").value = settings.punishTime || 3;
-    document.getElementById("punishPoints").value = settings.punishPoints || "no";
+    document.getElementById("penaltyPoints").value = getPenaltyMode(settings);
     renderRoundSettings();
     for (let i = 1; i <= (settings.roundCount || 3); i++) {
         const savedRule = settings.roundRules?.[i - 1] || "";
@@ -275,7 +284,7 @@ export function resetAllSettings() {
     document.getElementById("punishEnabled").value = "no";
     togglePunishOptions();
     document.getElementById("punishTime").value = 3;
-    document.getElementById("punishPoints").value = "no";
+    document.getElementById("penaltyPoints").value = "no";
     renderRoundSettings();
     const defaultRules = ["Nur beschreiben", "Nur ein Wort", "Pantomime und Geräusche"];
     const defaultTimers = [DEFAULT_TURN_SECONDS, DEFAULT_TURN_SECONDS, DEFAULT_TURN_SECONDS];
