@@ -1,6 +1,7 @@
 // Karten: Laden, IDs, Archiv und Kartenauswahl (mit Veto)
 import { ARCHIVE_STORAGE_KEY, state } from "./state.js";
 import { getSettings, readJsonStore, saveSettingsToStorage, toPositiveInt, writeJsonStore } from "./settings.js";
+import { getFilteredCardPool } from "./filter.js";
 import { appAlert, appConfirm, appendText, refreshStartCardStatus, setCardLoadStatusText, showScreen, updateKartenStatusText, updatePlayerTable } from "./ui.js";
 
 export function readArchiveStore() {
@@ -25,10 +26,14 @@ export function hashCardText(begriff, erklaerung) {
     }
     return "k" + hash.toString(16).padStart(8, "0");
 }
-export function makeCard(begriff, erklaerung, id) {
+export function makeCard(begriff, erklaerung, id, meta = {}) {
     const b = String(begriff ?? "").trim();
     const e = String(erklaerung ?? "").trim();
-    return { id: id || hashCardText(b, e), begriff: b, erklaerung: e };
+    const card = { id: id || hashCardText(b, e), begriff: b, erklaerung: e };
+    if (typeof meta.level === "string" && meta.level) card.level = meta.level;
+    if (Array.isArray(meta.themes) && meta.themes.length) card.themes = meta.themes.filter(t => typeof t === "string");
+    if (typeof meta.deck === "string" && meta.deck) card.deck = meta.deck;
+    return card;
 }
 // Vergibt bei identischen Karten eindeutige IDs (-2, -3, ...)
 export function ensureUniqueCardIds(cards) {
@@ -80,7 +85,7 @@ export function getActiveArchiveUsedCards() {
 }
 export function getAvailableCardPoolForArchive() {
     const { ids, legacyKeys } = getActiveArchiveUsedCards();
-    return state.cardPool.filter(card => !ids.has(card.id) && !legacyKeys.has(getCardKey(card)));
+    return getFilteredCardPool().filter(card => !ids.has(card.id) && !legacyKeys.has(getCardKey(card)));
 }
 export function savePlayedCardsToActiveArchive() {
     const id = ensureActiveArchive();
@@ -364,15 +369,26 @@ export async function loadCards() {
         }
 
         state.cardPool = ensureUniqueCardIds(rows
-            .map(row => makeCard(row.begriff, row.erklaerung, row.id))
+            .map(row => makeCard(row.begriff, row.erklaerung, row.id, row))
             .filter(card => card.begriff && card.erklaerung));
 
-        setCardLoadStatusText(`${state.cardPool.length} Karten erfolgreich geladen`);
+        updateCardFilterStatus();
     } catch (err) {
         console.error("Fehler beim Laden:", err);
         state.cardPool = [];
         setCardLoadStatusText("Fehler beim Laden der Karten.");
     }
+}
+// Statuszeile auf dem Startbildschirm: geladene Karten und wie viele zur Kartenauswahl passen
+export function updateCardFilterStatus() {
+    if (!state.cardPool.length) return;
+    const total = state.cardPool.length;
+    const matching = getFilteredCardPool().length;
+    const f = state.cardFilter;
+    const isDefault = !f || (!f.levels && !f.themes && !f.decks.length && !f.nsfw);
+    setCardLoadStatusText(matching === total || isDefault
+        ? `${matching} Karten erfolgreich geladen`
+        : `${matching} von ${total} Karten passen zur Auswahl`);
 }
 export function canStartCardSelection() {
     if (state.players.length === 0) {
@@ -381,6 +397,10 @@ export function canStartCardSelection() {
     }
     if (state.cardPool.length === 0) {
         appAlert("Es wurden noch keine Karten geladen.");
+        return false;
+    }
+    if (getFilteredCardPool().length === 0) {
+        appAlert("Zu deiner Kartenauswahl passt keine Karte. Wähle in den Einstellungen mehr Stufen, Themen oder Decks.", { title: "Keine Karten" });
         return false;
     }
     return true;
@@ -413,13 +433,13 @@ export async function startCardSelection(withVeto) {
     const totalCards = toPositiveInt(document.getElementById("cardCount")?.value, 40);
     const availableCardPool = getAvailableCardPoolForArchive();
     if (availableCardPool.length === 0) {
-        appAlert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
+        appAlert("Für diese Archiv-ID und deine Kartenauswahl sind keine neuen Karten mehr verfügbar.");
         return;
     }
     state.cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
     const cardsPerPlayer = Math.floor(state.cardSelectionTargetCount / state.players.length);
     if (state.cardSelectionTargetCount < totalCards) {
-        await appAlert(`Für diese Archiv-ID sind nur noch ${state.cardSelectionTargetCount} neue Karten verfügbar.`);
+        await appAlert(`Für diese Archiv-ID und deine Kartenauswahl sind nur noch ${state.cardSelectionTargetCount} neue Karten verfügbar.`);
     }
     state.shuffledCardPool = shuffleArray(availableCardPool);
     state.playingCards = [];
@@ -437,12 +457,12 @@ export async function startCardSelectionWithoutVeto() {
     const totalCards = toPositiveInt(document.getElementById("cardCount")?.value, 40);
     const availableCardPool = getAvailableCardPoolForArchive();
     if (availableCardPool.length === 0) {
-        appAlert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
+        appAlert("Für diese Archiv-ID und deine Kartenauswahl sind keine neuen Karten mehr verfügbar.");
         return;
     }
     state.cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
     if (state.cardSelectionTargetCount < totalCards) {
-        await appAlert(`Für diese Archiv-ID sind nur noch ${state.cardSelectionTargetCount} neue Karten verfügbar.`);
+        await appAlert(`Für diese Archiv-ID und deine Kartenauswahl sind nur noch ${state.cardSelectionTargetCount} neue Karten verfügbar.`);
     }
     state.shuffledCardPool = shuffleArray(availableCardPool);
     state.playingCards = state.shuffledCardPool.slice(0, state.cardSelectionTargetCount);

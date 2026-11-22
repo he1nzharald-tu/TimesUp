@@ -9,7 +9,9 @@ export const DEFAULT_TURN_SECONDS = 30;
 export const state = {
 
     // === Game State ===
-    cardPool: [], // Array of {id, begriff, erklaerung}
+    cardPool: [], // Array of {id, begriff, erklaerung, level?, themes?, deck?}
+    cardFilter: null, // Kartenfilter (siehe filter.js)
+    kategorien: null, // Stufen, Themen, Decks aus data/kategorien.json
     vetoCountPerPlayer: 0,
     remainingVetos: 0,
     cardsWereShown: false,

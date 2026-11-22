@@ -1,6 +1,7 @@
 // Einstellungen: Speichern/Laden, Rundeneinstellungen, Design
 import { DEFAULT_TURN_SECONDS, SETTINGS_STORAGE_KEY, state } from "./state.js";
 import { appAlert, showScreen } from "./ui.js";
+import { getCardFilter, getDefaultCardFilter, setCardFilter } from "./filter.js";
 
 export function readJsonStore(key, fallback = {}) {
     try {
@@ -195,7 +196,8 @@ export function saveSettingsToStorage() {
         handicapTime: parseInt(document.getElementById("handicapTime").value || 5),
         punishEnabled: document.getElementById("punishEnabled").value === "yes",
         punishTime: parseInt(document.getElementById("punishTime").value || 3),
-        penaltyPoints: document.getElementById("penaltyPoints").value
+        penaltyPoints: document.getElementById("penaltyPoints").value,
+        cardFilter: getCardFilter()
     };
     for (let i = 1; i <= settings.roundCount; i++) {
         const ruleSelect = document.getElementById(`rule${i}`);
@@ -235,6 +237,7 @@ export function saveSettingsToStorage() {
 }
 export function loadSettingsFromStorage() {
     const settings = getSettings();
+    setCardFilter(settings.cardFilter);
     document.getElementById("cardCount").value = settings.cardCount || 40;
     document.getElementById("roundCount").value = settings.roundCount || 3;
     document.getElementById("teamCount").value = settings.teamCount || 2;
@@ -274,6 +277,7 @@ export function loadSettingsFromStorage() {
     applyTheme(storedTheme);
 }
 export function resetAllSettings() {
+    setCardFilter(getDefaultCardFilter());
     document.getElementById("cardCount").value = 40;
     document.getElementById("roundCount").value = 3;
     document.getElementById("teamCount").value = 2;

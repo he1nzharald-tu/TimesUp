@@ -203,7 +203,7 @@ def test_archive_legacy_entries(b, base):
     page.click("#loadSavesButton")
     page.locator("#archiveOverlay button", has_text="Laden").click(); ok(page)
     avail = page.evaluate("getAvailableCardPoolForArchive().length")
-    total = page.evaluate("TimesUp.state.cardPool.length")
+    total = page.evaluate("TimesUp.getFilteredCardPool().length")
     assert avail == total - 1, (avail, total)
     assert page.evaluate("TimesUp.state.players.map(p=>p.name)") == ["Alt"]
 
@@ -535,6 +535,78 @@ def test_check_cards_rules(b, base):
         r = _run("check_cards.py", src, "--zeilen", "2-2", "--vollstaendig")
         assert r.returncode == 0 and "Keine Auffälligkeiten" in r.stdout, r.stdout
 
+def test_card_filter_logic(b, base):
+    """Filter nach Stufe, Themen, Decks (Oder) und NSFW; alte Einstellungen ohne Filter (AP 4)."""
+    page = new_page(b, base, None)
+    r = page.evaluate("""() => {
+        const T = TimesUp, all = T.state.cardPool.length;
+        const n = f => T.getFilteredCardPool(T.setCardFilter(f)).length;
+        const nsfw = T.state.cardPool.filter(c => (c.themes||[]).includes('nsfw')).length;
+        const res = {all, nsfw,
+            def: n(null),
+            withNsfw: n({nsfw: true}),
+            kinder: n({levels: ['kinder']}),
+            kinderOk: T.getFilteredCardPool(T.setCardFilter({levels: ['kinder']})).every(c => c.level === 'kinder'),
+            sport: n({themes: ['sport']}),
+            sw: n({themes: [], decks: ['star-wars']}),
+            sportOrSw: n({themes: ['sport'], decks: ['star-wars']}),
+            none: n({themes: []}),
+            noneLevel: n({levels: []}),
+        };
+        T.setCardFilter(null);
+        return res;
+    }""")
+    assert r["nsfw"] > 0 and r["def"] == r["all"] - r["nsfw"], r
+    assert r["withNsfw"] == r["all"], r
+    assert 0 < r["kinder"] < r["def"] and r["kinderOk"], r
+    assert r["sw"] == 60, r
+    assert r["sportOrSw"] == r["sport"] + r["sw"], r   # keine Überschneidung Sport/Star Wars
+    assert r["none"] == 0 and r["noneLevel"] == 0, r
+    assert "Karten" in page.text_content("#kartenStatusText")
+    assert not page.errors, page.errors
+
+def test_card_filter_game_and_warning(b, base):
+    """Gespeicherter Filter wirkt im Spiel; zu wenige passende Karten werden gemeldet (AP 4)."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s["cardFilter"] = {"levels": ["kinder"], "themes": None, "decks": [], "nsfw": False}
+    page = new_page(b, base, s)
+    assert "passen zur Auswahl" in page.text_content("#kartenStatusText"), page.text_content("#kartenStatusText")
+    setup_game(page, ["Anna", "Ben", "Cem", "Dora"], veto=False)
+    levels = page.evaluate("TimesUp.state.playingCards.map(c => c.level)")
+    assert levels and set(levels) == {"kinder"}, levels
+    # nach dem Speichern der Einstellungen bleibt der Filter erhalten
+    page.evaluate("TimesUp.saveSettingsToStorage()")
+    saved = page.evaluate("JSON.parse(localStorage.getItem('timesup_settings')).cardFilter")
+    assert saved["levels"] == ["kinder"], saved
+
+    # nur ein Deck mit 60 Karten, aber 80 Karten gewünscht -> Hinweis
+    s2 = copy.deepcopy(DEFAULT_SETTINGS); s2["cardCount"] = 80
+    s2["cardFilter"] = {"levels": None, "themes": [], "decks": ["pokemon"], "nsfw": False}
+    p2 = new_page(b, base, s2)
+    add_players(p2, ["A", "B", "C", "D"])
+    p2.click("text=Weiter"); ok(p2)
+    p2.click("text=Zufällige Teams")
+    p2.click("text=Kartenauswahl ohne Veto")
+    msg = p2.locator(".app-dialog").first.text_content(timeout=5000)
+    assert "nur noch 60" in msg, msg
+    ok(p2)
+    assert p2.evaluate("TimesUp.state.playingCards.length") == 60
+    assert not page.errors and not p2.errors, (page.errors, p2.errors)
+
+def test_card_filter_empty(b, base):
+    """Passt keine Karte, startet die Kartenauswahl nicht (AP 4)."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s["cardFilter"] = {"levels": [], "themes": None, "decks": [], "nsfw": False}
+    page = new_page(b, base, s)
+    add_players(page, ["A", "B", "C", "D"])
+    page.click("text=Weiter"); ok(page)
+    page.click("text=Zufällige Teams")
+    page.click("text=Kartenauswahl ohne Veto")
+    msg = page.locator(".app-dialog").first.text_content(timeout=5000)
+    assert "passt keine Karte" in msg, msg
+    ok(page)
+    assert active(page) == "screen-teamuebersicht", active(page)
+
 def test_archive_export_import(b, base):
     """Archiv als Datei exportieren und auf einem anderen Gerät importieren und zusammenführen (Todo 8)."""
     c1, c2, c3 = CARDS[0], CARDS[1], CARDS[2]
@@ -563,7 +635,7 @@ def test_archive_export_import(b, base):
     ok(other)
     other.locator("#archiveOverlay button", has_text="Laden").click(); ok(other)
     assert other.evaluate("TimesUp.state.players.map(p => p.name + (p.handicap ? '*' : ''))") == ["Anna*", "Ben"]
-    total = other.evaluate("TimesUp.state.cardPool.length")
+    total = other.evaluate("TimesUp.getFilteredCardPool().length")
     assert other.evaluate("getAvailableCardPoolForArchive().length") == total - 2
 
     # erneuter Import mit neuerem Stand: Karten vereinigen, neuere Spieler übernehmen

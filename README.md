@@ -104,7 +104,7 @@ Die ID steht fest in der Excel-Datei. Eine Erklärung kann darum überarbeitet w
 Installierte Apps laden ihre Dateien aus dem Offline-Speicher, nicht aus dem Netz. Damit Änderungen bei den Spielern ankommen, muss bei **jeder Änderung an App-Dateien** (HTML, CSS, JavaScript, Karten, Töne, Icons) die Version in `service-worker.js` erhöht werden:
 
 ```js
-const CACHE_VERSION = 'v11';  // vorher 'v10'
+const CACHE_VERSION = 'v12';  // vorher 'v11'
 ```
 
 Beim nächsten Online-Start lädt die App die neue Version im Hintergrund. Auf dem Startbildschirm erscheint dann „Neue Version – neu laden“; nach dem Antippen läuft die neue Version, der alte Speicher wird gelöscht.
