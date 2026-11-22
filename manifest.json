@@ -3,7 +3,7 @@
     "short_name": "TimesUp",
     "start_url": "./index.html",
     "display": "standalone",
-    "orientation": "landscape",
+    "orientation": "any",
     "theme_color": "#007bff",
     "background_color": "#ffffff",
     "icons": [

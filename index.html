@@ -47,6 +47,23 @@
     <!-- Schrift Fredoka, lokal eingebunden -->
     <link rel="stylesheet" href="css/fonts.css">
     <script>
+        // Querformat: Spielrahmen (748 x 365 px + Rand) passend zur Bildschirmgröße skalieren
+        (function () {
+            function updateUiScale() {
+                var w = window.innerWidth, h = window.innerHeight, scale = 1;
+                if (w >= h) {
+                    scale = Math.min(w / 764, h / 385);
+                    if (scale > 1 && scale < 1.15) scale = 1; // Handys im Querformat: Originalgröße
+                    scale = Math.max(0.6, Math.min(scale, 2.2));
+                }
+                document.documentElement.style.setProperty('--ui-scale', scale.toFixed(3));
+            }
+            updateUiScale();
+            window.addEventListener('resize', updateUiScale);
+            window.addEventListener('orientationchange', updateUiScale);
+        })();
+    </script>
+    <script>
         // Apply persisted theme as early as possible to avoid flash of light theme
         try {
             if (localStorage.getItem('timesup_theme') === 'dark') {
