@@ -434,6 +434,26 @@ def test_wake_lock_and_play_again(b, base):
     assert page.evaluate("TimesUp.state.teams.map(t => t.map(p => p.name))") == teams
     assert page.locator("#teamsContainer .team-card").count() == 2
 
+def test_install_hint_ios(b, base):
+    """M9: Auf iPhone in Safari erscheint einmalig der Hinweis „Zum Home-Bildschirm“; schließbar und gemerkt."""
+    ua = ("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 "
+          "(KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
+    ctx = b.new_context(viewport={"width": 402, "height": 874}, user_agent=ua, service_workers="block")
+    page = ctx.new_page()
+    page.goto(base + "/index.html")
+    page.wait_for_function("document.getElementById('kartenStatusText').textContent.includes('Karten')", timeout=10000)
+    assert page.is_visible("#installBanner") and "Home-Bildschirm" in page.text_content("#installBannerText")
+    assert not page.is_visible("#installButton")
+    page.click("#installDismissButton")
+    assert not page.is_visible("#installBanner")
+    page.reload()
+    page.wait_for_function("document.getElementById('kartenStatusText').textContent.includes('Karten')", timeout=10000)
+    assert not page.is_visible("#installBanner"), "Hinweis muss geschlossen bleiben"
+    # Desktop-Chrome: kein Hinweis
+    other = new_page(b, base, None)
+    assert not other.is_visible("#installBanner")
+    ctx.close(); other.context.close()
+
 def test_default_turn_time(b, base):
     """Standardzeit 30 s: frische Installation (Einstellungen und Spiel) und Button "Standardwerte"."""
     page = new_page(b, base, None)

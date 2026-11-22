@@ -1,6 +1,6 @@
 // Einstieg: lädt Einstellungen und Karten und verbindet die HTML-Handler
 import { state } from "./state.js";
-import { initServiceWorker, restorePlayersAfterUpdate } from "./pwa.js";
+import { initInstallHint, initServiceWorker, restorePlayersAfterUpdate } from "./pwa.js";
 import { initSavedGameBanner } from "./persist.js";
 import { applyTheme, getDefaultRuleOptions, getSettings, loadSettingsFromStorage, loadThemeFromStorage, readJsonStore, renderRoundSettings, resetAllSettings, restoreSkipOptions, saveSettingsToStorage, toPositiveInt, toggleCustomRuleInput, toggleHandicapInput, togglePunishOptions, toggleSkipLimitValue, toggleSkipOptions, validateSettingsAndGoBack, writeJsonStore } from "./settings.js";
 import { canStartCardSelection, ensureActiveArchive, ensureUniqueCardIds, formatArchiveDate, getActiveArchiveUsedCards, getAvailableCardPoolForArchive, getCardKey, handleCardSelectionClick, handleCardSelectionDone, handleCardVeto, hashCardText, isSameCard, updateCardFilterStatus, loadArchiveEntry, loadCards, makeArchiveId, makeCard, openArchive, readArchiveStore, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray, startCardSelection, startCardSelectionWithoutVeto, updateVetoDisplay, writeArchiveStore } from "./cards.js";
@@ -20,6 +20,7 @@ window.TimesUp = { state, ...handlers, showScreen: window.showScreen };
 
 // === Initial Load ===
 initServiceWorker();
+initInstallHint();
 initSettingsUi();
 renderRoundSettings();
 loadSettingsFromStorage();

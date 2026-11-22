@@ -343,6 +343,9 @@ export function applyTheme(theme) {
     // Farbe der Browser-/Statusleiste an das Design anpassen
     const meta = document.getElementById('themeColorMeta');
     if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#ffffff');
+    // Statusleiste der installierten App (wirkt beim nächsten Start)
+    const bar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if (bar) bar.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default');
     // save selection
     try { localStorage.setItem('timesup_theme', theme); } catch (e) { }
     // update select if present

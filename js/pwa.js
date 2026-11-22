@@ -74,3 +74,53 @@ export function initServiceWorker() {
         })
         .catch(err => console.error("Service Worker konnte nicht registriert werden:", err));
 }
+
+// === Hinweis „Als App installieren“ (einmalig, schließbar; nie in der installierten App) ===
+const INSTALL_HINT_KEY = "timesup_install_hint_dismissed";
+let deferredInstallPrompt = null;
+
+export function isStandalone() {
+    return window.matchMedia?.("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+function isIos() {
+    const ua = navigator.userAgent || "";
+    return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+}
+function hintDismissed() {
+    try { return localStorage.getItem(INSTALL_HINT_KEY) === "1"; } catch (e) { return true; }
+}
+function showInstallBanner(text, withButton) {
+    const banner = document.getElementById("installBanner");
+    if (!banner || hintDismissed() || isStandalone()) return;
+    document.getElementById("installBannerText").textContent = text;
+    document.getElementById("installButton").hidden = !withButton;
+    banner.hidden = false;
+}
+function hideInstallBanner(remember) {
+    const banner = document.getElementById("installBanner");
+    if (banner) banner.hidden = true;
+    if (remember) {
+        try { localStorage.setItem(INSTALL_HINT_KEY, "1"); } catch (e) {}
+    }
+}
+export function initInstallHint() {
+    document.getElementById("installDismissButton")?.addEventListener("click", () => hideInstallBanner(true));
+    document.getElementById("installButton")?.addEventListener("click", async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        try { await deferredInstallPrompt.userChoice; } catch (e) {}
+        deferredInstallPrompt = null;
+        hideInstallBanner(true);
+    });
+    // Android/Chrome: eigenes Installieren-Angebot
+    window.addEventListener("beforeinstallprompt", event => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        showInstallBanner("TimesUp als App installieren: startet im Vollbild und funktioniert offline.", true);
+    });
+    window.addEventListener("appinstalled", () => hideInstallBanner(true));
+    // iPhone/iPad: Anleitung, da Safari kein Installieren-Angebot kennt
+    if (isIos() && !isStandalone()) {
+        showInstallBanner("Tipp: Teilen-Symbol antippen und „Zum Home-Bildschirm“ wählen – dann läuft TimesUp im Vollbild.", false);
+    }
+}

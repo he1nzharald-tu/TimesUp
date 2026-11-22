@@ -542,6 +542,8 @@ button.secondary {
 }
 .update-banner > span:first-child { flex: 1 1 160px; min-width: 0; }
 .resume-banner { background: var(--accent-b); color: #fff; }
+.install-banner { background: var(--blue-soft); color: var(--text); font-weight: 500; border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); }
+.install-banner #installButton { background: var(--primary); color: #fff; }
 .banner-actions { display: flex; gap: 8px; margin-left: auto; }
 .update-banner button {
   min-height: 40px;

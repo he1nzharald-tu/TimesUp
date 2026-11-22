@@ -4,7 +4,7 @@
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#007bff",
+  "theme_color": "#ffffff",
   "background_color": "#ffffff",
   "icons": [
     {
@@ -31,5 +31,12 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "id": "./index.html",
+  "lang": "de",
+  "description": "Das Partyspiel TimesUp als App für Handy und Tablet – offline spielbar.",
+  "categories": [
+    "games",
+    "entertainment"
   ]
 }
