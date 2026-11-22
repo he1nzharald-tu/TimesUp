@@ -1,0 +1,733 @@
+/* TimesUp – Grundstil: Farben, Schrift, Formularelemente, Bausteine (M3)
+   Reihenfolge im Kopf von index.html:
+     fonts.css → base.css → layout.css → screens.css → effects.css → settings.css
+   Bausteine:
+     .ico            Linien-Symbol aus dem Sprite (#i-…)
+     .btn-primary    Hauptaktion (Verlauf), .btn-secondary Nebenaktion (hell, Rahmen)
+     .icon-btn       runder Symbolknopf 44 px
+     .app-head       Kopfzeile mit Zurück, Titel, optionaler Aktion
+     .head-badge     kleine Info rechts in der Kopfzeile
+     .team-pill      Teamname in Teamfarbe (--team)
+     .team-card      Teamkarte (js/teamview.js)
+     .overlay        Pause, Zeit vorbei, Korrektur, Archiv
+*/
+
+/* --- Farben --------------------------------------------------------- */
+
+:root {
+  --bg: #ffffff;
+  --panel: #f5f7fb;
+  --muted: #5f6b70;
+  --accent-a: #ff7675;
+  --accent-b: #00b894;
+  --accent-c: #f6d100;
+  --accent-c-text: #000000;
+  --primary: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
+  --primary-solid: #6c8cf5;
+  --card-bg: #ffffff;
+  --on-accent: #ffffff;
+  --text: #1f2328;
+  --divider: #b2bec3;
+  --line: #dfe5ec;
+  --blue: #2f5fc4;
+  --blue-soft: #eef3ff;
+  --green: #00866a;
+  --danger: #dc3545;
+  --overlay: rgba(255, 255, 255, 0.7);
+  --shadow-s: 0 1px 3px rgba(20, 30, 50, 0.08);
+  --shadow-m: 0 6px 22px rgba(20, 30, 50, 0.12);
+  --radius: 12px;
+  --radius-l: 16px;
+  --round-1: #e0f0ff;
+  --round-2: #e2fce2;
+  --round-3: #fff3d6;
+  --round-4: #fce2f2;
+  --round-5: #ede2fc;
+  --round-6: #e2f7fc;
+  --round-7: #f6e2fc;
+  --round-8: #fcf3e2;
+  --round-9: #e2fcf0;
+  --round-10: #d9d9d9;
+  --team: #6c8cf5;
+  --bg-line: rgba(116, 185, 255, 0.2);
+  --bg-line-soft: rgba(162, 155, 254, 0.14);
+  --bg-glow-a: rgba(255, 118, 117, 0.14);
+  --bg-glow-b: rgba(0, 184, 148, 0.12);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0f1620;
+  --panel: #141c2b;
+  --muted: #9aa3b0;
+  --accent-a: #ff8b94;
+  --accent-b: #5ce1b8;
+  --accent-c: #f5b400;
+  --accent-c-text: #0b0b0b;
+  --primary: linear-gradient(90deg, #3b82f6 0%, #7c3aed 100%);
+  --primary-solid: #5b6ff0;
+  --card-bg: #0b1220;
+  --text: #e6eef6;
+  --divider: #2b3648;
+  --line: #243044;
+  --blue: #7aa2ff;
+  --blue-soft: #1b2741;
+  --green: #5ce1b8;
+  --danger: #ff6b6b;
+  --overlay: rgba(0, 0, 0, 0.55);
+  --shadow-s: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-m: 0 6px 22px rgba(0, 0, 0, 0.45);
+  --round-1: #102033;
+  --round-2: #103322;
+  --round-3: #2b2414;
+  --round-4: #3a1622;
+  --round-5: #2f2140;
+  --round-6: #12282b;
+  --round-7: #2b1237;
+  --round-8: #3a2b12;
+  --round-9: #123a2f;
+  --round-10: #1e1e1e;
+  --bg-line: rgba(92, 225, 184, 0.12);
+  --bg-line-soft: rgba(124, 58, 237, 0.1);
+  --bg-glow-a: rgba(255, 139, 148, 0.07);
+  --bg-glow-b: rgba(59, 130, 246, 0.1);
+  color-scheme: dark;
+}
+
+/* --- Grundelemente --------------------------------------------------- */
+
+body {
+  font-family: 'Fredoka', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: var(--fs-m, 17px);
+  line-height: 1.35;
+  color: var(--text);
+  background: var(--card-bg);
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Fredoka', Arial, sans-serif;
+  margin: 0;
+  line-height: 1.15;
+}
+
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+
+input,
+select,
+textarea {
+  font: inherit;
+  font-size: 1rem;              /* mindestens 16 px: Safari zoomt sonst hinein */
+  color: var(--text);
+  width: 100%;
+  min-height: var(--tap, 48px);
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--card-bg);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 22%, transparent);
+}
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  min-height: 0;
+  padding: 0;
+}
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--panel);
+  min-height: var(--tap-min, 44px);
+  padding: 8px 16px;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: transform 0.08s ease, filter 0.15s ease, background-color 0.15s ease;
+}
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+button.secondary {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.muted { color: var(--muted); }
+[hidden] { display: none !important; }
+.hidden { display: none !important; }
+
+/* --- Symbole --------------------------------------------------------- */
+
+.ico {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: middle;
+}
+
+/* --- Knöpfe ----------------------------------------------------------- */
+
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--bar-btn-h, 52px);
+  padding: 8px 16px;
+  border-radius: 14px;
+  font-size: 1.0625rem;
+  line-height: 1.15;
+  text-align: center;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(108, 140, 245, 0.28);
+}
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--blue);
+  border: 1.5px solid color-mix(in srgb, var(--blue) 35%, var(--line));
+}
+.btn-team {
+  background: var(--team);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--team) 40%, transparent);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: var(--tap-min, 44px);
+  min-height: var(--tap-min, 44px);
+  padding: 0 10px;
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+.icon-btn .btn-label {
+  font-size: 0.9375rem;
+}
+
+/* --- Kopfzeile ----------------------------------------------------------- */
+
+.app-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 6px 8px;
+  border-radius: var(--radius-l);
+  background: var(--primary);
+  color: #fff;
+  box-sizing: border-box;
+}
+.app-head-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  font-size: var(--fs-l);
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-head-title .ico {
+  width: 24px;
+  height: 24px;
+}
+.head-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px 0 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 0.9375rem;
+}
+.head-spacer {
+  width: 44px;
+  flex: none;
+}
+.head-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #2b2f45;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+@media (max-width: 429px), (orientation: landscape) and (max-height: 499px) {
+  /* schmale Handys und Handy quer: Kopfzeilen-Knöpfe nur mit Symbol */
+  .head-btn .btn-label,
+  .icon-btn .btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .head-btn {
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+.screen-lead {
+  display: block;
+  margin: 14px 4px 10px;
+  font-size: var(--fs-s);
+  color: var(--muted);
+}
+.screen-lead .ico {
+  width: 20px;
+  height: 20px;
+  margin: -2px 6px 0 0;
+  color: var(--blue);
+}
+
+/* --- Kleine Bausteine ------------------------------------------------------ */
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.team-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--team) 16%, var(--card-bg));
+  color: color-mix(in srgb, var(--team) 75%, var(--text));
+  font-weight: 700;
+  white-space: nowrap;
+}
+.team-pill::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--team);
+}
+.team-pill-small {
+  padding: 2px 10px;
+  font-size: 0.875rem;
+}
+
+.empty-hint {
+  margin: 8px 4px;
+  padding: 18px 16px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius-l);
+  color: var(--muted);
+  text-align: center;
+  font-size: var(--fs-s);
+}
+
+/* --- Teamkarten (js/teamview.js) ------------------------------------------ */
+
+.team-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+/* zwei Teams passen ab 360 px nebeneinander */
+@media (min-width: 360px) {
+  .team-grid[data-teams="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 430px) {
+  .team-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 960px) {
+  .team-grid[data-teams="3"],
+  .team-grid[data-teams="5"],
+  .team-grid[data-teams="6"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.team-card {
+  position: relative;
+  min-width: 0;
+  padding: 12px 12px 10px;
+  border-radius: var(--radius-l);
+  background: color-mix(in srgb, var(--team) 7%, var(--card-bg));
+  border: 1.5px solid color-mix(in srgb, var(--team) 35%, var(--line));
+  border-top: 5px solid var(--team);
+  box-shadow: var(--shadow-s);
+}
+.team-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.team-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--team);
+  flex: none;
+}
+.team-card h3 {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  font-size: 1.125rem;
+  color: color-mix(in srgb, var(--team) 70%, var(--text));
+}
+.team-count {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.team-points {
+  margin: 0 0 8px;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+.team-points-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.penalty-note {
+  font-size: 0.8125rem;
+  color: var(--danger);
+}
+.team-members {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.team-member {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+.team-member-name { flex: 1 1 auto; min-width: 0; }
+.team-member:has(.team-member-btn) {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.team-member-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  font-weight: 500;
+  text-align: left;
+}
+.team-member .ico-handicap { width: 18px; height: 18px; color: var(--muted); }
+.team-member .ico-swap { width: 18px; height: 18px; color: var(--muted); opacity: 0.7; }
+.team-empty { color: var(--muted); font-style: italic; justify-content: center; }
+
+.winner-team {
+  border-color: var(--accent-c);
+  box-shadow: 0 0 0 3px rgba(246, 209, 0, 0.3), 0 8px 26px rgba(246, 209, 0, 0.22);
+  animation: winnerGlow 1.8s ease-in-out infinite alternate;
+}
+.winner-team .team-card-head::after {
+  content: "Sieger";
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent-c);
+  color: var(--accent-c-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* --- Hinweise auf dem Startbildschirm ------------------------------------- */
+
+.start-banners {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.start-banners:has(> :not([hidden])) {
+  margin-bottom: 10px;
+}
+.update-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 14px;
+  background: var(--accent-c);
+  color: var(--accent-c-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-s);
+}
+.update-banner > span:first-child { flex: 1 1 160px; min-width: 0; }
+.resume-banner { background: var(--accent-b); color: #fff; }
+.banner-actions { display: flex; gap: 8px; margin-left: auto; }
+.update-banner button {
+  min-height: 40px;
+  padding: 0 16px;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 0;
+}
+
+/* --- Overlays: Pause, Zeit vorbei, Korrektur, Archiv ----------------------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 16, 28, 0.45);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+.overlay .overlay-box {
+  box-sizing: border-box;
+  width: min(100%, 460px);
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 18px 18px;
+  border-radius: 20px;
+  background: var(--card-bg);
+  color: var(--text);
+  box-shadow: var(--shadow-m);
+  animation: appDialogPop 0.18s cubic-bezier(.2, .9, .3, 1.2);
+}
+.overlay .overlay-title,
+.overlay .correction-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: var(--fs-xl);
+  text-align: center;
+}
+.overlay .overlay-title .ico { width: 28px; height: 28px; }
+.overlay .overlay-box > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  font-size: 1.0625rem;
+  border-radius: 14px;
+}
+#pauseOverlay .pause-continue-btn,
+#guessedOverlay .time-up-next-btn {
+  background: var(--primary);
+  color: #fff;
+}
+#pauseOverlay .pause-plus-btn,
+#guessedOverlay .time-up-correct-btn,
+#guessedOverlay .correction-back-btn {
+  background: var(--card-bg);
+  color: var(--blue);
+  border: 1.5px solid color-mix(in srgb, var(--blue) 35%, var(--line));
+}
+#guessedOverlay .time-up-last-card-btn {
+  background: #00a383;
+  color: #fff;
+}
+.correction-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.correction-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.correction-term { font-weight: 700; flex: 1 1 120px; overflow-wrap: anywhere; }
+.correction-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.correction-actions button { min-height: 44px; padding: 0 12px; font-size: 0.9375rem; }
+.correction-not-guessed-btn { background: var(--card-bg); border: 1px solid var(--line); }
+.correction-violation-btn { background: var(--danger); color: #fff; }
+
+#archiveOverlay .archive-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  overflow-wrap: anywhere;
+}
+#archiveOverlay .archive-meta { font-size: 0.8125rem; color: var(--muted); }
+#archiveOverlay .archive-load-btn { background: var(--primary); color: #fff; }
+#archiveOverlay .archive-delete-btn { background: var(--card-bg); color: var(--danger); border: 1px solid var(--line); }
+#archiveOverlay .archive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+#archiveOverlay .archive-actions button {
+  flex: 1 1 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+#archiveOverlay .archive-empty { color: var(--muted); text-align: center; }
+
+/* --- Dialoge an Safe Areas anpassen --------------------------------------- */
+
+.app-dialog-backdrop {
+  padding: calc(var(--sa-top, 0px) + 16px) calc(var(--sa-right, 0px) + 16px)
+           calc(var(--sa-bottom, 0px) + 16px) calc(var(--sa-left, 0px) + 16px);
+}
+.app-dialog {
+  max-height: 100%;
+}
+.app-dialog-actions button {
+  flex: 1 1 120px;
+  background: var(--primary);
+  color: #fff;
+}
+.app-dialog-actions button.secondary {
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+/* --- Hintergrund aller Spielbildschirme ------------------------------------ */
+
+.screen:not(#screen-settings) {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 15% 18%, var(--bg-glow-a), transparent 32%),
+    radial-gradient(circle at 85% 8%, var(--bg-glow-b), transparent 30%),
+    var(--card-bg);
+}
+.screen:not(#screen-settings)::before,
+.screen:not(#screen-settings)::after {
+  content: "";
+  inset: -35%;
+  z-index: -1;
+  pointer-events: none;
+}
+.screen:not(#screen-settings)::before {
+  background-image:
+    linear-gradient(115deg, transparent 0 46%, var(--bg-line) 47%, transparent 48% 100%),
+    linear-gradient(115deg, transparent 0 54%, var(--bg-line-soft) 55%, transparent 56% 100%);
+  background-size: 160px 160px, 220px 220px;
+  opacity: 0.6;
+  animation: startBackgroundDrift 18s linear infinite;
+}
+.screen:not(#screen-settings)::after {
+  background:
+    radial-gradient(circle, var(--bg-line) 0 2px, transparent 3px),
+    radial-gradient(circle, var(--bg-line-soft) 0 1px, transparent 2px);
+  background-size: 92px 92px, 136px 136px;
+  opacity: 0.45;
+  animation: startBackgroundFloat 24s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .fireworks { display: none; }
+}

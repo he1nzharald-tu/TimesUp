@@ -250,6 +250,7 @@ class Run:
         s = dict(DEFAULT_SETTINGS)
         s["cardCount"] = 16
         page = new_page(b, base, settings=s, viewport=(w, h), theme=theme)
+        page.emulate_media(reduced_motion="reduce")   # Animationen sofort im Endzustand
         page.add_style_tag(content=SA_CSS % sa)
         shot = lambda name: self.shot(page, tag, name, sa, quer)
         shot("01-start")

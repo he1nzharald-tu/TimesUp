@@ -1,0 +1,694 @@
+/* TimesUp – Bildschirme (M4–M8)
+   Grundlage: Handy hochkant (S). Darunter je Bildschirm:
+     – „Niedrig“: Handy quer (Höhe < 500 px) – Standard während des Spiels
+     – Tablet (L/XL) über die Inhaltsbreite aus layout.css
+*/
+
+/* Abfrage für Handy quer, überall gleich */
+/* @media (orientation: landscape) and (max-height: 499px) */
+
+/* ======================================================================
+   Start
+   ====================================================================== */
+
+.start-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.app-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: var(--fs-xl);
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.app-title .app-logo {
+  width: 1.15em;
+  height: 1.15em;
+  color: var(--accent-a);
+  stroke-width: 2.4;
+}
+.app-title-by {
+  flex-basis: 100%;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.start-status {
+  margin: 2px 0 12px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.player-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.player-add input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 52px;
+  font-size: 1.0625rem;
+  border-radius: 14px;
+}
+.btn-add {
+  flex: none;
+  width: 52px;
+  min-height: 52px;
+  padding: 0;
+  border-radius: 14px;
+  background: var(--primary);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-add .ico { width: 26px; height: 26px; stroke-width: 2.4; }
+
+.list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 4px 8px;
+}
+.list-head-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+.list-head-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.list-head-hint .ico { width: 16px; height: 16px; }
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.player-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 3px 4px 3px 14px;
+  border-radius: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-s);
+  box-sizing: border-box;
+  animation: popIn 0.18s ease-out;
+}
+.player-name-chip {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.player-handicap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: var(--panel);
+  cursor: pointer;
+}
+.player-handicap .handicap-check {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.player-handicap:has(:checked) {
+  background: color-mix(in srgb, var(--accent-c) 30%, var(--card-bg));
+  border-color: var(--accent-c);
+  color: var(--text);
+}
+.player-handicap:has(:focus-visible) {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+.player-remove {
+  width: 44px;
+  padding: 0;
+  color: var(--danger);
+  background: var(--card-bg);
+}
+
+.start-continue-btn { flex: 1 1 auto; }
+
+@media (orientation: landscape) and (max-height: 499px) {
+  /* Handy quer: links Kopf und Eingabe, rechts die Spielerliste */
+  #screen-start.active {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto 1fr auto;
+    column-gap: 20px;
+    align-content: start;
+  }
+  #screen-start > * { grid-column: 1; }
+  #screen-start > .player-list,
+  #screen-start > .empty-hint {
+    grid-column: 2;
+    grid-row: 1 / 7;
+    align-self: start;
+    max-height: none;
+  }
+  #screen-start > .list-head { grid-row: 5; align-self: start; }
+  #screen-start > .bottom-bar { grid-row: 7; grid-column: 1 / -1; }
+  #screen-start .app-title { font-size: 1.6rem; }
+  #screen-start .start-status { margin-bottom: 8px; }
+}
+
+/* ======================================================================
+   Teams bilden / Teamübersicht
+   ====================================================================== */
+
+.name-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 2px 12px;
+}
+.name-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-s);
+  font-weight: 600;
+}
+.name-chip .ico-handicap { width: 16px; height: 16px; color: var(--muted); }
+
+#screen-teamauswahl > .bottom-bar,
+#screen-teamuebersicht > .bottom-bar {
+  flex-wrap: wrap;
+}
+#screen-teamauswahl > .bottom-bar > button,
+#screen-teamuebersicht > .bottom-bar > button {
+  flex: 1 1 150px;
+}
+
+/* ======================================================================
+   Kartenauswahl
+   ====================================================================== */
+
+#cardSelectionClickArea {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-top: 12px;
+  cursor: pointer;
+}
+.handover {
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  margin: 0 0 8px;
+  padding: 24px;
+  border-radius: 22px;
+  border: 2px dashed color-mix(in srgb, var(--blue) 45%, var(--line));
+  background: color-mix(in srgb, var(--blue-soft) 70%, transparent);
+  color: var(--blue);
+  font-size: var(--fs-l);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+}
+#vetoInfoText { display: none; }
+#vetoInfoText:empty { display: none !important; }
+
+.card-choice-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.card-choice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 10px 12px 10px 16px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--blue);
+  box-shadow: var(--shadow-s);
+  cursor: pointer;
+  animation: popIn 0.2s ease-out both;
+}
+.card-choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.card-choice-term { font-size: 1.1875rem; font-weight: 700; overflow-wrap: anywhere; }
+.card-choice-expl { font-size: 0.9375rem; color: var(--muted); overflow-wrap: anywhere; }
+.card-choice-veto { color: var(--muted); }
+.card-choice.is-replaced {
+  border-left-color: var(--accent-b);
+  background: color-mix(in srgb, var(--accent-b) 8%, var(--card-bg));
+}
+.card-choice.is-replaced .card-choice-veto { visibility: hidden; }
+
+#cardDoneButton,
+#startGameOverviewButton { display: none; }
+
+@media (min-width: 600px), (orientation: landscape) and (max-height: 499px) {
+  .card-choice-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ======================================================================
+   Spielübersicht
+   ====================================================================== */
+
+.overview-rules { margin: 12px 0 10px; }
+.overview-rounds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 8px;
+}
+.overview-round {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-s);
+}
+.overview-round:nth-child(1) { background: color-mix(in srgb, var(--round-1) 70%, var(--card-bg)); }
+.overview-round:nth-child(2) { background: color-mix(in srgb, var(--round-2) 70%, var(--card-bg)); }
+.overview-round:nth-child(3) { background: color-mix(in srgb, var(--round-3) 70%, var(--card-bg)); }
+.overview-round:nth-child(4) { background: color-mix(in srgb, var(--round-4) 70%, var(--card-bg)); }
+.overview-round:nth-child(5) { background: color-mix(in srgb, var(--round-5) 70%, var(--card-bg)); }
+.overview-round-title { font-size: 0.8125rem; font-weight: 700; color: var(--muted); }
+.overview-round-rule { font-size: 1.0625rem; font-weight: 700; }
+.overview-round-meta { font-size: 0.875rem; color: var(--muted); }
+.overview-penalties {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.overview-penalties .ico { width: 18px; height: 18px; color: #c99a00; }
+
+/* ======================================================================
+   Rundenstart
+   ====================================================================== */
+
+#screen-roundstart.active { justify-content: flex-start; }
+.round-card {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 3vh, 28px);
+  padding: clamp(16px, 4vh, 40px) 16px;
+  border-radius: 28px;
+  border: 6px solid var(--team);
+  background: color-mix(in srgb, var(--team) 6%, var(--card-bg));
+  box-shadow: var(--shadow-m);
+  text-align: center;
+}
+.round-lights {
+  display: flex;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+.round-lights span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff7675;
+  animation: lightOn 2.4s ease-in-out infinite;
+}
+.round-lights span:nth-child(2) { background: #fdcb6e; animation-delay: 0.4s; }
+.round-lights span:nth-child(3) { background: #00b894; animation-delay: 0.8s; }
+.round-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+#roundPlayerTeam { font-size: 1rem; }
+#roundPlayerName {
+  max-width: 100%;
+  font-size: var(--fs-hero);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.round-hint { color: var(--muted); font-size: var(--fs-s); }
+.round-start-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  width: 100%;
+  max-width: 460px;
+}
+.info-tile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  text-align: left;
+}
+.info-tile .ico { width: 20px; height: 20px; color: var(--team); }
+.info-label { font-size: 0.875rem; color: var(--muted); }
+.info-value {
+  margin-left: auto;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: right;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+#startRoundBtn { font-size: 1.25rem; min-height: 60px; }
+#startRoundBtn .ico { width: 26px; height: 26px; fill: currentColor; }
+
+@media (orientation: landscape) and (max-height: 499px) {
+  /* Handy quer: Name links groß, Infos rechts, Start darunter rechts */
+  #screen-roundstart.active {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: 0 16px;
+  }
+  #screen-roundstart > .round-card {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 12px 16px;
+    border-width: 5px;
+    border-radius: 22px;
+  }
+  .round-lights { grid-column: 1; justify-self: center; padding: 6px 10px; }
+  .round-main { grid-column: 1; grid-row: 2; }
+  .round-start-info {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    grid-template-columns: 1fr;
+    align-self: center;
+  }
+  .info-tile { min-height: 38px; padding: 4px 10px; }
+  #roundPlayerName { font-size: clamp(1.8rem, 11vh, 3.2rem); }
+  #screen-roundstart > .bottom-bar { grid-column: 1 / -1; grid-row: 2; padding-top: 10px; }
+}
+
+/* ======================================================================
+   Spiel
+   ====================================================================== */
+
+#screen-play.active { gap: 10px; }
+.play-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px 10px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-s);
+}
+.play-timer-wrap { display: contents; }
+.play-timer {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 3.2ch;
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.4rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--team);
+  line-height: 1;
+}
+.play-progress {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+.play-progress span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--team);
+  transform-origin: left center;
+  transform: scaleX(var(--time-left, 1));
+  transition: transform 1s linear, background-color 0.3s;
+}
+#screen-play.is-warn .play-timer { color: var(--danger); animation: pulseWarn 1s ease-in-out infinite; }
+#screen-play.is-warn .play-progress span { background: var(--danger); }
+.play-playerinfo {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  min-width: 0;
+}
+#playRoundPlayer {
+  font-size: 1.125rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.play-pause { grid-column: 3; grid-row: 1; }
+.play-remaining {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.play-remaining .ico { width: 18px; height: 18px; }
+
+.play-main {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+#currentCardDisplay {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 160px;
+  padding: 20px 16px 14px;
+  border-radius: 24px;
+  background: var(--card-bg);
+  border: 2px solid var(--line);
+  border-top: 6px solid var(--team);
+  box-shadow: var(--shadow-m);
+  text-align: center;
+  cursor: pointer;
+}
+#cardTerm {
+  max-width: 100%;
+  font-size: clamp(2rem, 1rem + 6vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+#cardExplanation {
+  max-width: 36em;
+  font-size: clamp(1rem, 0.9rem + 0.6vw, 1.3rem);
+  color: var(--muted);
+}
+#cardTerm { margin-top: auto; }
+#cardTip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: auto;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+#cardTip .ico { width: 16px; height: 16px; }
+
+#screen-play > .play-actions { padding-top: 4px; }
+.play-actions > button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 76px !important;
+  border-radius: 18px;
+  font-size: 1rem;
+  color: #fff;
+  box-shadow: var(--shadow-s);
+}
+.play-actions > button .ico { width: 28px; height: 28px; stroke-width: 2.4; }
+#btnMistake { background: #e8505b; }
+#btnSkip { background: var(--accent-c); color: var(--accent-c-text); }
+#btnCorrect { background: #00a383; flex-grow: 1.4 !important; }
+#btnSkip:disabled { background: var(--panel); color: var(--muted); opacity: 1; }
+#btnCorrect:disabled,
+#btnMistake:disabled { opacity: 0.4; }
+
+@media (orientation: landscape) and (max-height: 499px) {
+  /* Handy quer (Standard im Spiel): Karte links, Knöpfe senkrecht rechts */
+  #screen-play.active {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(170px, 26vw, 240px);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px 12px;
+    padding-bottom: calc(var(--sa-bottom) + 8px);
+  }
+  #screen-play > .play-header {
+    grid-column: 1 / -1;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-rows: auto;
+    padding: 6px 10px;
+  }
+  .play-progress { grid-column: 2; grid-row: 1; }
+  .play-playerinfo { grid-column: 3; flex-wrap: nowrap; }
+  #playRoundPlayer { max-width: 30vw; }
+  .play-pause { grid-column: 4; }
+  #screen-play > .play-main { grid-column: 1; grid-row: 2; }
+  #currentCardDisplay { min-height: 0; padding: 12px; gap: 8px; }
+  #cardTerm { font-size: clamp(1.8rem, 12vh, 3.6rem); }
+  #screen-play > .play-actions {
+    grid-column: 2;
+    grid-row: 2;
+    position: static;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    background: none;
+  }
+  .play-actions > button {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    flex-direction: row;
+    gap: 8px;
+    font-size: 1.0625rem;
+  }
+  #btnCorrect { order: -1; flex-grow: 1.6 !important; }
+  #btnSkip { order: 0; }
+  #btnMistake { order: 1; }
+}
+
+@media (min-width: 600px) and (min-height: 500px) {
+  /* Tablet: größere Knöpfe, Restkarten und Punktestand im Kopf */
+  .play-actions > button { min-height: 92px !important; font-size: 1.1875rem; }
+  .play-actions > button .ico { width: 34px; height: 34px; }
+  .play-header { grid-template-columns: auto minmax(0, 1fr) auto auto; }
+  .play-remaining { display: inline-flex; grid-column: 3; grid-row: 1; }
+  .play-pause { grid-column: 4; }
+  #playRoundPlayer { font-size: 1.375rem; }
+}
+
+/* ======================================================================
+   Rundenstatistik und Spielende
+   ====================================================================== */
+
+#screen-roundstats .team-grid,
+#screen-end .team-grid { margin-top: 12px; }
+#screen-roundstats .team-points-value { font-size: 2rem; }
+
+.end-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 4px;
+  text-align: center;
+}
+.end-head > .ico {
+  width: 48px;
+  height: 48px;
+  color: #e0a800;
+  stroke-width: 1.8;
+}
+.end-title { font-size: var(--fs-xl); }
+.end-winner { font-size: var(--fs-l); font-weight: 700; color: var(--green); }
+.final-grid .team-card { z-index: 3; }
+#screen-end > .bottom-bar { flex-wrap: wrap; }
+#screen-end > .bottom-bar > button { flex: 1 1 150px; }
+
+@media (orientation: landscape) and (max-height: 499px) {
+  .end-head { flex-direction: row; justify-content: center; gap: 12px; }
+  .end-head > .ico { width: 34px; height: 34px; }
+  .team-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+}
+
+/* ======================================================================
+   Animationen nur für diese Bildschirme
+   ====================================================================== */
+
+@keyframes lightOn {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  40% { opacity: 1; transform: scale(1.05); }
+}
+@keyframes pulseWarn {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+/* XS (iPad Slide Over, kleine Androids): Knopftexte kleiner */
+@media (max-width: 359px) {
+  .play-actions { gap: 6px !important; }
+  .play-actions > button { font-size: 0.8125rem; padding-left: 2px !important; padding-right: 2px !important; }
+  .screen > .bottom-bar > button { font-size: 0.9375rem; }
+}

@@ -3,6 +3,7 @@ import { ARCHIVE_STORAGE_KEY, state } from "./state.js";
 import { getSettings, readJsonStore, saveSettingsToStorage, toPositiveInt, writeJsonStore } from "./settings.js";
 import { getFilteredCardPool } from "./filter.js";
 import { appAlert, appConfirm, appendText, refreshStartCardStatus, setCardLoadStatusText, showScreen, updateKartenStatusText, updatePlayerTable } from "./ui.js";
+import { icon, setButtonContent } from "./teamview.js";
 
 export function readArchiveStore() {
     return readJsonStore(ARCHIVE_STORAGE_KEY, {});
@@ -196,7 +197,8 @@ export function openArchive() {
     actions.className = "archive-actions";
 
     if (archives.length > 0) {
-        const exportBtn = appendText(actions, "button", "⬆️ Exportieren");
+        const exportBtn = setButtonContent(document.createElement("button"), "upload", "Exportieren");
+        actions.appendChild(exportBtn);
         exportBtn.className = "archive-export-btn";
         exportBtn.title = "Archiv als Datei speichern oder teilen";
         exportBtn.onclick = () => exportArchive();
@@ -214,7 +216,8 @@ export function openArchive() {
     };
     actions.appendChild(fileInput);
 
-    const importBtn = appendText(actions, "button", "⬇️ Importieren");
+    const importBtn = setButtonContent(document.createElement("button"), "download", "Importieren");
+    actions.appendChild(importBtn);
     importBtn.className = "archive-import-btn";
     importBtn.title = "Exportiertes Archiv laden";
     importBtn.onclick = () => fileInput.click();
@@ -415,8 +418,8 @@ export function resetCardSelectionUi() {
 
     if (playerLabel) playerLabel.textContent = state.players[0]?.name || "";
     if (info) {
-        info.textContent = "Bitte klicken, um die Kartenauswahl zu starten!";
-        info.style.display = "block";
+        info.textContent = "Antippen, um deine Karten zu sehen";
+        info.style.display = "";
         info.style.cursor = "pointer";
         info.style.pointerEvents = "";
     }
@@ -479,9 +482,9 @@ export async function startCardSelectionWithoutVeto() {
     const startBtn = document.getElementById("startGameOverviewButton");
 
     // Layout wie bei showScreen("kartenauswahl")
-    playerLabel.textContent = "✓ Fertig!";
+    playerLabel.textContent = "alle fertig";
     info.textContent = `${state.playingCards.length} Karten wurden zufällig ausgewählt.`;
-    info.style.display = "block";
+    info.style.display = "";
     info.style.cursor = "not-allowed";
     info.style.pointerEvents = "none";
     vetoInfo.textContent = "";
@@ -503,8 +506,7 @@ export function handleCardSelectionClick() {
         const li = document.createElement("li");
         li.className = "card-choice";
         li._timesupCard = card;
-        appendText(li, "span", card.begriff).className = "card-choice-term";
-        li.appendChild(document.createTextNode(` - ${card.erklaerung}`));
+        fillCardChoice(li, card);
         li.onclick = () => handleCardVeto(li, index);
         ul.appendChild(li);
     });
@@ -514,10 +516,20 @@ export function handleCardSelectionClick() {
     const doneBtn = document.getElementById("cardDoneButton");
     if (doneBtn) doneBtn.style.display = "inline-block";
 }
+// Karte in der Auswahlliste: Begriff, Erklärung, Veto-Hinweis
+function fillCardChoice(li, card) {
+    li.textContent = "";
+    const text = document.createElement("span");
+    text.className = "card-choice-text";
+    appendText(text, "span", card.begriff).className = "card-choice-term";
+    appendText(text, "span", card.erklaerung || "").className = "card-choice-expl";
+    li.appendChild(text);
+    li.appendChild(icon("repeat", "ico card-choice-veto"));
+}
 export function updateVetoDisplay() {
     const el = document.getElementById("vetoInfoText");
     if (el) {
-        el.textContent = `Du hast ${state.remainingVetos} Veto${state.remainingVetos !== 1 ? 's' : ''}`;
+        el.textContent = `${state.remainingVetos} Veto${state.remainingVetos !== 1 ? 's' : ''} übrig`;
     }
 }
 export async function handleCardVeto(listItem, index) {
@@ -536,14 +548,13 @@ export async function handleCardVeto(listItem, index) {
     }
     const newCard = state.shuffledCardPool.shift();
     listItem._timesupCard = newCard;
-    listItem.textContent = `${newCard.begriff} - ${newCard.erklaerung}`;
+    fillCardChoice(listItem, newCard);
     listItem.onclick = null;
-    listItem.style.opacity = "0.6";
+    listItem.classList.add("is-replaced");
     listItem.style.pointerEvents = "none";
     state.remainingVetos--;
     updateVetoDisplay();
-    document.getElementById("vetoInfoText").textContent =
-        `Du hast ${state.remainingVetos} Veto${state.remainingVetos !== 1 ? 's' : ''}`;
+
 }
 export async function handleCardSelectionDone() {
     const startOverviewButton = document.getElementById("startGameOverviewButton");
@@ -574,9 +585,9 @@ export async function handleCardSelectionDone() {
         for (let i = 0; i < fehlendeKarten && state.shuffledCardPool.length > 0; i++) {
             state.playingCards.push(state.shuffledCardPool.shift());
         }
-        playerLabel.textContent = "✓ Fertig!";
+        playerLabel.textContent = "alle fertig";
         info.textContent = `Alle Spieler haben ihre Karten. Gesamt: ${state.playingCards.length} Karten. Davon ${fehlendeKarten} automatisch ergänzt.`;
-        info.style.display = "block";
+        info.style.display = "";
         info.style.cursor = "not-allowed";
         info.style.pointerEvents = "none";
         vetoInfo.textContent = "";
@@ -588,8 +599,8 @@ export async function handleCardSelectionDone() {
         return;
     }
     playerLabel.textContent = state.players[state.currentCardPlayerIndex].name;
-    info.textContent = "Bitte klicken, um die Kartenauswahl zu starten!";
-    info.style.display = "block";
+    info.textContent = "Antippen, um deine Karten zu sehen";
+    info.style.display = "";
     vetoInfo.textContent = "";
     ul.innerHTML = "";
     doneBtn.style.display = "none";

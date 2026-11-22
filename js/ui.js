@@ -1,6 +1,7 @@
 // Oberfläche: Bildschirme, Dialoge, Spieler- und Teamlisten
 import { state } from "./state.js";
 import { removePlayer, toggleHandicap, togglePlayerTeam } from "./game.js";
+import { icon, renderTeamCards } from "./teamview.js";
 
 export function appendText(parent, tagName, text) {
     const el = document.createElement(tagName);
@@ -100,36 +101,45 @@ export function appConfirm(message, options = {}) {
     return showAppDialog({ message, okText: "OK", cancelText: "Abbrechen", ...options });
 }
 export function updatePlayerTable() {
-    const tbody = document.getElementById("playerTableBody");
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const list = document.getElementById("playerList");
+    if (!list) return;
+    list.textContent = "";
     state.players.forEach(p => {
-        const tr = document.createElement("tr");
-        const tdName = document.createElement("td");
-        tdName.setAttribute("data-label", "Spielername");
-        appendText(tdName, "span", p.name).className = "player-name-chip";
-        tr.appendChild(tdName);
+        const li = document.createElement("li");
+        li.className = "player-row";
 
-        const tdHandicap = document.createElement("td");
-        tdHandicap.setAttribute("data-label", "Handicap");
+        const name = appendText(li, "span", p.name);
+        name.className = "player-name-chip";
+
+        // Handicap als Schalter (mehr Zeit für diesen Spieler)
+        const label = document.createElement("label");
+        label.className = "player-handicap";
+        label.title = "Handicap: mehr Zeit";
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
+        checkbox.className = "handicap-check";
         checkbox.checked = p.handicap;
+        checkbox.setAttribute("aria-label", `Handicap für ${p.name}`);
         checkbox.onchange = () => toggleHandicap(p.name, checkbox.checked);
-        tdHandicap.appendChild(checkbox);
-        tr.appendChild(tdHandicap);
+        label.appendChild(checkbox);
+        label.appendChild(icon("handicap"));
+        li.appendChild(label);
 
-        const tdRemove = document.createElement("td");
-        tdRemove.setAttribute("data-label", "Entfernen");
-        tdRemove.className = "remove-cell";
         const btn = document.createElement("button");
-        btn.textContent = "❌ Entfernen";
+        btn.type = "button";
+        btn.className = "icon-btn player-remove";
+        btn.setAttribute("aria-label", `${p.name} entfernen`);
+        btn.title = "Entfernen";
+        btn.appendChild(icon("trash"));
         btn.onclick = () => removePlayer(p.name);
-        tdRemove.appendChild(btn);
-        tr.appendChild(tdRemove);
+        li.appendChild(btn);
 
-        tbody.appendChild(tr);
+        list.appendChild(li);
     });
+    const count = document.getElementById("playerCount");
+    if (count) count.textContent = String(state.players.length);
+    const empty = document.getElementById("playerEmptyHint");
+    if (empty) empty.hidden = state.players.length > 0;
 }
 // === UI Helpers ===
 export function showScreen(id) {
@@ -142,71 +152,19 @@ export function showScreen(id) {
     }
 }
 export function renderTeamPlayerList() {
-    const tbody = document.getElementById("teamPlayerTableBody");
-    tbody.innerHTML = '';
+    const list = document.getElementById("teamPlayerList");
+    if (!list) return;
+    list.textContent = "";
     state.players.forEach(p => {
-        const tr = document.createElement("tr");
-        const tdName = document.createElement("td");
-        tdName.textContent = p.name;
-        tr.appendChild(tdName);
-        const tdHandicap = document.createElement("td");
-        tdHandicap.textContent = p.handicap ? "✔️" : "–";
-        tr.appendChild(tdHandicap);
-        tbody.appendChild(tr);
+        const li = appendText(list, "li", p.name);
+        li.className = "name-chip";
+        if (p.handicap) li.appendChild(icon("handicap", "ico ico-handicap"));
     });
 }
 export function displayTeams() {
-    const container = document.getElementById("teamsContainer");
-    if (!container) return;
-    const legacyContainer = document.getElementById("teamOverviewLegacy");
-    const legacyTeamA = document.getElementById("teamOverviewTeamA");
-    const legacyTeamB = document.getElementById("teamOverviewTeamB");
-    
-    container.innerHTML = '';
-    if (legacyTeamA) legacyTeamA.innerHTML = '';
-    if (legacyTeamB) legacyTeamB.innerHTML = '';
-
-    if (state.totalTeams === 2 && legacyContainer && legacyTeamA && legacyTeamB) {
-        legacyContainer.style.display = 'flex';
-        container.style.display = 'none';
-
-        [legacyTeamA, legacyTeamB].forEach((list, teamIdx) => {
-            (state.teams[teamIdx] || []).forEach(p => {
-                const li = document.createElement("li");
-                li.textContent = p.name + (p.handicap ? " 🧩" : "");
-                li.className = "team-member";
-                li.onclick = () => togglePlayerTeam(p.name, teamIdx);
-                list.appendChild(li);
-            });
-        });
-        return;
-    }
-
-    if (legacyContainer) legacyContainer.style.display = 'none';
-    container.style.display = 'grid';
-
-    const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
-    
-    state.teams.forEach((team, teamIdx) => {
-        const box = document.createElement("div");
-        box.className = "team-overview-card";
-        
-        const title = document.createElement("h3");
-        title.textContent = `${teamEmojis[teamIdx % teamEmojis.length]} Team ${teamIdx + 1}`;
-        box.appendChild(title);
-        
-        const list = document.createElement("ul");
-        list.id = `teamList${teamIdx}`;
-        
-        team.forEach(p => {
-            const li = document.createElement("li");
-            li.textContent = p.name + (p.handicap ? " 🧩" : "");
-            li.onclick = () => togglePlayerTeam(p.name, teamIdx);
-            list.appendChild(li);
-        });
-        
-        box.appendChild(list);
-        container.appendChild(box);
+    renderTeamCards(document.getElementById("teamsContainer"), {
+        teams: state.teams,
+        onPlayerClick: (name, teamIdx) => togglePlayerTeam(name, teamIdx)
     });
 }
 // === Card Selection ===

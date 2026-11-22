@@ -4,6 +4,7 @@ import { getPenaltyMode, getSettings, toPositiveInt } from "./settings.js";
 import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray } from "./cards.js";
 import { clearSavedGame, saveGameState } from "./persist.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
+import { icon, renderTeamCards, setButtonContent, teamColor, teamName } from "./teamview.js";
 import { appendText, appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
 
 // === Player Management ===
@@ -16,6 +17,7 @@ export function addPlayer() {
         updatePlayerTable();
     }
     input.value = '';
+    try { input.focus({ preventScroll: true }); } catch (e) {}
 }
 export function removePlayer(name) {
     const index = state.players.findIndex(p => p.name === name);
@@ -125,7 +127,9 @@ export function renderOverviewRules(settings = getSettings()) {
     const perMistake = getPenaltyPerMistake(settings);
     extras.push(perMistake ? `Punktabzug −${formatPoints(perMistake)} pro Fehler` : "Kein Punktabzug");
     if (settings.handicapEnabled) extras.push(`Handicap +${settings.handicapTime || 5} s`);
-    appendText(wrap, "p", "⚠️ " + extras.join(" · ")).className = "overview-penalties";
+    const note = appendText(wrap, "p", extras.join(" · "));
+    note.className = "overview-penalties";
+    note.prepend(icon("warn"));
 }
 
 export function prepareGameOverview() {
@@ -134,63 +138,7 @@ export function prepareGameOverview() {
     state.totalTeams = teamCount;
     renderOverviewRules(settings);
     
-    // Display all teams - new layout for 3+ teams
-    const overviewTeamsContainer = document.getElementById("overviewTeamsContainer");
-    const teamsDiv = document.querySelector('#screen-spieluebersicht .teams');
-    
-    if (state.totalTeams > 2) {
-        // Show new multi-team display and hide old 2-team display
-        if (overviewTeamsContainer) {
-            overviewTeamsContainer.style.display = 'grid';
-            overviewTeamsContainer.innerHTML = '';
-            const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
-            
-            state.teams.forEach((team, idx) => {
-                const box = document.createElement("div");
-                box.className = "team-overview-card";
-                
-                const title = document.createElement("h3");
-                title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1} – 0 Punkte`;
-                box.appendChild(title);
-                
-                const list = document.createElement("ul");
-                
-                team.forEach(player => {
-                    const li = document.createElement("li");
-                    li.textContent = player.name + (player.handicap ? " 🧩" : "");
-                    list.appendChild(li);
-                });
-                
-                box.appendChild(list);
-                overviewTeamsContainer.appendChild(box);
-            });
-        }
-        if (teamsDiv) teamsDiv.style.display = 'none';
-    } else {
-        // Show old 2-team display and hide new multi-team display
-        if (overviewTeamsContainer) overviewTeamsContainer.style.display = 'none';
-        if (teamsDiv) teamsDiv.style.display = 'flex';
-        
-        // Fill legacy 2-team display
-        const listA = document.getElementById("overviewTeamA");
-        const listB = document.getElementById("overviewTeamB");
-        if (listA && state.teams[0]) {
-            listA.innerHTML = "";
-            state.teams[0].forEach(p => {
-                const li = document.createElement("li");
-                li.textContent = p.name + (p.handicap ? " 🧩" : "");
-                listA.appendChild(li);
-            });
-        }
-        if (listB && state.teams[1]) {
-            listB.innerHTML = "";
-            state.teams[1].forEach(p => {
-                const li = document.createElement("li");
-                li.textContent = p.name + (p.handicap ? " 🧩" : "");
-                listB.appendChild(li);
-            });
-        }
-    }
+    renderTeamCards(document.getElementById("overviewTeamsContainer"), { teams: state.teams });
     showScreen("spieluebersicht");
 }
 export function buildTeamTurnOrder() {
@@ -252,7 +200,7 @@ export function showStartRoundScreen() {
     
     document.getElementById("roundPlayerName").textContent = state.activePlayer.name;
     const teamEl = document.getElementById("roundPlayerTeam");
-    teamEl.textContent = `Team ${state.activeTeamIndex + 1}`;
+    teamEl.textContent = teamName(state.activeTeamIndex);
     const startBtn = document.getElementById("startRoundBtn");
     const settings = getSettings();
     const roundRule = settings.roundRules?.[state.currentRound] || "-";
@@ -263,18 +211,14 @@ export function showStartRoundScreen() {
     const timeEl = document.getElementById("roundStartTime");
     const ruleEl = document.getElementById("roundStartRule");
     const skipEl = document.getElementById("roundStartSkip");
-    if (timeEl) timeEl.textContent = `Zeit: ${roundTime}s`;
-    if (ruleEl) ruleEl.textContent = `Regel: ${roundRule}`;
-    if (skipEl) skipEl.textContent = `Überspringen: ${roundSkip}`;
+    if (timeEl) timeEl.textContent = `${roundTime} s`;
+    if (ruleEl) ruleEl.textContent = roundRule;
+    if (skipEl) skipEl.textContent = roundSkip;
     
-    // Generate team colors dynamically
-    const teamColors = ['#ff7675', '#00b894', '#3498db', '#f39c12', '#9b59b6', '#e74c3c', '#1abc9c', '#34495e'];
-    const color = teamColors[state.activeTeamIndex % teamColors.length];
-    
-    teamEl.style.background = `linear-gradient(90deg, rgba(${parseInt(color.slice(1,3),16)},${parseInt(color.slice(3,5),16)},${parseInt(color.slice(5,7),16)},0.12) 60%, var(--panel) 100%)`;
-    teamEl.style.color = color;
-    document.getElementById('roundBorderWrapper').style.borderColor = color;
-    if (startBtn) startBtn.style.background = `linear-gradient(90deg, ${color} 0%, ${color}dd 100%)`;
+    // Teamfarbe für Rundenstart und Spiel (CSS-Variable --team)
+    const color = teamColor(state.activeTeamIndex);
+    ["screen-roundstart", "screen-play"].forEach(id => document.getElementById(id)?.style.setProperty("--team", color));
+    if (startBtn) startBtn.removeAttribute("style");
     
     showScreen("roundstart");
 }
@@ -294,16 +238,17 @@ export function startRoundTimer() {
         baseTime += parseInt(settings.handicapTime || 5);
     }
     state.remainingTime = baseTime;
+    state.turnTotal = baseTime;
     state.displayedCards = [];
     state.skippedThisTurn = [];
     state.skipCounter = 0;
     document.getElementById("playRoundPlayer").textContent = state.activePlayer.name;
-    document.getElementById("playRoundTeam").textContent = `Team ${state.activeTeamIndex + 1}`;
-    document.getElementById("timerDisplay").textContent = `${state.remainingTime}s`;
+    document.getElementById("playRoundTeam").textContent = teamName(state.activeTeamIndex);
+    updateTimerUi();
     showScreen("play");
     state.timer = setInterval(() => {
         state.remainingTime--;
-        document.getElementById("timerDisplay").textContent = `${state.remainingTime}s`;
+        updateTimerUi();
         // play a short tick for the last 5 seconds
         if (state.remainingTime > 0 && state.remainingTime <= 5) {
             playTick();
@@ -336,8 +281,8 @@ export function showNextCard() {
         available = state.currentCards.filter(card => !state.displayedCards.includes(card.id));
     }
     if (available.length === 0) {
-        document.getElementById("cardTerm").textContent = "🔄 Keine weiteren Karten";
-        document.getElementById("cardExplanation").style.display = "none";
+        document.getElementById("cardTerm").textContent = "Keine weiteren Karten";
+        document.getElementById("cardExplanation").hidden = true;
         showGuessedCardsAfterTimer(); // <--- Hier statt endRound()
         return;
     }
@@ -346,10 +291,11 @@ export function showNextCard() {
     state.displayedCards.push(next.id);
     document.getElementById("cardTerm").textContent = state.currentCard.begriff;
     document.getElementById("cardExplanation").textContent = state.currentCard.erklaerung || "";
-    document.getElementById("cardExplanation").style.display = "none";
+    document.getElementById("cardExplanation").hidden = true;
     state.showingExplanation = false;
     setActionButtonsEnabled(true);
     updateSkipButtonState();
+    updatePlayInfo();
 }
 export function handleCorrect() {
     if (!state.currentCard) return;
@@ -401,8 +347,8 @@ export function handleMistake() {
     if (settings.punishEnabled) {
         const delay = parseInt(settings.punishTime || 3);
         state.isPenaltyActive = true;
-        document.getElementById("cardTerm").textContent = "⏱️ Strafzeit…";
-        document.getElementById("cardExplanation").style.display = "none";
+        document.getElementById("cardTerm").textContent = "Strafzeit…";
+        document.getElementById("cardExplanation").hidden = true;
         setActionButtonsEnabled(false);
         state.penaltyTimeout = setTimeout(() => {
             state.penaltyTimeout = null;
@@ -430,30 +376,24 @@ export function updateSkipButtonState() {
     const skipBtn = document.getElementById("btnSkip");
     if (skipSetting === "no") {
         skipBtn.disabled = true;
-        skipBtn.style.background = "var(--panel)";
-        skipBtn.style.color = "var(--muted)";
         return;
     }
     if (skipSetting === "yes") {
         const maxSkips = parseInt(settings.skipLimitValue?.[roundIndex] || 100);
         if (state.skipCounter >= maxSkips) {
             skipBtn.disabled = true;
-            skipBtn.style.background = "var(--panel)";
-            skipBtn.style.color = "var(--muted)";
             return;
         }
     }
     skipBtn.disabled = false;
-    skipBtn.style.background = "var(--accent-c)";
-    skipBtn.style.color = "var(--accent-c-text)";
 }
 export function toggleExplanation() {
     if (!state.currentCard) return;
     const explanationEl = document.getElementById("cardExplanation");
     state.showingExplanation = !state.showingExplanation;
-    explanationEl.style.display = state.showingExplanation ? "block" : "none";
+    explanationEl.hidden = !state.showingExplanation;
     const cardTip = document.getElementById("cardTip");
-    cardTip.style.display = state.showingExplanation ? "none" : "block"; 
+    cardTip.hidden = state.showingExplanation;
 }
 export function setNextPlayer() {
     if (state.teamTurnOrder.length === 0) {
@@ -534,83 +474,10 @@ export function showRoundStats() {
     applyCurrentRoundPoints();
     saveGameState("roundstats");
 
-    // Update stats display - new layout for 3+ teams
-    const statsContainer = document.getElementById("statsContainer");
-    const statsOldTeamsDiv = document.querySelector('#screen-roundstats > div:nth-child(2)');
-    
-    if (state.totalTeams > 2) {
-        // Show new multi-team display and hide old 2-team display
-        if (statsContainer) {
-            statsContainer.style.display = 'grid';
-            statsContainer.innerHTML = '';
-            const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
-            
-            state.teams.forEach((team, idx) => {
-                const box = document.createElement("div");
-                box.className = "team-overview-card";
-                
-                const title = document.createElement("h3");
-                title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1}`;
-                box.appendChild(title);
-                
-                const points = document.createElement("p");
-                points.textContent = `Punkte: ${formatPoints(state.totalPoints[idx])}${formatPenalty(state.penaltyPoints[idx])}`;
-                points.className = "team-points";
-                box.appendChild(points);
-                
-                const list = document.createElement("ul");
-                
-                team.forEach(player => {
-                    const li = document.createElement("li");
-                    li.textContent = player.name;
-                    list.appendChild(li);
-                });
-                
-                box.appendChild(list);
-                statsContainer.appendChild(box);
-            });
-        }
-        if (statsOldTeamsDiv) statsOldTeamsDiv.style.display = 'none';
-    } else {
-        // Show old 2-team display and hide new multi-team display
-        if (statsContainer) statsContainer.style.display = 'none';
-        if (statsOldTeamsDiv) statsOldTeamsDiv.style.display = 'flex';
-        
-        // Legacy 2-team display
-        const statsTeamAList = document.getElementById("statsTeamAList");
-        const statsTeamBList = document.getElementById("statsTeamBList");
-        if (statsTeamAList) {
-            statsTeamAList.innerHTML = "";
-            if (state.teams[0]) {
-                state.teams[0].forEach(player => {
-                    const li = document.createElement("li");
-                    li.textContent = player.name || player;
-                    statsTeamAList.appendChild(li);
-                });
-            }
-        }
-        if (statsTeamBList) {
-            statsTeamBList.innerHTML = "";
-            if (state.teams[1]) {
-                state.teams[1].forEach(player => {
-                    const li = document.createElement("li");
-                    li.textContent = player.name || player;
-                    statsTeamBList.appendChild(li);
-                });
-            }
-        }
-        
-        if (state.totalPoints.length >= 2) {
-            const pointsTeamAEl = document.getElementById("pointsTeamA");
-            const pointsTeamBEl = document.getElementById("pointsTeamB");
-            if (pointsTeamAEl) pointsTeamAEl.textContent = formatPoints(state.totalPoints[0]);
-            if (pointsTeamBEl) pointsTeamBEl.textContent = formatPoints(state.totalPoints[1]);
-            const penaltyA = document.getElementById("penaltyTeamA");
-            const penaltyB = document.getElementById("penaltyTeamB");
-            if (penaltyA) penaltyA.textContent = formatPenalty(state.penaltyPoints[0]);
-            if (penaltyB) penaltyB.textContent = formatPenalty(state.penaltyPoints[1]);
-        }
-    }
+    renderTeamCards(document.getElementById("statsContainer"), {
+        teams: state.teams, points: state.totalPoints, penalties: state.penaltyPoints,
+        formatPoints, formatPenalty, idPrefix: "stats", showHandicap: false
+    });
 
     showScreen("roundstats");
 }
@@ -635,105 +502,60 @@ export function showFinalScreen() {
     clearSavedGame();             // Spiel ist zu Ende, nichts mehr fortzusetzen
     savePlayedCardsToActiveArchive();
     const container = document.getElementById("finalTeamsContainer");
-    const twoTeamContainer = document.getElementById("finalTwoTeamContainer");
     const maxPoints = state.totalPoints.length ? Math.max(...state.totalPoints) : 0;
     const winningTeamIndexes = new Set(state.totalPoints
         .map((points, index) => points === maxPoints ? index : -1)
         .filter(index => index !== -1));
 
-    if (state.totalTeams > 2 && container) {
-        if (twoTeamContainer) twoTeamContainer.style.display = 'none';
-        container.style.display = 'grid';
-        container.innerHTML = '';
-        const teamEmojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚫', '⚪'];
-        
-        state.teams.forEach((team, idx) => {
-            const box = document.createElement("div");
-            box.className = "team-overview-card";
-            if (winningTeamIndexes.has(idx)) {
-                box.classList.add("winner-team");
-            }
-            
-            const title = document.createElement("h3");
-            title.textContent = `${teamEmojis[idx % teamEmojis.length]} Team ${idx + 1}`;
-            box.appendChild(title);
-            
-            const points = document.createElement("p");
-            points.textContent = `Punkte: ${formatPoints(state.totalPoints[idx])}${formatPenalty(state.penaltyPoints[idx])}`;
-            points.className = "team-points";
-            box.appendChild(points);
-            
-            const list = document.createElement("ul");
-            
-            team.forEach(player => {
-                const li = document.createElement("li");
-                li.textContent = player.name + (player.handicap ? " 🧩" : "");
-                list.appendChild(li);
-            });
-            
-            box.appendChild(list);
-            container.appendChild(box);
-        });
-    } else if (container) {
-        container.style.display = 'none';
+    renderTeamCards(container, {
+        teams: state.teams, points: state.totalPoints, penalties: state.penaltyPoints, winners: winningTeamIndexes,
+        formatPoints, formatPenalty, idPrefix: "final"
+    });
+    // Siegerteam(s) zuerst
+    if (container) {
+        [...container.children]
+            .sort((a, b) => (state.totalPoints[+b.dataset.team] || 0) - (state.totalPoints[+a.dataset.team] || 0))
+            .forEach(card => container.appendChild(card));
     }
-    
-    // Legacy 2-team display only
-    if (state.totalTeams === 2) {
-        if (twoTeamContainer) twoTeamContainer.style.display = 'flex';
-        const finalTeamACard = document.getElementById("finalTeamACard");
-        const finalTeamBCard = document.getElementById("finalTeamBCard");
-        if (finalTeamACard) finalTeamACard.classList.toggle("winner-team", winningTeamIndexes.has(0));
-        if (finalTeamBCard) finalTeamBCard.classList.toggle("winner-team", winningTeamIndexes.has(1));
-        const finalTeamA = document.getElementById("finalTeamA");
-        const finalTeamB = document.getElementById("finalTeamB");
-        if (finalTeamA && state.teams[0]) {
-            finalTeamA.innerHTML = "";
-            state.teams[0].forEach(player => {
-                const row = document.createElement("tr");
-                const nameCell = document.createElement("td");
-                nameCell.textContent = player.name;
-                nameCell.className = "final-name-cell";
-                const handicapCell = document.createElement("td");
-                handicapCell.textContent = player.handicap ? "✓" : "";
-                handicapCell.className = "final-handicap-cell";
-                row.appendChild(nameCell);
-                row.appendChild(handicapCell);
-                finalTeamA.appendChild(row);
-            });
-        }
-        if (finalTeamB && state.teams[1]) {
-            finalTeamB.innerHTML = "";
-            state.teams[1].forEach(player => {
-                const row = document.createElement("tr");
-                const nameCell = document.createElement("td");
-                nameCell.textContent = player.name;
-                nameCell.className = "final-name-cell";
-                const handicapCell = document.createElement("td");
-                handicapCell.textContent = player.handicap ? "✓" : "";
-                handicapCell.className = "final-handicap-cell";
-                row.appendChild(nameCell);
-                row.appendChild(handicapCell);
-                finalTeamB.appendChild(row);
-            });
-        }
-        
-        // Update total points display
-        if (state.totalPoints[0] !== undefined) {
-            const finalPointsA = document.getElementById("finalPointsA");
-            if (finalPointsA) finalPointsA.textContent = formatPoints(state.totalPoints[0]);
-            const finalPenaltyA = document.getElementById("finalPenaltyA");
-            if (finalPenaltyA) finalPenaltyA.textContent = formatPenalty(state.penaltyPoints[0]);
-        }
-        if (state.totalPoints[1] !== undefined) {
-            const finalPointsB = document.getElementById("finalPointsB");
-            if (finalPointsB) finalPointsB.textContent = formatPoints(state.totalPoints[1]);
-            const finalPenaltyB = document.getElementById("finalPenaltyB");
-            if (finalPenaltyB) finalPenaltyB.textContent = formatPenalty(state.penaltyPoints[1]);
-        }
+    const winnerText = document.getElementById("endWinnerText");
+    if (winnerText) {
+        const names = [...winningTeamIndexes].map(teamName);
+        winnerText.textContent = names.length > 1 ? `Unentschieden: ${names.join(" und ")}` : `${names[0] || ""} gewinnt!`;
     }
-    
+
     showScreen("end");
+}
+// Timer-Anzeige: Sekunden, Fortschrittsbalken, Warnfarbe in den letzten 5 s
+export function updateTimerUi() {
+    const t = Math.max(0, state.remainingTime || 0);
+    const display = document.getElementById("timerDisplay");
+    if (display) display.textContent = `${t}s`;
+    const total = Math.max(t, state.turnTotal || t || 1);
+    const screen = document.getElementById("screen-play");
+    if (screen) {
+        screen.style.setProperty("--time-left", String(total ? t / total : 0));
+        screen.classList.toggle("is-warn", t <= 5);
+    }
+}
+// Tablet-Kopfzeile im Spiel: Karten im Stapel und Punkte des aktiven Teams in dieser Runde
+export function updatePlayInfo() {
+    const remaining = document.getElementById("playRemaining");
+    if (remaining) remaining.textContent = String(state.currentCards.length);
+    const score = document.getElementById("playScore");
+    if (score) {
+        const correct = (state.correctCards[state.activeTeamIndex] || []).length;
+        score.textContent = `${correct} richtig`;
+    }
+}
+// Nochmal spielen: gleiche Spieler und Teams, neue Karten
+export function playAgain() {
+    const teams = state.teams.map(team => [...team]);
+    const totalTeams = state.totalTeams;
+    resetGameState();
+    state.teams = teams;
+    state.totalTeams = totalTeams;
+    displayTeams();
+    showScreen("teamuebersicht");
 }
 export function setActionButtonsEnabled(enabled) {
     const correctButton = document.getElementById("btnCorrect");
@@ -770,12 +592,12 @@ export function pauseGame() {
 
         const title = document.createElement("h2");
         title.className = "overlay-title";
-        title.textContent = "⏸️ Pause";
+        title.textContent = "Pause";
         box.appendChild(title);
 
         const btnContinue = document.createElement("button");
         btnContinue.className = "pause-continue-btn";
-        btnContinue.textContent = "▶️ Weiter";
+        setButtonContent(btnContinue, "play", "Weiter");
         btnContinue.onclick = function () {
             document.body.removeChild(pauseOverlay);
             resumeTimer();
@@ -784,10 +606,11 @@ export function pauseGame() {
 
         const btnPlus3 = document.createElement("button");
         btnPlus3.className = "pause-plus-btn";
-        btnPlus3.textContent = "+3";
+        btnPlus3.textContent = "+3 s";
+        btnPlus3.setAttribute("aria-label", "3 Sekunden mehr und weiter");
         btnPlus3.onclick = function () {
             state.remainingTime += 3;
-            document.getElementById("timerDisplay").textContent = `${state.remainingTime}s`;
+            updateTimerUi();
             document.body.removeChild(pauseOverlay);
             resumeTimer();
         };
@@ -813,7 +636,7 @@ export function resumeTimer() {
     try { if (state.timer) { clearInterval(state.timer); state.timer = undefined; } } catch (e) {}
     state.timer = setInterval(() => {
         state.remainingTime--;
-        document.getElementById("timerDisplay").textContent = `${state.remainingTime}s`;
+        updateTimerUi();
         // play a short tick for the last 5 seconds
         if (state.remainingTime > 0 && state.remainingTime <= 5) {
             playTick();
@@ -855,12 +678,13 @@ export function showGuessedCardsAfterTimer(playAlarm = true) {
     // Zuerst: Zwei Hauptoptionen anzeigen
     const title = document.createElement("h2");
     title.className = "overlay-title";
-    title.textContent = "⏱️ Zeit vorbei!";
+    title.textContent = "Zeit vorbei!";
+    title.prepend(icon("timer"));
     box.appendChild(title);
 
     const btnCorrect = document.createElement("button");
     btnCorrect.className = "time-up-correct-btn";
-    btnCorrect.textContent = "✏️ Karten korrigieren";
+    setButtonContent(btnCorrect, "pen", "Karten korrigieren");
     btnCorrect.onclick = function () {
         // Zeige den Korrektur-Bildschirm mit Kartenliste
         showCardCorrectionScreen(guessedOverlay);
@@ -870,7 +694,7 @@ export function showGuessedCardsAfterTimer(playAlarm = true) {
     if (state.currentCard && state.currentCards.some(card => isSameCard(card, state.currentCard))) {
         const btnLastCorrect = document.createElement("button");
         btnLastCorrect.className = "time-up-last-card-btn";
-        btnLastCorrect.textContent = `✅ "${state.currentCard.begriff}" richtig`;
+        setButtonContent(btnLastCorrect, "check", `„${state.currentCard.begriff}“ richtig`);
         btnLastCorrect.onclick = function () {
             if (markCurrentCardCorrectAfterTimer()) {
                 showGuessedCardsAfterTimer(false);
@@ -881,7 +705,7 @@ export function showGuessedCardsAfterTimer(playAlarm = true) {
 
     const btnSkip = document.createElement("button");
     btnSkip.className = "time-up-next-btn";
-    btnSkip.textContent = "➡️ Nächster Spieler";
+    setButtonContent(btnSkip, "next", "Nächster Spieler");
     btnSkip.onclick = function () {
         document.body.removeChild(guessedOverlay);
         endRound();
@@ -905,7 +729,7 @@ export function showCardCorrectionScreen(guessedOverlay) {
 
     const title = document.createElement("h2");
     title.className = "correction-title";
-    title.textContent = "✅ Erratene Karten";
+    title.textContent = "Erratene Karten";
     box.appendChild(title);
 
     // Liste der erratenen Karten

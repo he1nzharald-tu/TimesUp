@@ -11,15 +11,15 @@
     <meta name="apple-mobile-web-app-title" content="TimesUp" />
     <meta name="format-detection" content="telephone=no" />
     <title>Times Up – Mobile App</title>
-    <link rel="stylesheet" href="css/startscreen.css" />
-    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/fonts.css" />
+    <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/screens.css" />
+    <link rel="stylesheet" href="css/effects.css" />
     <link rel="stylesheet" href="css/settings.css" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-    <!-- Schrift Fredoka, lokal eingebunden -->
-    <link rel="stylesheet" href="css/fonts.css">
     <script>
         // Apply persisted theme as early as possible to avoid flash of light theme
         try {
@@ -32,30 +32,48 @@
 
 <body>
 
+    <!-- Linien-Symbole (Verwendung: <svg class="ico"><use href="#i-name"/></svg>) -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+        <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-next" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+        <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+        <symbol id="i-handicap" viewBox="0 0 24 24"><path d="M10 4a2 2 0 1 1 4 0v2h4v4h-2a2 2 0 1 0 0 4h2v4h-4v-2a2 2 0 1 0-4 0v2H6v-4h2a2 2 0 1 0 0-4H6V6h4z"/></symbol>
+        <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 5a3 3 0 0 1 0 6M21 20c0-2.6-1.6-4.8-4-5.6"/></symbol>
+        <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M4 7h3c5 0 5 10 10 10h3M4 17h3c2 0 3-1.5 4-3.5M14 9.5C15 8 16 7 17 7h3M18 4l3 3-3 3M18 14l3 3-3 3"/></symbol>
+        <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></symbol>
+        <symbol id="i-cards" viewBox="0 0 24 24"><rect x="3" y="5" width="12" height="16" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v13"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+        <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+        <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+        <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 5l8 7-8 7zM17 5v14"/></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6M3 20h18"/></symbol>
+        <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/></symbol>
+        <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4"/></symbol>
+        <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10"/></symbol>
+        <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></symbol>
+        <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+        <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol>
+        <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3l10 18H2zM12 10v5M12 18v.01"/></symbol>
+        <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
+        <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 13v4M8 21h8M9 17h6"/></symbol>
+        <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
+        <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
+        <symbol id="i-hand" viewBox="0 0 24 24"><path d="M12 12V4.5a1.5 1.5 0 0 1 3 0V12M15 11V6.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-.5a6 6 0 0 1-5.2-3L3 13.5a1.5 1.5 0 0 1 2.6-1.5L8 15V6.5a1.5 1.5 0 0 1 3 0V12"/></symbol>
+        <symbol id="i-logo" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M5 3L2.5 5.5M19 3l2.5 2.5"/></symbol>
+    </svg>
+
     <!-- === Startbildschirm === -->
     <div id="screen-start" class="screen active">
-        <div class="start-header">
-            <h2 class="app-title">
-                <span class="app-title-icon">⏰</span> TimesUp <span class="app-title-by">by
-                    He1nzHarald</span>
-            </h2>
-            <span id="kartenStatusText">
-                <span class="status-icon">🃏</span> Karten werden geladen...
-            </span>
-            <button id="loadSavesButton" class="secondary">
-                🕑 Archiv
-            </button>
-        </div>
-        <div class="start-controls">
-            <button class="start-icon-btn" onclick="showScreen('settings')" aria-label="Einstellungen">⚙️</button>
-            <input type="text" id="playerInput" placeholder="Spielername eingeben"
-                />
-            <button class="start-icon-btn" onclick="addPlayer()"
-               
-                title="Spieler hinzufügen">➕</button>
-            <button class="start-icon-btn start-continue-btn" onclick="confirmBeforeContinue()">➡️
-                Weiter</button>
-        </div>
+        <header class="start-head">
+            <button id="loadSavesButton" type="button" class="icon-btn" aria-label="Archiv"><svg class="ico" aria-hidden="true"><use href="#i-archive"/></svg><span class="btn-label">Archiv</span></button>
+            <h1 class="app-title"><svg class="ico app-logo" aria-hidden="true"><use href="#i-logo"/></svg>TimesUp <span class="app-title-by">by He1nzHarald</span></h1>
+            <button type="button" class="icon-btn" onclick="showScreen('settings')" aria-label="Einstellungen"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span class="btn-label">Einstellungen</span></button>
+        </header>
+        <p id="kartenStatusText" class="start-status">Karten werden geladen...</p>
         <div class="start-banners">
             <div id="resumeBanner" class="update-banner resume-banner" role="status" hidden>
                 <span id="resumeBannerText">Nicht beendetes Spiel</span>
@@ -69,18 +87,19 @@
                 <button id="updateReloadButton" type="button">Neu laden</button>
             </div>
         </div>
-        <!-- Wrap the table for scrolling -->
-        <div id="playerTableWrapper">
-            <table id="playerTable">
-                <thead>
-                    <tr>
-                        <th>👤 Spielername</th>
-                        <th>🧩 Handicap</th>
-                        <th>🗑️ Entfernen</th>
-                    </tr>
-                </thead>
-                <tbody id="playerTableBody"></tbody>
-            </table>
+        <form class="player-add" onsubmit="event.preventDefault(); addPlayer();" autocomplete="off">
+            <label class="visually-hidden" for="playerInput">Spielername</label>
+            <input type="text" id="playerInput" placeholder="Spielername eingeben" enterkeyhint="done" autocapitalize="words" autocorrect="off" spellcheck="false" maxlength="24" />
+            <button type="submit" class="btn-add" title="Spieler hinzufügen" aria-label="Spieler hinzufügen"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
+        </form>
+        <div class="list-head">
+            <span class="list-head-title">Spieler <span id="playerCount" class="count-badge">0</span></span>
+            <span class="list-head-hint"><svg class="ico" aria-hidden="true"><use href="#i-handicap"/></svg> Handicap = mehr Zeit</span>
+        </div>
+        <ul id="playerList" class="player-list" aria-label="Spieler"></ul>
+        <p id="playerEmptyHint" class="empty-hint">Noch keine Spieler – Namen eingeben und mit <strong>+</strong> hinzufügen.</p>
+        <div class="bottom-bar">
+            <button type="button" class="btn-primary start-continue-btn" onclick="confirmBeforeContinue()"><span>Weiter</span><svg class="ico" aria-hidden="true"><use href="#i-next"/></svg></button>
         </div>
     </div>
 
@@ -182,305 +201,138 @@
 
     <!-- === Bildschirm: Teamauswahl === -->
     <div id="screen-teamauswahl" class="screen">
-        <div class="screen-heading">
-            <span class="tab-btns screen-heading-back">
-                <button onclick="showScreen('start')">⬅️ Zurück</button>
-            </span>
-            <h2 class="screen-heading-title">👥 Teamauswahl
-            </h2>
-        </div>
-        <!-- Wrap the table for scrolling -->
-        <div id="teamTableWrapper">
-            <table id="teamPlayerTable">
-                <thead>
-                    <tr>
-                        <th>👤 Spielername</th>
-                        <th>🧩 Handicap</th>
-                    </tr>
-                </thead>
-                <tbody id="teamPlayerTableBody"></tbody>
-
-            </table>
-        </div>
-        <!-- Fixed bottom button bar -->
-        <div class="bottom-bar bottom-bar-full">
-            <button onclick="assignRandomTeams()">🎲 Zufällige Teams</button>
-            <button onclick="assignTeamsManually()">✍️ Manuelle Zuteilung</button>
+        <header class="app-head">
+            <button type="button" class="head-btn" onclick="showScreen('start')" aria-label="Zurück"><svg class="ico" aria-hidden="true"><use href="#i-back"/></svg><span class="btn-label">Zurück</span></button>
+            <h2 class="app-head-title"><svg class="ico" aria-hidden="true"><use href="#i-users"/></svg>Teams bilden</h2>
+            <span class="head-spacer"></span>
+        </header>
+        <p class="screen-lead">Wie sollen die Teams entstehen? <span class="muted">Danach kannst du sie noch anpassen.</span></p>
+        <ul id="teamPlayerList" class="name-chips" aria-label="Spieler"></ul>
+        <div class="bottom-bar">
+            <button type="button" class="btn-primary" onclick="assignRandomTeams()"><svg class="ico" aria-hidden="true"><use href="#i-shuffle"/></svg><span>Zufällige Teams</span></button>
+            <button type="button" class="btn-secondary" onclick="assignTeamsManually()"><svg class="ico" aria-hidden="true"><use href="#i-pen"/></svg><span>Manuelle Zuteilung</span></button>
         </div>
     </div>
 
     <!-- === Bildschirm: Teamübersicht === -->
     <div id="screen-teamuebersicht" class="screen">
-        <div class="screen-heading">
-            <span class="tab-btns screen-heading-back">
-                <button onclick="showScreen('teamauswahl')">⬅️ Zurück</button>
-            </span>
-            <h2 class="screen-heading-title">👥 Teamübersicht
-            </h2>
-        </div>
-
-        <div id="teamOverviewLegacy" class="teams">
-            <div class="team team-a">
-                <h3>🔴 Team A</h3>
-                <ul id="teamOverviewTeamA"></ul>
-            </div>
-            <div class="team team-b">
-                <h3>🟢 Team B</h3>
-                <ul id="teamOverviewTeamB"></ul>
-            </div>
-        </div>
-
-        <div id="teamsContainer" class="teams-overview-grid">
-        </div>
-        <!-- Fixed bottom button bar -->
-        <div class="bottom-bar bottom-bar-full">
-            <button onclick="startCardSelectionWithoutVeto()">🃏 Kartenauswahl ohne Veto</button>
-            <button onclick="startCardSelection(true)">🃏 Kartenauswahl mit Veto</button>
+        <header class="app-head">
+            <button type="button" class="head-btn" onclick="showScreen('teamauswahl')" aria-label="Zurück"><svg class="ico" aria-hidden="true"><use href="#i-back"/></svg><span class="btn-label">Zurück</span></button>
+            <h2 class="app-head-title"><svg class="ico" aria-hidden="true"><use href="#i-users"/></svg>Teams</h2>
+            <span class="head-spacer"></span>
+        </header>
+        <p class="screen-lead"><svg class="ico" aria-hidden="true"><use href="#i-swap"/></svg>Namen antippen, um Spieler ins nächste Team zu schieben.</p>
+        <div id="teamsContainer" class="team-grid"></div>
+        <div class="bottom-bar">
+            <button type="button" class="btn-secondary" onclick="startCardSelectionWithoutVeto()"><svg class="ico" aria-hidden="true"><use href="#i-shuffle"/></svg><span>Kartenauswahl ohne Veto</span></button>
+            <button type="button" class="btn-primary" onclick="startCardSelection(true)"><svg class="ico" aria-hidden="true"><use href="#i-cards"/></svg><span>Kartenauswahl mit Veto</span></button>
         </div>
     </div>
 
     <!-- === Bildschirm: Kartenauswahl === -->
     <div id="screen-kartenauswahl" class="screen">
+        <header class="app-head card-selection-header">
+            <h2 class="app-head-title"><svg class="ico" aria-hidden="true"><use href="#i-cards"/></svg><span class="card-selection-title">Karten:</span> <span id="cardSelectionPlayerName"></span></h2>
+            <span id="vetoInfoText" class="head-badge"></span>
+        </header>
         <div id="cardSelectionClickArea" onclick="handleCardSelectionClick()">
-
-            <!-- Fixed Top Container -->
-            <div class="card-selection-header">
-                <h2 class="card-selection-title">
-                    🃏 Kartenauswahl -
-                </h2>
-                <h2 id="cardSelectionPlayerName">
-                </h2>
-                <p id="vetoInfoText">
-                </p>
-            </div>
-
-            <!-- Spacer to prevent overlap -->
-            <div id="cardSelectionWrap">
-
-            <p id="cardSelectionInfo"
-              
-               onclick="document.getElementById('vetoInfoText').style.display='block'; this.style.display='none';">
+            <p id="cardSelectionInfo" class="handover" onclick="document.getElementById('vetoInfoText').style.display='inline-flex'; this.style.display='none';">
                 Bitte klicken, um die Kartenauswahl zu starten!
             </p>
-            <ul id="cardSelectionList"></ul>
-            </div>
+            <ul id="cardSelectionList" class="card-choice-list"></ul>
         </div>
-
-        <!-- Fixed bottom button bar -->
         <div class="bottom-bar">
-            <button id="cardDoneButton" onclick="handleCardSelectionDone()">
-                ✅ Fertig
-            </button>
-            <button id="startGameOverviewButton" onclick="prepareGameOverview()">
-                🚀 Spiel starten
-            </button>
+            <button type="button" id="cardDoneButton" class="btn-primary" onclick="handleCardSelectionDone()"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>Fertig</span></button>
+            <button type="button" id="startGameOverviewButton" class="btn-primary" onclick="prepareGameOverview()"><svg class="ico" aria-hidden="true"><use href="#i-next"/></svg><span>Spiel starten</span></button>
         </div>
     </div>
 
     <!-- === Bildschirm: Spielübersicht === -->
     <div id="screen-spieluebersicht" class="screen">
-        <div class="screen-heading">
-            <h2 class="screen-heading-title">📋 Spielübersicht
-            </h2>
-        </div>
-
+        <header class="app-head">
+            <h2 class="app-head-title"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>Spielübersicht</h2>
+        </header>
         <div id="overviewRules" class="overview-rules" aria-label="Regeln dieses Spiels"></div>
-
-        <div class="teams teams-spaced">
-            <div class="team team-a">
-                <h3>🔴 Team A</h3>
-                <ul id="overviewTeamA"></ul>
-            </div>
-            <div class="team team-b">
-                <h3>🟢 Team B</h3>
-                <ul id="overviewTeamB"></ul>
-            </div>
-        </div>
-        
-        <div id="overviewTeamsContainer" class="teams-overview-grid">
-        </div>
-        
+        <div id="overviewTeamsContainer" class="team-grid"></div>
         <div class="bottom-bar">
-            <button onclick="startGame()">🚀 Spiel starten</button>
+            <button type="button" class="btn-primary" onclick="startGame()"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Spiel starten</span></button>
         </div>
     </div>
 
-    <!-- === Bildschirm: Aktiver Spieler === -->
+    <!-- === Bildschirm: Rundenstart (aktiver Spieler) === -->
     <div id="screen-roundstart" class="screen">
-            <div id="roundBorderWrapper">
-            <!-- Linke Ampel -->
-            <div class="round-light round-light-left">
-                <div class="round-light-emoji round-light-emoji-left">
-                    🚦
-                </div>
-            </div>
-            <!-- Hauptinhalt -->
+        <div id="roundBorderWrapper" class="round-card">
+            <div class="round-lights" aria-hidden="true"><span></span><span></span><span></span></div>
             <div class="round-main">
-                <div id="roundPlayerTeam">
-                    Team
-                </div>
-                <h2 id="roundPlayerName">
-                </h2>
-
-                <div id="roundStartInfo" class="round-start-info">
-                    <span id="roundStartTime">Zeit: -</span>
-                    <span id="roundStartRule">Regel: -</span>
-                    <span id="roundStartSkip">Überspringen: -</span>
-                </div>
-                
-                <button onclick="confirmStartRound()" id="startRoundBtn">
-                    ▶️ Start!
-                </button>
+                <div id="roundPlayerTeam" class="team-pill">Team</div>
+                <h2 id="roundPlayerName"></h2>
+                <p class="round-hint">ist dran</p>
             </div>
-            <!-- Rechte Ampel -->
-            <div class="round-light round-light-right">
-                <div class="round-light-emoji round-light-emoji-right">
-                    🚦
-                </div>
+            <div id="roundStartInfo" class="round-start-info">
+                <div class="info-tile"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span class="info-label">Zeit</span><span id="roundStartTime" class="info-value">-</span></div>
+                <div class="info-tile"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span class="info-label">Regel</span><span id="roundStartRule" class="info-value">-</span></div>
+                <div class="info-tile"><svg class="ico" aria-hidden="true"><use href="#i-skip"/></svg><span class="info-label">Überspringen</span><span id="roundStartSkip" class="info-value">-</span></div>
             </div>
+        </div>
+        <div class="bottom-bar">
+            <button type="button" id="startRoundBtn" class="btn-primary btn-team" onclick="confirmStartRound()"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Start!</span></button>
         </div>
     </div>
 
     <!-- === Spielbildschirm === -->
     <div id="screen-play" class="screen">
         <div class="play-header">
-    <div id="timerDisplay" class="play-timer">60s</div>
-    <div class="play-playerinfo">
-        <span id="playRoundPlayer">Spielername</span>
-        <span class="play-separator">–</span>
-    <span id="playRoundTeam">Team A</span>
-    </div>
-    <div class="play-pause" onclick="pauseGame()" title="Pausieren">
-        ⏸️
-    </div>
-</div>
-<div class="play-main">
-    <div id="currentCardDisplay" onclick="toggleExplanation()">
-            <div id="cardTerm">Begriff erscheint hier</div>
-        <div id="cardExplanation"></div>
-        <span id="cardTip">Tippen für Erklärung</span>
-    </div>
-</div>
-<!-- Fixed bottom button bar -->
-<div class="play-actions">
-    <button id="btnMistake" onclick="handleMistake()">
-        ❌ Fehler
-    </button>
-    <button id="btnSkip" onclick="handleSkip()">
-        🔁 Überspringen
-    </button>
-    <button id="btnCorrect" onclick="handleCorrect()">
-        ✅ Richtig
-    </button>
-</div>
+            <div class="play-timer-wrap">
+                <div id="timerDisplay" class="play-timer" role="timer" aria-live="off">60s</div>
+                <div class="play-progress" aria-hidden="true"><span id="timerBar"></span></div>
+            </div>
+            <div class="play-playerinfo">
+                <span id="playRoundPlayer">Spielername</span>
+                <span id="playRoundTeam" class="team-pill team-pill-small">Team A</span>
+            </div>
+            <span class="play-remaining" title="Karten im Stapel"><svg class="ico" aria-hidden="true"><use href="#i-cards"/></svg><span id="playRemaining">0</span> Karten · <span id="playScore"></span></span>
+            <button type="button" class="icon-btn play-pause" onclick="pauseGame()" title="Pausieren" aria-label="Pausieren"><svg class="ico" aria-hidden="true"><use href="#i-pause"/></svg></button>
+        </div>
+        <div class="play-main">
+            <div id="currentCardDisplay" onclick="toggleExplanation()">
+                <div id="cardTerm">Begriff erscheint hier</div>
+                <div id="cardExplanation" hidden></div>
+                <span id="cardTip"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg>Tippen für Erklärung</span>
+            </div>
+        </div>
+        <div class="play-actions">
+            <button type="button" id="btnMistake" onclick="handleMistake()"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg><span>Fehler</span></button>
+            <button type="button" id="btnSkip" onclick="handleSkip()"><svg class="ico" aria-hidden="true"><use href="#i-skip"/></svg><span>Überspringen</span></button>
+            <button type="button" id="btnCorrect" onclick="handleCorrect()"><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>Richtig</span></button>
+        </div>
     </div>
 
     <!-- === Statistik nach Runde === -->
     <div id="screen-roundstats" class="screen">
-        <div class="screen-heading">
-            <h2 class="screen-heading-title">
-                📊 Rundenstatistik
-            </h2>
-        </div>
-        <div class="stats-teams">
-            <div class="team team-a stats-team-a">
-                <h3 id="statsTeamATitle">
-                    🔴 Team A – <span id="pointsTeamA">0</span> Punkte<span class="penalty-note" id="penaltyTeamA"></span>
-                </h3>
-                <ul id="statsTeamAList"></ul> <!-- Hier stehen die Spielernamen von Team A -->
-            </div>
-            <div class="team team-b stats-team-b">
-                <h3 id="statsTeamBTitle">
-                    🟢 Team B – <span id="pointsTeamB">0</span> Punkte<span class="penalty-note" id="penaltyTeamB"></span>
-                </h3>
-                <ul id="statsTeamBList"></ul> <!-- Hier stehen die Spielernamen von Team B -->
-            </div>
-        </div>
-        
-        <div id="statsContainer" class="teams-overview-grid">
-        </div>
-        <div class="stats-footer">
-            <span id="statsRoundNumberInfo">
-    Beendete Runde: <span id="statsRoundNumber">1</span>
-</span>
-            <br>
-            <div class="bottom-bar">
-            <button class="next-round-btn" onclick="nextGameRound()">
-                ▶️ Nächste Runde starten
-            </button>
-            </div>
+        <header class="app-head">
+            <h2 class="app-head-title"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg>Rundenstatistik</h2>
+            <span id="statsRoundNumberInfo" class="head-badge">Runde <span id="statsRoundNumber">1</span> beendet</span>
+        </header>
+        <div id="statsContainer" class="team-grid"></div>
+        <div class="bottom-bar">
+            <button type="button" class="btn-primary next-round-btn" onclick="nextGameRound()"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Nächste Runde starten</span></button>
         </div>
     </div>
 
     <!-- === Endergebnis Bildschirm === -->
     <div id="screen-end" class="screen">
         <div class="fireworks" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
-        <h2 class="end-title">
-            🏁 Spiel beendet
-        </h2>
-        <div id="finalTwoTeamContainer">
-            <!-- Team A -->
-            <div id="finalTeamACard">
-                <h3 class="final-team-title final-team-title-a">
-                    🔴 Team A
-                </h3>
-                <p class="final-points">
-                    <strong>Gesamtpunkte:</strong>
-                    <span id="finalPointsA">0</span>
-                    <span class="penalty-note" id="finalPenaltyA"></span>
-                </p>
-                <div class="final-table-wrap">
-                    <table class="final-table">
-                        <thead class="final-table-head">
-                            <tr>
-                                <th class="th-left">Spielername</th>
-                                <th class="th-center">Handicap</th>
-                            </tr>
-                        </thead>
-                        <tbody id="finalTeamA"></tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- Team B -->
-            <div id="finalTeamBCard">
-                <h3 class="final-team-title final-team-title-b">
-                    🟢 Team B
-                </h3>
-                <p class="final-points">
-                    <strong>Gesamtpunkte:</strong>
-                    <span id="finalPointsB">0</span>
-                    <span class="penalty-note" id="finalPenaltyB"></span>
-                </p>
-                <div class="final-table-wrap">
-                    <table class="final-table">
-                        <thead class="final-table-head">
-                            <tr>
-                                <th class="th-left">Spielername</th>
-                                <th class="th-center">Handicap</th>
-                            </tr>
-                        </thead>
-                        <tbody id="finalTeamB"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <div id="finalTeamsContainer" class="teams-overview-grid">
-        </div>
-        
+        <header class="end-head">
+            <svg class="ico" aria-hidden="true"><use href="#i-trophy"/></svg>
+            <h2 class="end-title">Spiel beendet</h2>
+            <p id="endWinnerText" class="end-winner"></p>
+        </header>
+        <div id="finalTeamsContainer" class="team-grid final-grid"></div>
         <div class="bottom-bar">
-            <button class="back-to-start-btn" onclick="resetGameState(); showScreen('start')">
-                🔁 Zurück zum Start
-            </button>
+            <button type="button" class="btn-secondary play-again-btn" onclick="playAgain()"><svg class="ico" aria-hidden="true"><use href="#i-repeat"/></svg><span>Nochmal spielen</span></button>
+            <button type="button" class="btn-primary back-to-start-btn" onclick="resetGameState(); showScreen('start')"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg><span>Zurück zum Start</span></button>
         </div>
     </div>
 

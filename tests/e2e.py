@@ -77,9 +77,8 @@ def run_game(page, max_turns=200):
     raise AssertionError("Spiel endet nicht")
 
 def final_points(page):
-    return page.evaluate("[...document.querySelectorAll('#finalPointsA,#finalPointsB')].map(e=>+e.textContent)") \
-        if page.locator("#finalTwoTeamContainer").is_visible() else \
-        page.evaluate("[...document.querySelectorAll('#finalTeamsContainer .team-overview-card p')].map(p=>+p.textContent.replace(/\\D+/g,''))")
+    return page.evaluate("[...document.querySelectorAll('#finalTeamsContainer .team-card')].sort((a, b) => a.dataset.team - b.dataset.team)"
+                         ".map(c => +c.querySelector('[data-points]').dataset.points)")
 
 # ---------------------------------------------------------------- Tests
 def test_full_game_two_teams(b, base):
@@ -164,7 +163,7 @@ def test_skip_no_return_setting(b, base):
 
 def test_skip_setting_ui(b, base):
     page = new_page(b, base, None)
-    page.click("button:has-text('⚙️')")
+    page.click("button[aria-label='Einstellungen']")
     page.click("#settingsTab-spiel")
     page.click("[data-round='2'] .round-head")
     assert page.locator("#skipReturn2").count() == 1, "Einstellung fehlt"
@@ -180,7 +179,7 @@ def test_skip_setting_ui(b, base):
     assert st["skipReturn"][1] == "no", st
     page.reload(); tick(page, 50)
     assert page.input_value("#skipReturn2") == "no" and page.is_visible("#skipReturn2") is False or True
-    page.click("button:has-text('⚙️')")
+    page.click("button[aria-label='Einstellungen']")
     page.click("#settingsTab-spiel")
     page.click("[data-round='2'] .round-head")
     assert page.is_visible(".switch[data-for='skipReturn2']") and page.input_value("#skipReturn2") == "no", "nach Neuladen nicht wiederhergestellt"
@@ -323,7 +322,7 @@ def test_screen_fills_device(b, base):
     page = new_page(b, base, None, viewport=(402, 874))
     page.add_style_tag(content=":root{--sa-top:62px!important;--sa-bottom:34px!important}")
     add_players(page, ["Anna", "Ben"])
-    top = page.evaluate("document.querySelector('#screen-start .start-header').getBoundingClientRect().top")
+    top = page.evaluate("document.querySelector('#screen-start .start-head').getBoundingClientRect().top")
     assert top >= 62, top
     page.click("text=Weiter"); ok(page)
     bar = page.evaluate("document.querySelector('#screen-teamauswahl .bottom-bar button').getBoundingClientRect().bottom")
@@ -404,14 +403,14 @@ def test_penalty_points_round_stats(b, base):
 def test_default_turn_time(b, base):
     """Standardzeit 30 s: frische Installation (Einstellungen und Spiel) und Button "Standardwerte"."""
     page = new_page(b, base, None)
-    page.click("button:has-text('⚙️')")
+    page.click("button[aria-label='Einstellungen']")
     assert [page.input_value(f"#timer{i}") for i in (1, 2, 3)] == ["30"] * 3
     page.click("#settingsTab-spiel"); page.click("[data-round='1'] .round-head")
     page.fill("#timer1", "45"); page.click("text=Standardwerte")
     assert page.input_value("#timer1") == "30"
     page2 = new_page(b, base, None)           # nie gespeicherte Einstellungen
     setup_game(page2, ["Anna", "Ben"], veto=False)
-    assert "30s" in page2.text_content("#roundStartTime")
+    assert "30 s" in page2.text_content("#roundStartTime")
     page2.click("#startRoundBtn"); ok(page2)
     assert page2.text_content("#timerDisplay").strip() == "30s"
 
@@ -826,7 +825,7 @@ def test_penalty_setting_migration(b, base):
     for extra, expected in cases:
         s = copy.deepcopy(DEFAULT_SETTINGS); s.pop("punishPoints", None); s.update(extra)
         page = new_page(b, base, s)
-        page.click("button:has-text('⚙️')")
+        page.click("button[aria-label='Einstellungen']")
         page.click("#settingsTab-fairness")
         assert page.is_visible(".segment[data-for='penaltyPoints']"), "Punktabzug muss ohne Strafzeit sichtbar sein"
         pressed = page.get_attribute(f".segment[data-for='penaltyPoints'] button[data-value='{expected}']", "aria-pressed")
