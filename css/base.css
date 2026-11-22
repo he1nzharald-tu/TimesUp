@@ -607,7 +607,7 @@ button.secondary {
   text-align: center;
 }
 .overlay .overlay-title .ico { width: 28px; height: 28px; }
-.overlay .overlay-box > button {
+.overlay .overlay-box > button:not(.overlay-close) {
   display: flex;
   align-items: center;
   justify-content: center;

@@ -463,6 +463,26 @@ def test_install_hint_ios(b, base):
     assert not other.is_visible("#installBanner")
     ctx.close(); other.context.close()
 
+def test_card_explanation_stays_centered(b, base):
+    """Antippen des Begriffs: Begriff + Erklärung bleiben mittig (früher rutschten sie an den unteren Rand)."""
+    for vp in [(874, 402), (402, 874)]:
+        page = new_page(b, base, None, viewport=vp)
+        setup_game(page, ["Anna", "Ben"], veto=False)
+        page.click("#startRoundBtn"); ok(page)
+        def centers():
+            return page.evaluate("""(() => { const c = document.getElementById('currentCardDisplay').getBoundingClientRect();
+                const t = document.getElementById('cardTerm').getBoundingClientRect();
+                const e = document.getElementById('cardExplanation');
+                const last = e.hidden ? t : e.getBoundingClientRect();
+                return [(c.top + c.bottom) / 2, (t.top + last.bottom) / 2, c.height]; })()""")
+        c0, m0, h = centers()
+        assert abs(c0 - m0) < h * 0.15, ("Begriff nicht mittig", vp, c0, m0)
+        page.click("#currentCardDisplay")
+        assert page.is_visible("#cardExplanation")
+        c1, m1, h = centers()
+        assert abs(c1 - m1) < h * 0.15, ("Begriff+Erklärung nicht mittig", vp, c1, m1)
+        page.context.close()
+
 def test_default_turn_time(b, base):
     """Standardzeit 30 s: frische Installation (Einstellungen und Spiel) und Button "Standardwerte"."""
     page = new_page(b, base, None)
