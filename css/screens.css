@@ -467,7 +467,7 @@
   font-size: clamp(1.6rem, 1.2rem + 2vw, 2.4rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--team);
+  color: var(--team-ink);
   line-height: 1;
 }
 .play-progress {
@@ -579,9 +579,9 @@
   box-shadow: var(--shadow-s);
 }
 .play-actions > button .ico { width: 28px; height: 28px; stroke-width: 2.4; }
-#btnMistake { background: #e8505b; }
+#btnMistake { background: #c9303c; }
 #btnSkip { background: var(--accent-c); color: var(--accent-c-text); }
-#btnCorrect { background: #00a383; flex-grow: 1.4 !important; }
+#btnCorrect { background: #007f63; flex-grow: 1.4 !important; }
 #btnSkip:disabled { background: var(--panel); color: var(--muted); opacity: 1; }
 #btnCorrect:disabled,
 #btnMistake:disabled { opacity: 0.4; }

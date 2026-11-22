@@ -198,6 +198,35 @@ AUDIT = r"""([sa, primary]) => {
       if (b.top < 0 || b.bottom > vh + 1 || clippedAway(p)) out.errors.push(`Hauptaktion außerhalb des Bildschirms: ${label(p)}`);
     }
   }
+  // Kontrast (WCAG AA): 4,5:1, große Schrift 3:1; Hintergründe mit Verlauf werden übersprungen
+  const parse = c => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; };
+  const lum = ([r, g, b]) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
+  const bgOf = e => {
+    for (let p = e; p; p = p.parentElement) {
+      const st = getComputedStyle(p);
+      if (st.backgroundImage && st.backgroundImage !== 'none' && !p.classList.contains('screen')) return null;
+      const c = parse(st.backgroundColor);
+      if (c && c[3] > 0.9) return c;
+    }
+    return [255, 255, 255, 1];
+  };
+  const seen = new Set();
+  for (const e of scope.querySelectorAll('*')) {
+    const txt = [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+    if (!txt || !vis(e) || clippedAway(e)) continue;
+    const st = getComputedStyle(e);
+    if (+st.opacity < 1 || e.closest('button:disabled')) continue;
+    const fg = parse(st.color), bg = bgOf(e);
+    if (!fg || !bg) continue;
+    const L1 = lum(fg), L2 = lum(bg);
+    const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+    const size = parseFloat(st.fontSize), bold = parseInt(st.fontWeight) >= 600;
+    const need = (size >= 24 || (bold && size >= 18.6)) ? 3 : 4.5;
+    if (ratio < need - 0.05) {
+      const key = label(e);
+      if (!seen.has(key)) { seen.add(key); out.hints.push(`Kontrast ${ratio.toFixed(1)}:1 (nötig ${need}): ${key}`); }
+    }
+  }
   out.errors = [...new Set(out.errors)];
   out.hints = [...new Set(out.hints)];
   return out;
@@ -252,6 +281,8 @@ class Run:
         page = new_page(b, base, settings=s, viewport=(w, h), theme=theme)
         page.emulate_media(reduced_motion="reduce")   # Animationen sofort im Endzustand
         page.add_style_tag(content=SA_CSS % sa)
+        if getattr(self, "font_scale", 1.0) != 1.0:   # größere Systemschrift (Android/iOS-Zoom) nachbilden
+            page.add_style_tag(content="html{font-size:%d%% !important}" % round(self.font_scale * 100))
         shot = lambda name: self.shot(page, tag, name, sa, quer)
         shot("01-start")
         for n in ["Anna", "Ben", "Carla", "David", "Emil", "Frieda", "Gustav", "Hanna"]:
@@ -370,6 +401,7 @@ def main():
     ap.add_argument("devices", nargs="*", help="Geräte (Standard: alle): " + ", ".join(DEVICES))
     ap.add_argument("--dark", action="store_true", help="zusätzlich im dunklen Design")
     ap.add_argument("--strict", action="store_true", help="Exit-Code 1, wenn Fehler gefunden werden")
+    ap.add_argument("--font-scale", type=float, default=1.0, help="Systemschrift vergrößern, z. B. 1.3")
     ap.add_argument("--no-mask", action="store_true", help="Systembereiche nicht einblenden")
     ap.add_argument("--out", default=str(Path(__file__).resolve().parent / "layout-out"))
     args = ap.parse_args()
@@ -378,6 +410,7 @@ def main():
     if unknown:
         ap.error("unbekannte Geräte: " + ", ".join(unknown))
     run = Run(args.out, mask=not args.no_mask)
+    run.font_scale = args.font_scale
     themes = ["light", "dark"] if args.dark else ["light"]
     failed = []
     with server() as base, browser() as b:

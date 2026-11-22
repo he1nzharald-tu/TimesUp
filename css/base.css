@@ -22,7 +22,7 @@
   --accent-b: #00b894;
   --accent-c: #f6d100;
   --accent-c-text: #000000;
-  --primary: linear-gradient(90deg, #74b9ff 0%, #a29bfe 100%);
+  --primary: linear-gradient(90deg, #3b6fd8 0%, #6b5ce0 100%);   /* weiße Schrift: Kontrast ≥ 4,7:1 */
   --primary-solid: #6c8cf5;
   --card-bg: #ffffff;
   --on-accent: #ffffff;
@@ -64,7 +64,7 @@
   --accent-b: #5ce1b8;
   --accent-c: #f5b400;
   --accent-c-text: #0b0b0b;
-  --primary: linear-gradient(90deg, #3b82f6 0%, #7c3aed 100%);
+  --primary: linear-gradient(90deg, #356ad6 0%, #7c3aed 100%);
   --primary-solid: #5b6ff0;
   --card-bg: #0b1220;
   --text: #e6eef6;
@@ -92,6 +92,17 @@
   --bg-glow-a: rgba(255, 139, 148, 0.07);
   --bg-glow-b: rgba(59, 130, 246, 0.1);
   color-scheme: dark;
+}
+
+/* Teamfarbe in lesbaren Varianten (Teamfarbe kommt per JS als --team auf Bildschirm/Karte) */
+.screen,
+.team-card {
+  --team-fill: color-mix(in srgb, var(--team) 65%, #000);      /* Fläche mit weißer Schrift */
+  --team-ink: color-mix(in srgb, var(--team) 65%, #000);       /* Schrift auf hellem Grund */
+}
+.dark .screen,
+.dark .team-card {
+  --team-ink: color-mix(in srgb, var(--team) 75%, #fff);
 }
 
 /* --- Grundelemente --------------------------------------------------- */
@@ -231,7 +242,7 @@ button.secondary {
   border: 1.5px solid color-mix(in srgb, var(--blue) 35%, var(--line));
 }
 .btn-team {
-  background: var(--team);
+  background: var(--team-fill);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--team) 40%, transparent);
 }
 
@@ -616,7 +627,7 @@ button.secondary {
   border: 1.5px solid color-mix(in srgb, var(--blue) 35%, var(--line));
 }
 #guessedOverlay .time-up-last-card-btn {
-  background: #00a383;
+  background: #007f63;
   color: #fff;
 }
 .correction-list {
