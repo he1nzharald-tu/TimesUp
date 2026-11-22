@@ -19,21 +19,19 @@ const APP_FILES = [
   './icon.png',
   './css/startscreen.css',
   './js/app.js',
-  './js/db_Karten.xlsx',
+  './data/cards.json',
   './assets/Alarm.m4a',
   './assets/timer5.m4a'
 ];
 
 // Fremde Dateien: werden nach Möglichkeit mitgeladen, ein Fehler bricht die Installation nicht ab.
 const EXTERNAL_FILES = [
-  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
   'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap'
 ];
 
 // Hosts, deren Antworten beim ersten Abruf zusätzlich zwischengespeichert werden
 // (z. B. die eigentlichen Schriftdateien, die erst das Google-Fonts-CSS nachlädt).
 const RUNTIME_CACHE_HOSTS = [
-  'cdn.jsdelivr.net',
   'fonts.googleapis.com',
   'fonts.gstatic.com'
 ];

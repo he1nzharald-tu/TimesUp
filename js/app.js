@@ -294,28 +294,22 @@ function openArchive() {
     document.body.appendChild(overlay);
 }
 
-// === Load Cards from Excel ===
-async function loadKartenFromExcel() {
-    const filePath = 'js/db_Karten.xlsx';
+// === Karten laden (data/cards.json, erzeugt mit scripts/export_cards.py) ===
+async function loadCards() {
+    const filePath = 'data/cards.json';
     try {
-        if (!window.XLSX) {
-            throw new Error("XLSX-Bibliothek wurde nicht geladen.");
-        }
         const response = await fetch(filePath);
         if (!response.ok) {
             throw new Error(`Karten-Datei konnte nicht geladen werden (${response.status}).`);
         }
-        const data = await response.arrayBuffer();
-        const workbook = XLSX.read(data, { type: "array" });
-        if (!workbook.SheetNames.length) {
-            throw new Error("Karten-Datei enthält kein Tabellenblatt.");
+        const data = await response.json();
+        const rows = Array.isArray(data) ? data : data?.cards;
+        if (!Array.isArray(rows)) {
+            throw new Error("Karten-Datei hat ein unbekanntes Format.");
         }
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
         cardPool = ensureUniqueCardIds(rows
-            .filter(row => row[0] && row[1])
-            .map(row => makeCard(row[0], row[1]))
+            .map(row => makeCard(row.begriff, row.erklaerung, row.id))
             .filter(card => card.begriff && card.erklaerung));
 
         setCardLoadStatusText(`${cardPool.length} Karten erfolgreich geladen`);
@@ -2177,7 +2171,7 @@ function showCardCorrectionScreen(guessedOverlay) {
 // === Initial Load ===
 renderRoundSettings();
 loadSettingsFromStorage();
-loadKartenFromExcel();
+loadCards();
 
 // === Theme (Design) Management ===
 function applyTheme(theme) {
