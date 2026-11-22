@@ -64,6 +64,101 @@ function appendText(parent, tagName, text, styles = {}) {
     return el;
 }
 
+// === Eigene Dialoge (ersetzen alert/confirm) ===
+// showAppDialog liefert ein Promise: true = OK, false = Abbrechen.
+// onOk läuft synchron im Klick, z. B. um Audio unter iOS freizuschalten.
+let dialogQueue = Promise.resolve();
+
+function showAppDialog({ message, title = "", okText = "OK", cancelText = null, danger = false, onOk = null }) {
+    const run = () => new Promise(resolve => {
+        const previousFocus = document.activeElement;
+        const backdrop = document.createElement("div");
+        backdrop.className = "app-dialog-backdrop";
+
+        const dialog = document.createElement("div");
+        dialog.className = "app-dialog";
+        dialog.setAttribute("role", cancelText ? "alertdialog" : "dialog");
+        dialog.setAttribute("aria-modal", "true");
+
+        if (title) {
+            const heading = appendText(dialog, "h2", title);
+            heading.className = "app-dialog-title";
+            heading.id = "appDialogTitle";
+            dialog.setAttribute("aria-labelledby", heading.id);
+        }
+        const text = appendText(dialog, "p", message);
+        text.className = "app-dialog-message";
+        text.id = "appDialogMessage";
+        dialog.setAttribute("aria-describedby", text.id);
+
+        const actions = document.createElement("div");
+        actions.className = "app-dialog-actions";
+        let cancelBtn = null;
+        if (cancelText) {
+            cancelBtn = appendText(actions, "button", cancelText);
+            cancelBtn.type = "button";
+            cancelBtn.className = "secondary";
+            cancelBtn.setAttribute("data-dialog-cancel", "");
+        }
+        const okBtn = appendText(actions, "button", okText);
+        okBtn.type = "button";
+        okBtn.setAttribute("data-dialog-ok", "");
+        if (danger) okBtn.classList.add("danger");
+        dialog.appendChild(actions);
+        backdrop.appendChild(dialog);
+
+        const close = result => {
+            document.removeEventListener("keydown", onKey, true);
+            backdrop.remove();
+            if (previousFocus && typeof previousFocus.focus === "function") {
+                try { previousFocus.focus({ preventScroll: true }); } catch (e) {}
+            }
+            resolve(result);
+        };
+        const onKey = event => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                close(false);
+            } else if (event.key === "Enter" && document.activeElement !== cancelBtn) {
+                event.preventDefault();
+                okBtn.click();
+            } else if (event.key === "Tab") {
+                // Fokus im Dialog halten
+                const buttons = [cancelBtn, okBtn].filter(Boolean);
+                const index = buttons.indexOf(document.activeElement);
+                event.preventDefault();
+                buttons[(index + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length].focus();
+            }
+        };
+        okBtn.addEventListener("click", () => {
+            if (onOk) {
+                try { onOk(); } catch (e) { console.error(e); }
+            }
+            close(true);
+        });
+        if (cancelBtn) cancelBtn.addEventListener("click", () => close(false));
+        backdrop.addEventListener("click", event => {
+            if (event.target === backdrop) close(!cancelText);
+        });
+        document.addEventListener("keydown", onKey, true);
+
+        document.body.appendChild(backdrop);
+        okBtn.focus({ preventScroll: true });
+    });
+
+    const result = dialogQueue.then(run);
+    dialogQueue = result.catch(() => {});
+    return result;
+}
+
+function appAlert(message, options = {}) {
+    return showAppDialog({ message, ...options });
+}
+
+function appConfirm(message, options = {}) {
+    return showAppDialog({ message, okText: "OK", cancelText: "Abbrechen", ...options });
+}
+
 function readArchiveStore() {
     return readJsonStore(ARCHIVE_STORAGE_KEY, {});
 }
@@ -189,14 +284,14 @@ function loadArchiveEntry(archive) {
     updatePlayerTable();
     saveSettingsToStorage();
     updateKartenStatusText(`Archiv ${archive.id} geladen - ${(archive.usedCards || []).length} Karten gesperrt`);
-    alert("Archiv geladen. Die Spieler wurden übernommen. Die Teams können jetzt neu gemischt werden.");
+    appAlert("Die Spieler wurden übernommen. Die Teams können jetzt neu gemischt werden.", { title: "Archiv geladen" });
 }
 
 function openArchive() {
     const store = readArchiveStore();
     const archives = Object.values(store).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
     if (archives.length === 0) {
-        alert("Es gibt noch keine gespeicherten Spiele im Archiv.");
+        appAlert("Es gibt noch keine gespeicherten Spiele im Archiv.");
         return;
     }
 
@@ -263,8 +358,11 @@ function openArchive() {
         deleteBtn.style.width = "auto";
         deleteBtn.style.background = "var(--danger)";
         deleteBtn.style.color = "var(--on-accent)";
-        deleteBtn.onclick = () => {
-            if (!confirm(`Soll der Archiv-Eintrag ${archive.id} wirklich gelöscht werden?`)) return;
+        deleteBtn.onclick = async () => {
+            const confirmed = await appConfirm(`Soll der Archiv-Eintrag ${archive.id} wirklich gelöscht werden?`, {
+                okText: "Löschen", danger: true
+            });
+            if (!confirmed) return;
             const updatedStore = readArchiveStore();
             delete updatedStore[archive.id];
             writeArchiveStore(updatedStore);
@@ -402,10 +500,6 @@ function showTab(tabId) {
     }
 }
 
-function continueToNext() {
-    alert("Hier folgt der nächste Bildschirm…");
-}
-
 function getDefaultRuleOptions() {
     return [
         "Nur beschreiben",
@@ -539,13 +633,13 @@ function validateSettingsAndGoBack() {
     for (let i = 1; i <= roundCount; i++) {
         const rule = document.getElementById(`rule${i}`);
         if (!rule || !rule.value || rule.value === "") {
-            alert(`⚠️ Bitte wähle eine Regel für Runde ${i}.`);
+            appAlert(`Bitte wähle eine Regel für Runde ${i}.`, { title: "Regel fehlt" });
             return;
         }
         if (rule.value === "custom") {
             const customRule = document.getElementById(`customRule${i}`)?.value.trim();
             if (!customRule) {
-                alert(`⚠️ Bitte gib eine eigene Regel für Runde ${i} ein.`);
+                appAlert(`Bitte gib eine eigene Regel für Runde ${i} ein.`, { title: "Regel fehlt" });
                 return;
             }
         }
@@ -696,12 +790,14 @@ function togglePunishOptions() {
 }
 
 // === Team Management ===
-function confirmBeforeContinue() {
+async function confirmBeforeContinue() {
     if (players.length === 0) {
-        alert("Bitte füge zuerst mindestens einen Spieler hinzu.");
+        appAlert("Bitte füge zuerst mindestens einen Spieler hinzu.");
         return;
     }
-    const confirmed = confirm("Sind alle Spieler hinzugefügt und alle Einstellungen getroffen?");
+    const confirmed = await appConfirm("Sind alle Spieler hinzugefügt und alle Einstellungen getroffen?", {
+        okText: "Weiter", cancelText: "Zurück"
+    });
     if (confirmed) {
         renderTeamPlayerList();
         showScreen("teamauswahl");
@@ -853,11 +949,11 @@ function refreshStartCardStatus() {
 
 function canStartCardSelection() {
     if (players.length === 0) {
-        alert("Bitte füge zuerst mindestens einen Spieler hinzu.");
+        appAlert("Bitte füge zuerst mindestens einen Spieler hinzu.");
         return false;
     }
     if (cardPool.length === 0) {
-        alert("Es wurden noch keine Karten geladen.");
+        appAlert("Es wurden noch keine Karten geladen.");
         return false;
     }
     return true;
@@ -887,18 +983,18 @@ function resetCardSelectionUi() {
     if (startBtn) startBtn.style.display = "none";
 }
 
-function startCardSelection(withVeto) {
+async function startCardSelection(withVeto) {
     if (!canStartCardSelection()) return;
     const totalCards = toPositiveInt(document.getElementById("cardCount")?.value, 40);
     const availableCardPool = getAvailableCardPoolForArchive();
     if (availableCardPool.length === 0) {
-        alert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
+        appAlert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
         return;
     }
     cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
     const cardsPerPlayer = Math.floor(cardSelectionTargetCount / players.length);
     if (cardSelectionTargetCount < totalCards) {
-        alert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
+        await appAlert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
     }
     shuffledCardPool = shuffleArray(availableCardPool);
     playingCards = [];
@@ -912,17 +1008,17 @@ function startCardSelection(withVeto) {
     showScreen("kartenauswahl");
 }
 
-function startCardSelectionWithoutVeto() {
+async function startCardSelectionWithoutVeto() {
     if (!canStartCardSelection()) return;
     const totalCards = toPositiveInt(document.getElementById("cardCount")?.value, 40);
     const availableCardPool = getAvailableCardPoolForArchive();
     if (availableCardPool.length === 0) {
-        alert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
+        appAlert("Für diese Archiv-ID sind keine neuen Karten mehr verfügbar.");
         return;
     }
     cardSelectionTargetCount = Math.min(totalCards, availableCardPool.length);
     if (cardSelectionTargetCount < totalCards) {
-        alert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
+        await appAlert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
     }
     shuffledCardPool = shuffleArray(availableCardPool);
     playingCards = shuffledCardPool.slice(0, cardSelectionTargetCount);
@@ -989,15 +1085,18 @@ function updateVetoDisplay() {
     }
 }
 
-function handleCardVeto(listItem, index) {
+async function handleCardVeto(listItem, index) {
     if (remainingVetos <= 0) {
-        alert("Du hast keine Vetos mehr.");
+        appAlert("Du hast keine Vetos mehr.");
         return;
     }
-    const confirmVeto = confirm("Willst du wirklich ein Veto verwenden, um diese Karte auszutauschen?");
+    const confirmVeto = await appConfirm("Willst du wirklich ein Veto verwenden, um diese Karte auszutauschen?", {
+        okText: "Veto einsetzen"
+    });
     if (!confirmVeto) return;
+    if (remainingVetos <= 0 || listItem.style.pointerEvents === "none") return;
     if (shuffledCardPool.length === 0) {
-        alert("Es sind keine Karten mehr verfügbar.");
+        appAlert("Es sind keine Karten mehr verfügbar.");
         return;
     }
     const newCard = shuffledCardPool.shift();
@@ -1012,11 +1111,13 @@ function handleCardVeto(listItem, index) {
         `Du hast ${remainingVetos} Veto${remainingVetos !== 1 ? 's' : ''}`;
 }
 
-function handleCardSelectionDone() {
+async function handleCardSelectionDone() {
     const startOverviewButton = document.getElementById("startGameOverviewButton");
     if (startOverviewButton) startOverviewButton.style.display = "none";
     if (remainingVetos > 0) {
-        const confirmFinish = confirm(`Du hast noch ${remainingVetos} Veto${remainingVetos !== 1 ? 's' : ''} übrig. Möchtest du wirklich fortfahren?`);
+        const confirmFinish = await appConfirm(`Du hast noch ${remainingVetos} Veto${remainingVetos !== 1 ? 's' : ''} übrig. Möchtest du wirklich fortfahren?`, {
+            okText: "Fortfahren", cancelText: "Zurück"
+        });
         if (!confirmFinish) return;
     }
     const ul = document.getElementById("cardSelectionList");
@@ -1327,11 +1428,11 @@ function buildTeamTurnOrder() {
 
 function startGame() {
     if (playingCards.length === 0) {
-        alert("Bitte wähle zuerst Karten aus.");
+        appAlert("Bitte wähle zuerst Karten aus.");
         return;
     }
     if (!teams.some(team => Array.isArray(team) && team.length > 0)) {
-        alert("Bitte teile zuerst Teams ein.");
+        appAlert("Bitte teile zuerst Teams ein.");
         return;
     }
     ensureActiveArchive();
@@ -1361,7 +1462,7 @@ function showStartRoundScreen() {
         setNextPlayer();
     }
     if (!activePlayer) {
-        alert("Es ist kein aktiver Spieler verfügbar. Bitte prüfe die Teams.");
+        appAlert("Es ist kein aktiver Spieler verfügbar. Bitte prüfe die Teams.");
         showScreen("teamuebersicht");
         return;
     }
@@ -1842,11 +1943,17 @@ function setActionButtonsEnabled(enabled) {
     if (mistakeButton) mistakeButton.disabled = !enabled;
 }
 
-function confirmStartRound() {
-    if (confirm("Bist du bereit, deinen Timer zu starten?\nDeine Zeit beginnt sofort.")) {
-        unlockGameAudio();
-        startRoundTimer();
-    }
+let startRoundDialogOpen = false;
+
+async function confirmStartRound() {
+    if (startRoundDialogOpen || isTimerRunning) return;
+    startRoundDialogOpen = true;
+    // Audio muss direkt im Klick freigeschaltet werden (iOS), daher onOk statt nach dem await
+    const ready = await appConfirm("Bist du bereit, deinen Timer zu starten?\nDeine Zeit beginnt sofort.", {
+        title: "Bereit?", okText: "Start", cancelText: "Noch nicht", onOk: unlockGameAudio
+    });
+    startRoundDialogOpen = false;
+    if (ready) startRoundTimer();
 }
 
 // === Pause Game ===
@@ -2133,9 +2240,9 @@ function showCardCorrectionScreen(guessedOverlay) {
         btn.style.marginLeft = "18px";
         btn.style.cursor = "pointer";
         btn.style.width = "80px";
-        btn.onclick = function () {
+        btn.onclick = async function () {
             // Bestätigung vor dem Entfernen
-            if (confirm("Willst du wirklich, dass diese Karte ein Fehler war?")) {
+            if (await appConfirm("Willst du wirklich, dass diese Karte ein Fehler war?", { okText: "Ja, Fehler" })) {
                 // Karte aus der richtigen Liste entfernen
                 correctCards[activeTeamIndex] = correctCards[activeTeamIndex].filter(c => c !== card);
                 // Karte zurück in den Stapel der aktuellen Runde
