@@ -24,3 +24,7 @@ Desktop.ini
 # Node / Build (falls später genutzt)
 node_modules/
 dist/
+
+# Python
+__pycache__/
+*.pyc

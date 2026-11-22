@@ -82,6 +82,45 @@ Beim nächsten Online-Start lädt die App dann alle Dateien neu und löscht den 
 
 Neue Dateien, die die App lädt, müssen außerdem in die Liste `APP_FILES` in `service-worker.js`, sonst fehlen sie offline.
 
+## Tests
+
+Unter `tests/` liegen automatische Tests, die die App in einem echten Browser durchspielen (Playwright):
+
+- komplette Partien mit 2 und 3 Teams, mit und ohne Veto, auch auf einem kleinen Handy im Hochformat
+- Strafzeit (auch bei Zugende und Pause) und Punktabzug (Ja/Remi, nie unter 0)
+- Überspringen mit und ohne Zurücklegen
+- Karten-IDs, doppelte Begriffe, alte Archiv-Einträge, gleichmäßiges Mischen
+- `data/cards.json` passt zu `data/db_Karten.xlsx`
+- Offline-Modus, Hinweis auf neue Version, keine Anfragen an fremde Server
+- Dialoge, Standardwerte, Skalierung im Querformat
+
+Einmalig einrichten:
+
+```bash
+pip install -r tests/requirements.txt
+python3 -m playwright install chromium
+```
+
+Alle Tests ausführen (im Repo-Ordner):
+
+```bash
+python3 tests/e2e.py
+```
+
+Einzelne Tests: `python3 tests/e2e.py test_dialogs test_full_game_two_teams`. Ein eigener Chrome lässt sich mit `CHROME_PATH=/pfad/zu/chrome` nutzen.
+
+### Aussehen prüfen
+
+Bei Änderungen, die nichts am Aussehen ändern sollen (z. B. CSS aufräumen), lassen sich vorher und nachher alle Bildschirme in sechs Größen vergleichen:
+
+```bash
+python3 tests/shots.py /tmp/vorher light      # vor der Änderung (auch: dark)
+python3 tests/shots.py /tmp/nachher light     # nach der Änderung
+python3 tests/compare.py /tmp/vorher /tmp/nachher
+```
+
+Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Elemente gespeichert; `python3 tests/compare_styles.py /tmp/vorher /tmp/nachher` zeigt jede Abweichung.
+
 ## Projektstruktur
 
 | Pfad | Inhalt |
@@ -97,9 +136,11 @@ Neue Dateien, die die App lädt, müssen außerdem in die Liste `APP_FILES` in `
 | `js/game.js` | Spieler, Teams, Runden, Timer, Punkte |
 | `js/ui.js` | Bildschirmwechsel, Dialoge, Listen |
 | `js/audio.js` | Countdown-Ton und Alarm |
+| `js/pwa.js` | Offline-Modus und Hinweis auf neue Version |
 | `data/db_Karten.xlsx` | Kartendatenbank zum Bearbeiten |
 | `data/cards.json` | Exportierte Karten, die die App lädt |
 | `scripts/export_cards.py` | Export von Excel nach JSON |
+| `tests/` | Automatische Tests und Screenshot-Vergleich |
 | `assets/` | Töne |
 | `icons/` | App-Icons; `icon-1024.png` ist die Vorlage |
 | `manifest.json` | Angaben für die Installation als App |
