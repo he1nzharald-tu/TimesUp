@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/screens.css" />
     <link rel="stylesheet" href="css/effects.css" />
     <link rel="stylesheet" href="css/settings.css" />
+    <link rel="stylesheet" href="css/themes.css" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
@@ -73,11 +74,16 @@
     <script>
         // Apply persisted theme as early as possible to avoid flash of light theme
         try {
-            if (localStorage.getItem('timesup_theme') === 'dark') {
-                document.documentElement.classList.add('dark');
-                // Dunkles Design: Statusleiste durchsichtig mit heller Schrift, Farbe der Browserleiste dunkel
-                document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute('content', 'black-translucent');
-                document.getElementById('themeColorMeta').setAttribute('content', '#0b1220');
+            // Design früh setzen (kein Aufblitzen); Werte wie THEMES in js/settings.js
+            var themes = { dark: [1, '#0b1220'], brett: [0, '#6f4524'], gameshow: [1, '#7a0a22'], arcade: [1, '#12062b'], pastell: [0, '#fff6fb'] };
+            var t = localStorage.getItem('timesup_theme');
+            if (themes[t]) {
+                var root = document.documentElement;
+                if (themes[t][0]) root.classList.add('dark');
+                if (t !== 'dark') root.classList.add('theme-' + t);
+                // dunkle Designs: Statusleiste durchsichtig mit heller Schrift
+                if (themes[t][0]) document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute('content', 'black-translucent');
+                document.getElementById('themeColorMeta').setAttribute('content', themes[t][1]);
             }
         } catch (e) { /* ignore if localStorage blocked */ }
     </script>
@@ -251,10 +257,14 @@
           </section>
           <section class="set-panel" id="settingsPanel-design" role="tabpanel" aria-labelledby="settingsTab-design" hidden>
             <div class="set-row set-row-col">
-                <div class="set-text"><span class="set-title" id="themeLabel">Design</span><span class="set-help">Hell oder dunkel</span></div>
-                <select id="themeSelect" class="as-segment" aria-labelledby="themeLabel" onchange="applyTheme(this.value)">
+                <div class="set-text"><span class="set-title" id="themeLabel">Design</span><span class="set-help">Aussehen des ganzen Spiels</span></div>
+                <select id="themeSelect" class="as-theme" aria-labelledby="themeLabel" onchange="applyTheme(this.value)">
                     <option value="light">Hell</option>
                     <option value="dark">Dunkel</option>
+                    <option value="brett">Brettspiel</option>
+                    <option value="gameshow">Gameshow</option>
+                    <option value="arcade">Retro Arcade</option>
+                    <option value="pastell">Pastell</option>
                 </select>
             </div>
           </section>

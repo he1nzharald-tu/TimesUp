@@ -332,23 +332,28 @@ export function togglePunishOptions() {
     container.classList.toggle("hidden", enabled !== "yes");
 }
 // === Theme (Design) Management ===
+// Designs: dark = nutzt zusätzlich die Dunkel-Regeln; color = Farbe der Browser-/Statusleiste
+export const THEMES = {
+    light:    { name: "Hell",        dark: false, color: "#ffffff" },
+    dark:     { name: "Dunkel",      dark: true,  color: "#0b1220" },
+    brett:    { name: "Brettspiel",  dark: false, color: "#6f4524" },
+    gameshow: { name: "Gameshow",    dark: true,  color: "#7a0a22" },
+    arcade:   { name: "Retro Arcade", dark: true, color: "#12062b" },
+    pastell:  { name: "Pastell",     dark: false, color: "#fff6fb" }
+};
 export function applyTheme(theme) {
-    // apply theme class to documentElement
+    if (!THEMES[theme]) theme = "light";
+    const t = THEMES[theme];
     const root = document.documentElement;
-    if (theme === 'dark') {
-        root.classList.add('dark');
-    } else {
-        root.classList.remove('dark');
-    }
+    root.classList.toggle('dark', t.dark);
+    Object.keys(THEMES).forEach(k => root.classList.toggle(`theme-${k}`, k === theme && k !== "light" && k !== "dark"));
     // Farbe der Browser-/Statusleiste an das Design anpassen
     const meta = document.getElementById('themeColorMeta');
-    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1220' : '#ffffff');
+    if (meta) meta.setAttribute('content', t.color);
     // Statusleiste der installierten App (wirkt beim nächsten Start)
     const bar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-    if (bar) bar.setAttribute('content', theme === 'dark' ? 'black-translucent' : 'default');
-    // save selection
+    if (bar) bar.setAttribute('content', t.dark ? 'black-translucent' : 'default');
     try { localStorage.setItem('timesup_theme', theme); } catch (e) { }
-    // update select if present
     const sel = document.getElementById('themeSelect');
     if (sel) sel.value = theme;
 }

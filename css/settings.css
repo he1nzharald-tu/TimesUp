@@ -69,14 +69,14 @@
   padding: 10px 12px;
   border-radius: 16px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   flex-wrap: nowrap;
 }
 #screen-settings .set-heading {
   flex: 1;
   margin: 0;
   font-size: 1.35rem;
-  color: #fff;
+  color: var(--on-primary);
   order: 0;
 }
 #screen-settings .set-head-btn {
@@ -87,7 +87,7 @@
   padding: 0 12px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 0.95rem;
 }
 @media (max-width: 480px) {

@@ -17,7 +17,7 @@ jobs:
   e2e:
     name: Spieltests (Playwright, Chromium)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - name: Code holen
         uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
 
       - name: Layoutprüfung auf allen Geräten
         if: always()
-        run: python tests/layout.py --dark --strict --out layout-out
+        run: python tests/layout.py --dark --themes brett,gameshow,arcade,pastell --strict --out layout-out
 
       - name: Layout-Aufnahmen hochladen
         if: always()

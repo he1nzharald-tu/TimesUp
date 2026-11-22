@@ -294,7 +294,7 @@ class Run:
     def flow(self, b, base, dev, theme):
         w, h, sa, _ = DEVICES[dev]
         quer = w > h
-        tag = dev + ("-dunkel" if theme == "dark" else "")
+        tag = dev + ({"light": "", "dark": "-dunkel"}.get(theme, "-" + theme))
         s = dict(DEFAULT_SETTINGS)
         s["cardCount"] = 16
         page = new_page(b, base, settings=s, viewport=(w, h), theme=theme)
@@ -436,6 +436,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("devices", nargs="*", help="Geräte (Standard: alle): " + ", ".join(DEVICES))
     ap.add_argument("--dark", action="store_true", help="zusätzlich im dunklen Design")
+    ap.add_argument("--themes", default="", help="weitere Designs, z. B. brett,gameshow,arcade,pastell")
     ap.add_argument("--strict", action="store_true", help="Exit-Code 1, wenn Fehler gefunden werden")
     ap.add_argument("--font-scale", type=float, default=1.0, help="Systemschrift vergrößern, z. B. 1.3")
     ap.add_argument("--no-mask", action="store_true", help="Systembereiche nicht einblenden")
@@ -448,6 +449,7 @@ def main():
     run = Run(args.out, mask=not args.no_mask)
     run.font_scale = args.font_scale
     themes = ["light", "dark"] if args.dark else ["light"]
+    themes += [t for t in args.themes.split(",") if t]
     failed = []
     with server() as base, browser() as b:
         for d in devs:

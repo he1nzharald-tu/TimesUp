@@ -847,9 +847,28 @@ def test_settings_ui_tabs_and_autosave(b, base):
     assert page.evaluate("JSON.parse(localStorage.getItem('timesup_settings')).penaltyPoints") == "draw"
     # Design: Dunkel
     page.click("#settingsTab-design")
-    page.click(".segment[data-for='themeSelect'] button[data-value='dark']")
+    page.click(".theme-grid[data-for='themeSelect'] button[data-value='dark']")
     assert page.evaluate("document.documentElement.classList.contains('dark')")
+    assert page.locator(".theme-grid[data-for='themeSelect'] button").count() == 6
+    # Neue Designs: Klasse, Dunkel-Regeln nur bei Gameshow/Arcade, Statusleistenfarbe, gespeichert
+    for theme, dark in [("brett", False), ("gameshow", True), ("arcade", True), ("pastell", False), ("light", False)]:
+        page.click(f".theme-grid[data-for='themeSelect'] button[data-value='{theme}']")
+        cls = page.evaluate("document.documentElement.className")
+        assert ("dark" in cls.split()) == dark, (theme, cls)
+        assert (f"theme-{theme}" in cls) == (theme not in ("light", "dark")), (theme, cls)
+        assert len([c for c in cls.split() if c.startswith("theme-")]) <= 1, cls
+        assert page.evaluate("localStorage.getItem('timesup_theme')") == theme
+        assert page.get_attribute(".theme-grid[data-for='themeSelect'] button[data-value='%s']" % theme, "aria-pressed") == "true"
     assert not page.errors, page.errors
+
+def test_theme_survives_reload(b, base):
+    """Gewähltes Design wird vor dem ersten Zeichnen gesetzt (kein Aufblitzen) und gilt auf allen Bildschirmen."""
+    page = new_page(b, base, None, theme="gameshow")
+    cls = page.evaluate("document.documentElement.className")
+    assert "theme-gameshow" in cls and "dark" in cls, cls
+    assert page.get_attribute("#themeColorMeta", "content") == "#7a0a22"
+    bg = page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim()")
+    assert bg == "#16040d", bg
 
 def test_settings_ui_card_filter(b, base):
     """Stufen, Themen, NSFW und Decks in den Einstellungen; Warnung bei zu wenigen Karten (AP 4/6)."""

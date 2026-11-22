@@ -80,7 +80,8 @@ function enhanceSelect(select) {
         select.after(sw);
     } else {
         const group = document.createElement("div");
-        group.className = select.classList.contains("as-choice") ? "choice-grid" : "segment";
+        const isTheme = select.classList.contains("as-theme");
+        group.className = isTheme ? "theme-grid" : select.classList.contains("as-choice") ? "choice-grid" : "segment";
         group.dataset.for = select.id;
         group.setAttribute("role", "group");
         const label = select.getAttribute("aria-labelledby");
@@ -90,7 +91,16 @@ function enhanceSelect(select) {
             const b = document.createElement("button");
             b.type = "button";
             b.dataset.value = opt.value;
-            b.textContent = opt.textContent;
+            if (isTheme) {
+                // Design-Kachel mit kleiner Farbvorschau
+                const sw = document.createElement("span");
+                sw.className = `theme-swatch theme-swatch-${opt.value}`;
+                sw.setAttribute("aria-hidden", "true");
+                b.appendChild(sw);
+                b.appendChild(document.createTextNode(opt.textContent));
+            } else {
+                b.textContent = opt.textContent;
+            }
             b.addEventListener("click", () => setSelect(select, opt.value));
             group.appendChild(b);
         }
@@ -99,12 +109,12 @@ function enhanceSelect(select) {
 }
 function syncEnhanced(root = screen()) {
     if (!root) return;
-    root.querySelectorAll("select.as-switch, select.as-segment, select.as-choice").forEach(enhanceSelect);
+    root.querySelectorAll("select.as-switch, select.as-segment, select.as-choice, select.as-theme").forEach(enhanceSelect);
     root.querySelectorAll(".switch[data-for]").forEach(sw => {
         const on = $(sw.dataset.for)?.value === "yes";
         sw.setAttribute("aria-checked", on ? "true" : "false");
     });
-    root.querySelectorAll(".segment[data-for], .choice-grid[data-for]").forEach(group => {
+    root.querySelectorAll(".segment[data-for], .choice-grid[data-for], .theme-grid[data-for]").forEach(group => {
         const value = $(group.dataset.for)?.value;
         group.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.value === value ? "true" : "false"));
     });

@@ -26,6 +26,7 @@
   --primary-solid: #6c8cf5;
   --card-bg: #ffffff;
   --on-accent: #ffffff;
+  --on-primary: #ffffff;   /* Schrift auf --primary */
   --text: #1f2328;
   --divider: #b2bec3;
   --line: #dfe5ec;
@@ -233,7 +234,7 @@ button.secondary {
 }
 .btn-primary {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   box-shadow: 0 4px 14px rgba(108, 140, 245, 0.28);
 }
 .btn-secondary {
@@ -273,7 +274,7 @@ button.secondary {
   padding: 6px 8px;
   border-radius: var(--radius-l);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   box-sizing: border-box;
 }
 .app-head-title {
@@ -284,7 +285,7 @@ button.secondary {
   gap: 8px;
   padding: 0 6px;
   font-size: var(--fs-l);
-  color: #fff;
+  color: var(--on-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -302,7 +303,7 @@ button.secondary {
   padding: 0 12px 0 8px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.22);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 0.9375rem;
 }
 .head-spacer {
@@ -554,7 +555,7 @@ button.secondary {
 .update-banner > span:first-child { flex: 1 1 160px; min-width: 0; }
 .resume-banner { background: var(--accent-b); color: #fff; }
 .install-banner { background: var(--blue-soft); color: var(--text); font-weight: 500; border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--line)); }
-.install-banner #installButton { background: var(--primary); color: #fff; }
+.install-banner #installButton { background: var(--primary); color: var(--on-primary); }
 .banner-actions { display: flex; gap: 8px; margin-left: auto; }
 .update-banner button {
   min-height: 40px;
@@ -620,7 +621,7 @@ button.secondary {
 #pauseOverlay .pause-continue-btn,
 #guessedOverlay .time-up-next-btn {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 #pauseOverlay .pause-plus-btn,
 #guessedOverlay .time-up-correct-btn,
@@ -915,7 +916,7 @@ button.secondary {
 .app-dialog-actions button {
   flex: 1 1 120px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 .app-dialog-actions button.secondary {
   background: var(--card-bg);

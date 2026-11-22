@@ -12,7 +12,7 @@
    ====================================================================== */
 
 .start-head { gap: 10px; padding: 6px 6px 6px 14px; }
-.start-head .app-logo { width: 28px; height: 28px; color: #fff; stroke-width: 2.4; }
+.start-head .app-logo { width: 28px; height: 28px; color: var(--on-primary); stroke-width: 2.4; }
 .app-title {
   flex: 1 1 auto;
   min-width: 0;
@@ -20,13 +20,13 @@
   align-items: baseline;
   gap: 8px;
   font-size: var(--fs-l);
-  color: #fff;
+  color: var(--on-primary);
   white-space: nowrap;
 }
 .app-title-by { font-size: 0.75rem; font-weight: 500; opacity: 0.85; }
 .start-status {
   font-size: 0.8125rem;
-  color: #fff;
+  color: var(--on-primary);
   opacity: 0.92;
   text-align: right;
   white-space: nowrap;
@@ -72,7 +72,7 @@
 .btn-add .ico { width: 24px; height: 24px; stroke-width: 2.4; }
 @media (max-width: 429px) {
   .btn-add-label { display: none; }
-  .btn-add { padding: 0; background: var(--primary); color: #fff; border: 0; }
+  .btn-add { padding: 0; background: var(--primary); color: var(--on-primary); border: 0; }
 }
 
 .player-list {
@@ -273,7 +273,7 @@
   gap: 4px 16px;
   padding: 0 8px;
   font-size: 0.9375rem;
-  color: #fff;
+  color: var(--on-primary);
 }
 .overview-facts > span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .overview-facts .ico { width: 18px; height: 18px; }

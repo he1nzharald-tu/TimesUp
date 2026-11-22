@@ -1,0 +1,381 @@
+/* TimesUp – zusätzliche Designs (neben Hell und Dunkel)
+   Aktiv über eine Klasse am <html>: theme-brett, theme-gameshow, theme-arcade, theme-pastell
+   (Gameshow und Arcade setzen zusätzlich .dark, damit alle Dunkel-Regeln greifen).
+   Jedes Design setzt die Farbvariablen aus base.css und settings.css neu und ergänzt
+   eine eigene Hintergrund-Dekoration und ein paar Stil-Details. */
+
+/* ======================================================================
+   Brettspiel: Pappe, Holz, Papierkarten
+   ====================================================================== */
+.theme-brett {
+  --bg: #f4e7cf;
+  --card-bg: #f6ecd9;
+  --panel: #efdfc2;
+  --text: #3b2a1a;
+  --muted: #6b563f;
+  --line: #d4bb92;
+  --divider: #c9ad80;
+  --primary: linear-gradient(180deg, #a8502a 0%, #8e3f1e 100%);
+  --primary-solid: #9a4724;
+  --on-primary: #fff8ec;
+  --blue: #2c6580;
+  --blue-soft: #e2ebe9;
+  --green: #2e6b45;
+  --danger: #a8322b;
+  --accent-a: #c0392b;
+  --accent-b: #2e7d4f;
+  --accent-c: #e0a526;
+  --shadow-s: 0 2px 0 #d4bb92;
+  --shadow-m: 0 4px 0 #c9ad80, 0 10px 24px rgba(80, 50, 20, 0.18);
+  --bg-line: rgba(140, 95, 50, 0.10);
+  --bg-line-soft: rgba(140, 95, 50, 0.06);
+  --bg-glow-a: rgba(192, 57, 43, 0.07);
+  --bg-glow-b: rgba(46, 125, 79, 0.07);
+  color-scheme: light;
+}
+.theme-brett #screen-settings {
+  --set-blue: #2c6580; --set-blue-soft: #e2ebe9; --set-green: #2e6b45; --set-green-soft: #e3eee2;
+  --set-violet: #7a4a8c; --set-violet-soft: #f1e6ef; --set-line: #d4bb92; --set-off: #bfa57d;
+  --set-warn-bg: #fbe6b4; --set-warn-text: #5b3f00;
+}
+/* Pappe mit Fasern, Würfelaugen statt Punkten */
+.theme-brett .screen:not(#screen-settings) {
+  background:
+    repeating-linear-gradient(90deg, rgba(120, 80, 40, 0.035) 0 2px, transparent 2px 7px),
+    repeating-linear-gradient(0deg, rgba(120, 80, 40, 0.03) 0 1px, transparent 1px 5px),
+    var(--card-bg);
+}
+.theme-brett .screen:not(#screen-settings)::before { animation: none; opacity: 0.35; }
+.theme-brett .screen:not(#screen-settings)::after {
+  background:
+    radial-gradient(circle, rgba(120, 80, 40, 0.16) 0 3px, transparent 4px) 0 0 / 120px 120px,
+    radial-gradient(circle, rgba(120, 80, 40, 0.12) 0 3px, transparent 4px) 14px 14px / 120px 120px;
+  opacity: 1;
+  animation: none;
+}
+/* Holzleiste als Kopf */
+.theme-brett .app-head,
+.theme-brett #screen-settings .set-header {
+  background:
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.05) 0 3px, transparent 3px 11px),
+    linear-gradient(180deg, #8a5a32 0%, #6f4524 100%);
+  box-shadow: 0 3px 0 #4f301a;
+}
+.theme-brett .btn-primary,
+.theme-brett .btn-add,
+.theme-brett .archive-load-btn { box-shadow: 0 3px 0 #5e2a12; }
+.theme-brett .btn-secondary { box-shadow: 0 3px 0 #d4bb92; }
+.theme-brett #currentCardDisplay,
+.theme-brett .team-card,
+.theme-brett .card-choice,
+.theme-brett .player-row {
+  background: #fffaf0;
+  box-shadow: 0 2px 0 #d4bb92, 0 6px 14px rgba(80, 50, 20, 0.10);
+}
+.theme-brett #currentCardDisplay { border-radius: 14px; border-top-width: 10px; }
+
+/* ======================================================================
+   Gameshow: Bühne, Gold und Rot, Scheinwerfer
+   ====================================================================== */
+.theme-gameshow {
+  --bg: #1a0610;
+  --card-bg: #16040d;
+  --panel: #2a0b19;
+  --text: #fff3e2;
+  --muted: #d6b8a4;
+  --line: #5a2236;
+  --divider: #5a2236;
+  --primary: linear-gradient(180deg, #ffd86b 0%, #e0a526 100%);
+  --primary-solid: #f0bd3e;
+  --on-primary: #2a0b19;
+  --blue: #ffcf5a;
+  --blue-soft: #3a1522;
+  --green: #6ee7b7;
+  --danger: #ff7a7a;
+  --accent-a: #ff6b6b;
+  --accent-b: #4fd1a5;
+  --accent-c: #ffcf5a;
+  --accent-c-text: #2a0b19;
+  --overlay: rgba(10, 0, 5, 0.6);
+  --shadow-s: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-m: 0 8px 26px rgba(0, 0, 0, 0.55);
+  --bg-line: rgba(255, 207, 90, 0.10);
+  --bg-line-soft: rgba(255, 107, 107, 0.08);
+  --bg-glow-a: rgba(255, 207, 90, 0.10);
+  --bg-glow-b: rgba(255, 70, 90, 0.10);
+}
+.theme-gameshow #screen-settings {
+  --set-blue: #ffcf5a; --set-blue-soft: #3a1522; --set-green: #6ee7b7; --set-green-soft: #123128;
+  --set-violet: #ff9ec4; --set-violet-soft: #3b1430; --set-line: #5a2236; --set-off: #6b3a4a;
+  --set-warn-bg: #3b2a08; --set-warn-text: #ffd76a; --set-on-blue: #2a0b19;
+}
+/* Scheinwerferkegel von oben, Bühnenboden */
+.theme-gameshow .screen:not(#screen-settings) {
+  background:
+    radial-gradient(ellipse 40% 70% at 20% -10%, rgba(255, 220, 140, 0.16), transparent 70%),
+    radial-gradient(ellipse 40% 70% at 80% -10%, rgba(255, 220, 140, 0.16), transparent 70%),
+    radial-gradient(ellipse 90% 40% at 50% 110%, rgba(200, 30, 60, 0.30), transparent 70%),
+    var(--card-bg);
+}
+.theme-gameshow .screen:not(#screen-settings)::before {
+  background-image: repeating-conic-gradient(from 0deg at 50% -20%, rgba(255, 207, 90, 0.05) 0deg 6deg, transparent 6deg 18deg);
+  background-size: auto;
+  opacity: 1;
+  animation: none;
+}
+.theme-gameshow .screen:not(#screen-settings)::after { opacity: 0.25; }
+/* Glühbirnen-Rahmen um Kopf und Spielkarte */
+.theme-gameshow .app-head,
+.theme-gameshow #screen-settings .set-header {
+  background: linear-gradient(180deg, #b0122f 0%, #7a0a22 100%);
+  color: #fff3e2;
+  outline: 3px dotted #ffcf5a;
+  outline-offset: -6px;
+  box-shadow: 0 0 22px rgba(255, 207, 90, 0.25);
+}
+.theme-gameshow .app-head-title,
+.theme-gameshow .app-title,
+.theme-gameshow .start-status,
+.theme-gameshow .overview-facts,
+.theme-gameshow .start-head .app-logo,
+.theme-gameshow .app-head .head-btn,
+.theme-gameshow #screen-settings .set-heading,
+.theme-gameshow #screen-settings .set-head-btn:not(.btn-defaults) { color: #fff3e2; }
+.theme-gameshow #currentCardDisplay {
+  outline: 4px dotted #ffcf5a;
+  outline-offset: -10px;
+  box-shadow: 0 0 30px rgba(255, 207, 90, 0.18), var(--shadow-m);
+}
+.theme-gameshow .play-timer,
+.theme-gameshow .team-points-value,
+.theme-gameshow .gs-big,
+.theme-gameshow .end-title {
+  color: #ffcf5a;
+  text-shadow: 0 0 14px rgba(255, 207, 90, 0.45);
+  letter-spacing: 1px;
+}
+.theme-gameshow .btn-primary { text-transform: uppercase; letter-spacing: 1px; }
+
+/* ======================================================================
+   Retro Arcade: Neon auf Dunkellila, Pixel und Scanlines
+   ====================================================================== */
+.theme-arcade {
+  --bg: #12062b;
+  --card-bg: #0e0423;
+  --panel: #1c0b3f;
+  --text: #f1eaff;
+  --muted: #b9a7e6;
+  --line: #3e2380;
+  --divider: #3e2380;
+  --primary: linear-gradient(90deg, #c4129f 0%, #6a1fe0 100%);
+  --primary-solid: #9a18c0;
+  --on-primary: #ffffff;
+  --blue: #3ff0ff;
+  --blue-soft: #16224a;
+  --green: #5dffb0;
+  --danger: #ff5c8a;
+  --accent-a: #ff4fa3;
+  --accent-b: #3ff0ff;
+  --accent-c: #ffe14f;
+  --accent-c-text: #12062b;
+  --overlay: rgba(5, 0, 20, 0.65);
+  --radius: 6px;
+  --radius-l: 8px;
+  --shadow-s: 0 0 0 1px rgba(63, 240, 255, 0.15);
+  --shadow-m: 0 0 24px rgba(196, 18, 159, 0.35);
+  --bg-line: rgba(63, 240, 255, 0.10);
+  --bg-line-soft: rgba(255, 79, 163, 0.10);
+  --bg-glow-a: rgba(255, 79, 163, 0.12);
+  --bg-glow-b: rgba(63, 240, 255, 0.10);
+}
+.theme-arcade #screen-settings {
+  --set-blue: #3ff0ff; --set-blue-soft: #16224a; --set-green: #5dffb0; --set-green-soft: #0f2c2a;
+  --set-violet: #ff7fd0; --set-violet-soft: #2b0f3d; --set-line: #3e2380; --set-off: #4b3a78;
+  --set-warn-bg: #3a3208; --set-warn-text: #ffe14f; --set-on-blue: #12062b;
+}
+/* Pixelraster + Scanlines + Horizont-Gitter */
+.theme-arcade .screen:not(#screen-settings) {
+  background:
+    linear-gradient(180deg, transparent 60%, rgba(196, 18, 159, 0.18) 100%),
+    linear-gradient(rgba(63, 240, 255, 0.06) 1px, transparent 1px) 0 0 / 24px 24px,
+    linear-gradient(90deg, rgba(63, 240, 255, 0.06) 1px, transparent 1px) 0 0 / 24px 24px,
+    var(--card-bg);
+}
+.theme-arcade .screen:not(#screen-settings)::before {
+  background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+  background-size: auto;
+  opacity: 1;
+  animation: none;
+}
+.theme-arcade .screen:not(#screen-settings)::after { opacity: 0.5; }
+/* eckig statt rund, Neonrahmen */
+.theme-arcade .app-head,
+.theme-arcade .btn-primary,
+.theme-arcade .btn-secondary,
+.theme-arcade .btn-add,
+.theme-arcade .icon-btn,
+.theme-arcade .head-btn,
+.theme-arcade .player-row,
+.theme-arcade .team-card,
+.theme-arcade .team-row,
+.theme-arcade .card-choice,
+.theme-arcade .overview-round,
+.theme-arcade .info-tile,
+.theme-arcade .play-header,
+.theme-arcade .play-actions > button,
+.theme-arcade #currentCardDisplay,
+.theme-arcade .gs-card,
+.theme-arcade .gs-player,
+.theme-arcade .archive-detail,
+.theme-arcade .archive-tile,
+.theme-arcade .overlay .overlay-box,
+.theme-arcade input,
+.theme-arcade #screen-settings .set-header { border-radius: 6px; }
+.theme-arcade .app-head,
+.theme-arcade #screen-settings .set-header {
+  background: linear-gradient(90deg, #2a0a5e 0%, #4a0d6e 100%);
+  border: 2px solid #ff4fa3;
+  box-shadow: 0 0 14px rgba(255, 79, 163, 0.55), inset 0 0 10px rgba(255, 79, 163, 0.25);
+}
+.theme-arcade .app-head-title,
+.theme-arcade .app-title,
+.theme-arcade #screen-settings .set-heading { text-shadow: 0 0 8px rgba(255, 79, 163, 0.9); }
+.theme-arcade #currentCardDisplay {
+  border: 2px solid #3ff0ff;
+  border-top: 6px solid var(--team);
+  box-shadow: 0 0 22px rgba(63, 240, 255, 0.35), inset 0 0 18px rgba(63, 240, 255, 0.12);
+}
+.theme-arcade #cardTerm { text-shadow: 0 0 12px rgba(63, 240, 255, 0.6); letter-spacing: 1px; }
+.theme-arcade .play-timer,
+.theme-arcade .team-points-value,
+.theme-arcade .gs-big,
+.theme-arcade .overview-round-no,
+.theme-arcade #playerCount {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  color: #ffe14f;
+  text-shadow: 0 0 10px rgba(255, 225, 79, 0.6);
+}
+.theme-arcade .btn-primary { box-shadow: 0 0 16px rgba(196, 18, 159, 0.6); text-transform: uppercase; letter-spacing: 1.5px; }
+.theme-arcade .play-actions > button { box-shadow: 0 0 14px rgba(255, 255, 255, 0.12); }
+
+/* ======================================================================
+   Pastell / Bonbon: weich, rund, fröhlich
+   ====================================================================== */
+.theme-pastell {
+  --bg: #fff6fb;
+  --card-bg: #fffafd;
+  --panel: #fdeef6;
+  --text: #3a2f4a;
+  --muted: #6a5d80;
+  --line: #f0d6e8;
+  --divider: #e6cce0;
+  --primary: linear-gradient(90deg, #c94f8b 0%, #7b5fd0 100%);
+  --primary-solid: #a257ae;
+  --on-primary: #ffffff;
+  --blue: #5b5fc7;
+  --blue-soft: #eef0ff;
+  --green: #1f8466;
+  --danger: #c43f5c;
+  --accent-a: #f28aa0;
+  --accent-b: #6cc9a6;
+  --accent-c: #ffd166;
+  --radius: 16px;
+  --radius-l: 22px;
+  --shadow-s: 0 2px 8px rgba(201, 79, 139, 0.10);
+  --shadow-m: 0 10px 30px rgba(123, 95, 208, 0.16);
+  --bg-line: rgba(201, 79, 139, 0.10);
+  --bg-line-soft: rgba(91, 95, 199, 0.08);
+  --bg-glow-a: rgba(255, 182, 213, 0.45);
+  --bg-glow-b: rgba(178, 236, 214, 0.45);
+  color-scheme: light;
+}
+.theme-pastell #screen-settings {
+  --set-blue: #5b5fc7; --set-blue-soft: #eef0ff; --set-green: #1f8466; --set-green-soft: #e3f6ef;
+  --set-violet: #8a5fd0; --set-violet-soft: #f3ecff; --set-line: #f0d6e8; --set-off: #d9bfd2;
+  --set-warn-bg: #fff1cc; --set-warn-text: #6b4e00;
+}
+/* Bonbon-Blasen statt Linien */
+.theme-pastell .screen:not(#screen-settings) {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 182, 213, 0.55), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(196, 181, 253, 0.50), transparent 26%),
+    radial-gradient(circle at 80% 88%, rgba(178, 236, 214, 0.55), transparent 30%),
+    radial-gradient(circle at 15% 85%, rgba(255, 224, 160, 0.45), transparent 26%),
+    var(--card-bg);
+}
+.theme-pastell .screen:not(#screen-settings)::before {
+  background-image:
+    radial-gradient(circle, rgba(242, 138, 160, 0.35) 0 4px, transparent 5px),
+    radial-gradient(circle, rgba(108, 201, 166, 0.35) 0 3px, transparent 4px),
+    radial-gradient(circle, rgba(123, 95, 208, 0.30) 0 3px, transparent 4px);
+  background-size: 140px 140px, 110px 110px, 170px 170px;
+  background-position: 0 0, 40px 60px, 90px 20px;
+  opacity: 1;
+}
+.theme-pastell .screen:not(#screen-settings)::after { display: none; }
+.theme-pastell .btn-primary,
+.theme-pastell .btn-secondary,
+.theme-pastell .btn-add,
+.theme-pastell .play-actions > button { border-radius: 999px; }
+.theme-pastell .app-head,
+.theme-pastell #screen-settings .set-header { border-radius: 24px; }
+.theme-pastell #currentCardDisplay,
+.theme-pastell .team-card,
+.theme-pastell .card-choice,
+.theme-pastell .player-row,
+.theme-pastell .gs-card,
+.theme-pastell .archive-detail { border-radius: 22px; }
+.theme-pastell #btnMistake { background: #c43f5c; }
+.theme-pastell #btnCorrect { background: #1f8466; }
+.theme-pastell #btnSkip { background: #ffd166; color: #3a2f4a; }
+
+/* ======================================================================
+   Vorschau-Kacheln in den Einstellungen (Design-Auswahl)
+   ====================================================================== */
+#screen-settings .theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+#screen-settings .theme-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1.5px solid var(--set-line);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+#screen-settings .theme-grid button[aria-pressed="true"] {
+  border-color: var(--set-blue);
+  box-shadow: 0 0 0 2px var(--set-blue);
+}
+.theme-swatch {
+  display: block;
+  height: 46px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+.theme-swatch-light { background: linear-gradient(90deg, #3b6fd8 0 30%, #6b5ce0 30% 45%, #ffffff 45%); }
+.theme-swatch-dark { background: linear-gradient(90deg, #356ad6 0 30%, #7c3aed 30% 45%, #0b1220 45%); }
+.theme-swatch-brett {
+  background:
+    radial-gradient(circle at 78% 50%, #6b4a2a 0 4px, transparent 5px),
+    linear-gradient(90deg, #8a5a32 0 30%, #a8502a 30% 45%, #f6ecd9 45%);
+}
+.theme-swatch-gameshow {
+  background:
+    radial-gradient(circle, #ffcf5a 0 2px, transparent 3px) 0 0 / 10px 10px,
+    linear-gradient(90deg, #b0122f 0 30%, #ffd86b 30% 45%, #1a0610 45%);
+}
+.theme-swatch-arcade {
+  background:
+    linear-gradient(rgba(63, 240, 255, 0.35) 1px, transparent 1px) 0 0 / 8px 8px,
+    linear-gradient(90deg, #c4129f 0 30%, #3ff0ff 30% 45%, #12062b 45%);
+}
+.theme-swatch-pastell { background: linear-gradient(90deg, #f28aa0 0 25%, #c4b5fd 25% 45%, #b2ecd6 45% 65%, #fffafd 65%); }
