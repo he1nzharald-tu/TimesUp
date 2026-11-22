@@ -167,8 +167,8 @@
                     <label class="settings-inline-label" for="punishPoints">Strafe</label>
                     <select id="punishPoints">
                         <option value="no" selected>Nein</option>
-                        <option value="yes">Ja</option>
-                        <option value="draw">Remi</option>
+                        <option value="yes">Ja (−1)</option>
+                        <option value="draw">Remi (−0,5)</option>
                     </select>
                 </div>
             </div>
@@ -400,13 +400,13 @@
         <div class="stats-teams">
             <div class="team team-a stats-team-a">
                 <h3 id="statsTeamATitle">
-                    🔴 Team A – <span id="pointsTeamA">0</span> Punkte
+                    🔴 Team A – <span id="pointsTeamA">0</span> Punkte<span class="penalty-note" id="penaltyTeamA"></span>
                 </h3>
                 <ul id="statsTeamAList"></ul> <!-- Hier stehen die Spielernamen von Team A -->
             </div>
             <div class="team team-b stats-team-b">
                 <h3 id="statsTeamBTitle">
-                    🟢 Team B – <span id="pointsTeamB">0</span> Punkte
+                    🟢 Team B – <span id="pointsTeamB">0</span> Punkte<span class="penalty-note" id="penaltyTeamB"></span>
                 </h3>
                 <ul id="statsTeamBList"></ul> <!-- Hier stehen die Spielernamen von Team B -->
             </div>
@@ -451,6 +451,7 @@
                 <p class="final-points">
                     <strong>Gesamtpunkte:</strong>
                     <span id="finalPointsA">0</span>
+                    <span class="penalty-note" id="finalPenaltyA"></span>
                 </p>
                 <div class="final-table-wrap">
                     <table class="final-table">
@@ -472,6 +473,7 @@
                 <p class="final-points">
                     <strong>Gesamtpunkte:</strong>
                     <span id="finalPointsB">0</span>
+                    <span class="penalty-note" id="finalPenaltyB"></span>
                 </p>
                 <div class="final-table-wrap">
                     <table class="final-table">

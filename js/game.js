@@ -111,7 +111,8 @@ export function prepareGameOverview() {
         appendText(general, "li", `Teams: ${teamCount}`);
         appendText(general, "li", `Handicap: ${settings.handicapEnabled ? 'Ja, +' + (settings.handicapTime || 5) + 's' : 'Nein'}`);
         if (settings.punishEnabled) {
-            appendText(general, "li", `Regelmissachtung: Ja | Strafzeit: ${settings.punishTime || 3}s | Punktabzug: ${settings.punishPoints || 'Nein'}`);
+            const penaltyLabel = { yes: "Ja, −1 pro Fehler", draw: "Remi, −0,5 pro Fehler" }[settings.punishPoints] || "Nein";
+            appendText(general, "li", `Regelmissachtung: Ja | Strafzeit: ${settings.punishTime || 3}s | Punktabzug: ${penaltyLabel}`);
         } else {
             appendText(general, "li", "Regelmissachtung: Nein");
         }
@@ -241,6 +242,7 @@ export function startGame() {
     
     // Initialize points and correctCards arrays for all teams
     state.totalPoints = Array(state.totalTeams).fill(0);
+    state.penaltyPoints = Array(state.totalTeams).fill(0);
     state.correctCards = Array(state.totalTeams).fill(null).map(() => []);
     state.roundPointsApplied = false;
     state.teamMistakes = Array(state.totalTeams).fill(0);
@@ -506,11 +508,33 @@ export function endRound() {
         showRoundStats();
     }
 }
+// Abzug pro Regelverstoß laut Einstellung "Strafe": Ja = 1 Punkt, Remi = 0,5 Punkte
+export function getPenaltyPerMistake(settings = getSettings()) {
+    if (!settings.punishEnabled) return 0;
+    if (settings.punishPoints === "yes") return 1;
+    if (settings.punishPoints === "draw") return 0.5;
+    return 0;
+}
+
+export function formatPoints(value) {
+    return Number(value || 0).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+}
+
+// Text wie " (−1,5 Strafe)", leer ohne Abzug
+export function formatPenalty(value) {
+    return value > 0 ? ` (−${formatPoints(value)} Strafe)` : "";
+}
+
 export function applyCurrentRoundPoints() {
     if (state.roundPointsApplied) return;
+    const perMistake = getPenaltyPerMistake();
     state.correctCards.forEach((teamCards, idx) => {
-        const teamPoints = teamCards.length;
-        state.totalPoints[idx] += teamPoints;
+        const before = state.totalPoints[idx] || 0;
+        const gained = teamCards.length;
+        const penalty = (state.teamMistakes[idx] || 0) * perMistake;
+        // Gesamtpunkte fallen durch Strafen nie unter 0
+        state.totalPoints[idx] = Math.max(0, before + gained - penalty);
+        state.penaltyPoints[idx] = (state.penaltyPoints[idx] || 0) + (before + gained - state.totalPoints[idx]);
     });
     state.roundPointsApplied = true;
 }
@@ -539,7 +563,7 @@ export function showRoundStats() {
                 box.appendChild(title);
                 
                 const points = document.createElement("p");
-                points.textContent = `Punkte: ${state.totalPoints[idx]}`;
+                points.textContent = `Punkte: ${formatPoints(state.totalPoints[idx])}${formatPenalty(state.penaltyPoints[idx])}`;
                 points.style.margin = "0 0 6px 0";
                 points.style.fontWeight = "bold";
                 points.style.color = "var(--text)";
@@ -590,8 +614,12 @@ export function showRoundStats() {
         if (state.totalPoints.length >= 2) {
             const pointsTeamAEl = document.getElementById("pointsTeamA");
             const pointsTeamBEl = document.getElementById("pointsTeamB");
-            if (pointsTeamAEl) pointsTeamAEl.textContent = state.totalPoints[0];
-            if (pointsTeamBEl) pointsTeamBEl.textContent = state.totalPoints[1];
+            if (pointsTeamAEl) pointsTeamAEl.textContent = formatPoints(state.totalPoints[0]);
+            if (pointsTeamBEl) pointsTeamBEl.textContent = formatPoints(state.totalPoints[1]);
+            const penaltyA = document.getElementById("penaltyTeamA");
+            const penaltyB = document.getElementById("penaltyTeamB");
+            if (penaltyA) penaltyA.textContent = formatPenalty(state.penaltyPoints[0]);
+            if (penaltyB) penaltyB.textContent = formatPenalty(state.penaltyPoints[1]);
         }
     }
 
@@ -640,7 +668,7 @@ export function showFinalScreen() {
             box.appendChild(title);
             
             const points = document.createElement("p");
-            points.textContent = `Punkte: ${state.totalPoints[idx]}`;
+            points.textContent = `Punkte: ${formatPoints(state.totalPoints[idx])}${formatPenalty(state.penaltyPoints[idx])}`;
             points.style.margin = "0 0 6px 0";
             points.style.fontWeight = "bold";
             points.style.fontSize = "1.3rem";
@@ -705,11 +733,15 @@ export function showFinalScreen() {
         // Update total points display
         if (state.totalPoints[0] !== undefined) {
             const finalPointsA = document.getElementById("finalPointsA");
-            if (finalPointsA) finalPointsA.textContent = state.totalPoints[0];
+            if (finalPointsA) finalPointsA.textContent = formatPoints(state.totalPoints[0]);
+            const finalPenaltyA = document.getElementById("finalPenaltyA");
+            if (finalPenaltyA) finalPenaltyA.textContent = formatPenalty(state.penaltyPoints[0]);
         }
         if (state.totalPoints[1] !== undefined) {
             const finalPointsB = document.getElementById("finalPointsB");
-            if (finalPointsB) finalPointsB.textContent = state.totalPoints[1];
+            if (finalPointsB) finalPointsB.textContent = formatPoints(state.totalPoints[1]);
+            const finalPenaltyB = document.getElementById("finalPenaltyB");
+            if (finalPenaltyB) finalPenaltyB.textContent = formatPenalty(state.penaltyPoints[1]);
         }
     }
     
@@ -966,6 +998,7 @@ export function resetGameState() {
     cancelPenalty();
     state.penaltyInterruptedByPause = false;
     state.totalPoints = [];
+    state.penaltyPoints = [];
     state.showingExplanation = false;
     state.cardsWereShown = false;
     state.allowCardClick = false;

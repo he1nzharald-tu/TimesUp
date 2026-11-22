@@ -47,5 +47,6 @@ export const state = {
     roundPointsApplied: false,
     usedCardsThisTurn: [],
     teamMistakes: [], // Array of mistakes per team
+    penaltyPoints: [], // insgesamt abgezogene Strafpunkte je Team
     activePlayer: null,
 };
