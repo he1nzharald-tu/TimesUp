@@ -165,17 +165,26 @@ def test_skip_no_return_setting(b, base):
 def test_skip_setting_ui(b, base):
     page = new_page(b, base, None)
     page.click("button:has-text('⚙️')")
+    page.click("#settingsTab-spiel")
+    page.click("[data-round='2'] .round-head")
     assert page.locator("#skipReturn2").count() == 1, "Einstellung fehlt"
-    page.select_option("#skipAllowed2", "yes")
+    if page.input_value("#skipAllowed2") != "yes":
+        page.click(".switch[data-for='skipAllowed2']")
+    assert page.input_value("#skipAllowed2") == "yes"
     assert page.input_value("#skipReturn2") == "yes"
-    page.select_option("#skipReturn2", "no")
+    assert page.is_visible(".switch[data-for='skipReturn2']")
+    page.click(".switch[data-for='skipReturn2']")
+    assert page.get_attribute(".switch[data-for='skipReturn2']", "aria-checked") == "false"
     page.click("text=Zurück")
     st = page.evaluate("JSON.parse(localStorage.getItem('timesup_settings'))")
     assert st["skipReturn"][1] == "no", st
     page.reload(); tick(page, 50)
     assert page.input_value("#skipReturn2") == "no" and page.is_visible("#skipReturn2") is False or True
     page.click("button:has-text('⚙️')")
-    assert page.is_visible("#skipReturn2") and page.input_value("#skipReturn2") == "no", "nach Neuladen nicht wiederhergestellt"
+    page.click("#settingsTab-spiel")
+    page.click("[data-round='2'] .round-head")
+    assert page.is_visible(".switch[data-for='skipReturn2']") and page.input_value("#skipReturn2") == "no", "nach Neuladen nicht wiederhergestellt"
+    assert page.get_attribute(".switch[data-for='skipReturn2']", "aria-checked") == "false"
 
 def test_duplicate_terms(b, base):
     """Zwei Karten mit gleichem Begriff dürfen sich nicht gegenseitig beeinflussen (Todo 3)."""
@@ -387,6 +396,7 @@ def test_default_turn_time(b, base):
     page = new_page(b, base, None)
     page.click("button:has-text('⚙️')")
     assert [page.input_value(f"#timer{i}") for i in (1, 2, 3)] == ["30"] * 3
+    page.click("#settingsTab-spiel"); page.click("[data-round='1'] .round-head")
     page.fill("#timer1", "45"); page.click("text=Standardwerte")
     assert page.input_value("#timer1") == "30"
     page2 = new_page(b, base, None)           # nie gespeicherte Einstellungen
@@ -607,6 +617,91 @@ def test_card_filter_empty(b, base):
     ok(page)
     assert active(page) == "screen-teamuebersicht", active(page)
 
+def test_settings_ui_tabs_and_autosave(b, base):
+    """Neue Einstellungen (Variante B): Reiter, Stepper, Rundenkarten, sofortiges Speichern (AP 6)."""
+    page = new_page(b, base, None, viewport=(390, 844))
+    page.wait_for_function("document.querySelectorAll('#deckTiles .deck-tile').length === 16", timeout=10000)
+    page.click("button[aria-label='Einstellungen']")
+    assert page.is_visible("#settingsPanel-karten") and not page.is_visible("#settingsPanel-spiel")
+    # Stepper Karten +1 speichert sofort
+    page.click("#settingsPanel-karten .stepper button[data-step='1']")
+    assert page.input_value("#cardCount") == "41"
+    st = page.evaluate("JSON.parse(localStorage.getItem('timesup_settings'))")
+    assert st["cardCount"] == 41, st
+    assert page.locator("#settingsToast.visible").count() == 1
+    # Reiter Spiel, Runde 3 aufklappen, Regel wählen, Zeit +5
+    page.click("#settingsTab-spiel")
+    assert page.is_visible("#settingsPanel-spiel") and not page.is_visible("#settingsPanel-karten")
+    page.click("[data-round='3'] .round-head")
+    page.click(".choice-grid[data-for='rule3'] button[data-value='Nur ein Wort']")
+    page.click("[data-round='3'] .stepper button[data-step='1']")
+    tick(page, 50)
+    summary = page.text_content("[data-round='3'] .round-head")
+    assert "Nur ein Wort" in summary and "35 s" in summary, summary
+    st = page.evaluate("JSON.parse(localStorage.getItem('timesup_settings'))")
+    assert st["roundRules"][2] == "Nur ein Wort" and st["roundTimer"][2] == 35, st
+    # Runden +1 -> neue Rundenkarte und gespeichert
+    page.click("#settingsPanel-spiel .set-row:has(#roundCount) button[data-step='1']")
+    tick(page, 50)
+    assert page.locator(".round-settings").count() == 4
+    assert page.evaluate("JSON.parse(localStorage.getItem('timesup_settings')).roundCount") == 4
+    # Fairness: Schalter Strafzeit zeigt Dauer
+    page.click("#settingsTab-fairness")
+    assert not page.is_visible("#punishTime")
+    page.click(".switch[data-for='punishEnabled']")
+    assert page.is_visible("#punishTime") and page.input_value("#punishEnabled") == "yes"
+    page.click(".segment[data-for='penaltyPoints'] button[data-value='draw']")
+    assert page.evaluate("JSON.parse(localStorage.getItem('timesup_settings')).penaltyPoints") == "draw"
+    # Design: Dunkel
+    page.click("#settingsTab-design")
+    page.click(".segment[data-for='themeSelect'] button[data-value='dark']")
+    assert page.evaluate("document.documentElement.classList.contains('dark')")
+    assert not page.errors, page.errors
+
+def test_settings_ui_card_filter(b, base):
+    """Stufen, Themen, NSFW und Decks in den Einstellungen; Warnung bei zu wenigen Karten (AP 4/6)."""
+    page = new_page(b, base, None, viewport=(844, 390))
+    page.wait_for_function("document.querySelectorAll('#deckTiles .deck-tile').length === 16", timeout=10000)
+    page.click("button[aria-label='Einstellungen']")
+    assert page.is_visible("#settingsTab-karten span"), "Querformat: Symbolleiste mit Beschriftung"
+    total = page.evaluate("TimesUp.getFilteredCardPool().length")
+    assert f"{total:,}".replace(",", ".") in page.text_content("#cardMatchInfo")
+    # Stufe Experte abwählen
+    page.click("#levelButtons [data-level='experte']")
+    f = page.evaluate("TimesUp.getCardFilter()")
+    assert f["levels"] == ["kinder", "mittel", "schwer"], f
+    assert page.get_attribute("#levelButtons [data-level='experte']", "aria-pressed") == "false"
+    assert "passen zur Auswahl" in page.text_content("#kartenStatusText")
+    # Themen: Keine -> 0 Karten, Warnung; dann ein Deck -> 60 (ohne Experte weniger), Warnung bei 80
+    page.click("#themesAllBtn")
+    assert page.evaluate("TimesUp.getFilteredCardPool().length") == 0
+    assert page.is_visible("#cardMatchWarning") and "Keine Karte" in page.text_content("#cardMatchWarning")
+    page.click("#deckTiles [data-deck='star-wars']")
+    n = page.evaluate("TimesUp.getFilteredCardPool().length")
+    assert 0 < n <= 60, n
+    page.fill("#cardCount", "80"); page.dispatch_event("#cardCount", "change")
+    assert "Zu wenige Karten für 80" in page.text_content("#cardMatchWarning")
+    # Decks: Alle -> genug Karten, keine Warnung
+    page.click("#decksAllBtn")
+    assert page.evaluate("TimesUp.getCardFilter().decks.length") == 16
+    assert not page.is_visible("#cardMatchWarning")
+    # NSFW-Schalter
+    page.click("#nsfwSwitch")
+    assert page.evaluate("TimesUp.getCardFilter().nsfw") is True
+    # gespeichert und nach Neuladen wiederhergestellt
+    saved = page.evaluate("JSON.parse(localStorage.getItem('timesup_settings')).cardFilter")
+    assert saved["themes"] == [] and len(saved["decks"]) == 16 and saved["nsfw"] is True, saved
+    page.reload()
+    page.wait_for_function("document.querySelectorAll('#deckTiles .deck-tile').length === 16", timeout=10000)
+    assert page.get_attribute("#deckTiles [data-deck='pokemon']", "aria-pressed") == "true"
+    assert page.get_attribute("#nsfwSwitch", "aria-checked") == "true"
+    # Standardwerte setzen den Filter zurück
+    page.click("button[aria-label='Einstellungen']")
+    page.click(".btn-defaults")
+    assert page.evaluate("TimesUp.getCardFilter()") == {"levels": None, "themes": None, "decks": [], "nsfw": False}
+    assert page.get_attribute("#deckTiles [data-deck='pokemon']", "aria-pressed") == "false"
+    assert not page.errors, page.errors
+
 def test_archive_export_import(b, base):
     """Archiv als Datei exportieren und auf einem anderen Gerät importieren und zusammenführen (Todo 8)."""
     c1, c2, c3 = CARDS[0], CARDS[1], CARDS[2]
@@ -720,7 +815,10 @@ def test_penalty_setting_migration(b, base):
         s = copy.deepcopy(DEFAULT_SETTINGS); s.pop("punishPoints", None); s.update(extra)
         page = new_page(b, base, s)
         page.click("button:has-text('⚙️')")
-        assert page.is_visible("#penaltyPoints"), "Punktabzug muss ohne Strafzeit sichtbar sein"
+        page.click("#settingsTab-fairness")
+        assert page.is_visible(".segment[data-for='penaltyPoints']"), "Punktabzug muss ohne Strafzeit sichtbar sein"
+        pressed = page.get_attribute(f".segment[data-for='penaltyPoints'] button[data-value='{expected}']", "aria-pressed")
+        assert pressed == "true", (extra, pressed)
         assert page.input_value("#penaltyPoints") == expected, (extra, page.input_value("#penaltyPoints"))
         page.click("text=Zurück")
         st = page.evaluate("JSON.parse(localStorage.getItem('timesup_settings'))")

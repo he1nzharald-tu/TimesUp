@@ -2,6 +2,7 @@
 import { DEFAULT_TURN_SECONDS, SETTINGS_STORAGE_KEY, state } from "./state.js";
 import { appAlert, showScreen } from "./ui.js";
 import { getCardFilter, getDefaultCardFilter, setCardFilter } from "./filter.js";
+import { afterRoundsRendered, refreshSettingsUi } from "./settingsui.js";
 
 export function readJsonStore(key, fallback = {}) {
     try {
@@ -70,36 +71,50 @@ export function renderRoundSettings() {
         const defaultSkip = (i === 2) ? "yes" : "no";
         const ruleOptions = getDefaultRuleOptions();
 
+        div.dataset.round = String(i);
         div.innerHTML = `
-        <h4>Runde ${i}</h4>
-        <label for="rule${i}">Regel</label>
-        <select id="rule${i}" onchange="toggleCustomRuleInput(${i}, true)">
-          <option value="">-- bitte auswählen --</option>
-          ${ruleOptions.map(rule =>
-            `<option value="${rule}" ${selectedRule === rule ? "selected" : ""}>${rule}</option>`
-        ).join("")}
-          <option value="custom">Eigene Regel</option>
-        </select>
-        <input type="text" id="customRule${i}" class="hidden" placeholder="Eigene Regel eingeben" />
-        <label for="timer${i}">Timer (Sekunden)</label>
-        <input type="number" id="timer${i}" min="10" value="${DEFAULT_TURN_SECONDS}" />
-        <label for="skipAllowed${i}">Überspringen erlaubt?</label>
-        <select id="skipAllowed${i}" onchange="toggleSkipOptions(${i})">
-          <option value="no" ${defaultSkip === "no" ? "selected" : ""}>Nein</option>
-          <option value="yes" ${defaultSkip === "yes" ? "selected" : ""}>Ja</option>
-        </select>
-        <div id="skipOptions${i}" class="${defaultSkip === 'yes' ? '' : 'hidden'}">
-          <label for="skipLimitType${i}">Limit:</label>
-          <select id="skipLimitType${i}" onchange="toggleSkipLimitValue(${i})">
-            <option value="unlimited" selected>Unbegrenzt</option>
-            <option value="limited">Maximal erlaubt:</option>
+        <button type="button" class="round-head" aria-expanded="false" aria-controls="roundBody${i}">
+          <span class="round-head-text"><span class="round-title">Runde ${i}: <span class="round-rule-name"></span></span>
+          <span class="round-summary"></span></span><span class="round-edit">Bearbeiten</span>
+        </button>
+        <div class="round-body" id="roundBody${i}" hidden>
+          <label class="set-title" for="rule${i}">Regel</label>
+          <select id="rule${i}" class="as-choice" onchange="toggleCustomRuleInput(${i}, true)">
+            <option value="">-- bitte auswählen --</option>
+            ${ruleOptions.map(rule =>
+              `<option value="${rule}" ${selectedRule === rule ? "selected" : ""}>${rule}</option>`
+          ).join("")}
+            <option value="custom">Eigene Regel</option>
           </select>
-          <input type="number" id="skipLimitValue${i}" class="hidden" min="1" value="3" />
-          <label for="skipReturn${i}">Übersprungene Karten kommen im selben Zug zurück?</label>
-          <select id="skipReturn${i}">
-            <option value="yes" selected>Ja</option>
-            <option value="no">Nein</option>
-          </select>
+          <input type="text" id="customRule${i}" class="hidden set-text-input" placeholder="Eigene Regel eingeben" />
+          <div class="set-row">
+            <div class="set-text"><label class="set-title" for="timer${i}">Zeit pro Zug</label><span class="set-help">Sekunden</span></div>
+            <div class="stepper" data-unit=" s" data-step-size="5"><button type="button" class="step-btn" data-step="-1" aria-label="Zeit verringern">−</button><input type="number" id="timer${i}" min="10" max="600" value="${DEFAULT_TURN_SECONDS}" inputmode="numeric" /><button type="button" class="step-btn" data-step="1" aria-label="Zeit erhöhen">+</button></div>
+          </div>
+          <div class="set-row">
+            <div class="set-text"><span class="set-title" id="skipAllowed${i}Label">Überspringen</span><span class="set-help">Karten weglegen erlaubt</span></div>
+            <select id="skipAllowed${i}" class="as-switch" aria-labelledby="skipAllowed${i}Label" onchange="toggleSkipOptions(${i})">
+              <option value="no" ${defaultSkip === "no" ? "selected" : ""}>Nein</option>
+              <option value="yes" ${defaultSkip === "yes" ? "selected" : ""}>Ja</option>
+            </select>
+          </div>
+          <div id="skipOptions${i}" class="${defaultSkip === 'yes' ? '' : 'hidden'}">
+            <div class="set-row set-row-col">
+              <div class="set-text"><span class="set-title" id="skipLimitType${i}Label">Wie oft?</span></div>
+              <select id="skipLimitType${i}" class="as-segment" aria-labelledby="skipLimitType${i}Label" onchange="toggleSkipLimitValue(${i})">
+                <option value="unlimited" selected>Unbegrenzt</option>
+                <option value="limited">Begrenzt</option>
+              </select>
+            </div>
+            <div class="stepper hidden" id="skipLimitStepper${i}"><button type="button" class="step-btn" data-step="-1" aria-label="Limit verringern">−</button><input type="number" id="skipLimitValue${i}" class="hidden" min="1" max="50" value="3" inputmode="numeric" /><button type="button" class="step-btn" data-step="1" aria-label="Limit erhöhen">+</button></div>
+            <div class="set-row">
+              <div class="set-text"><span class="set-title" id="skipReturn${i}Label">Kommen zurück</span><span class="set-help">Übersprungene Karten im selben Zug erneut</span></div>
+              <select id="skipReturn${i}" class="as-switch" aria-labelledby="skipReturn${i}Label">
+                <option value="yes" selected>Ja</option>
+                <option value="no">Nein</option>
+              </select>
+            </div>
+          </div>
         </div>
       `;
         container.appendChild(div);
@@ -108,6 +123,7 @@ export function renderRoundSettings() {
             if (select) select.value = defaultSkip;
         }, 0);
     }
+    afterRoundsRendered();
 }
 export function toggleSkipOptions(round) {
     const skipAllowed = document.getElementById(`skipAllowed${round}`).value;
@@ -275,6 +291,7 @@ export function loadSettingsFromStorage() {
     const themeSel = document.getElementById('themeSelect');
     if (themeSel) themeSel.value = storedTheme;
     applyTheme(storedTheme);
+    refreshSettingsUi();
 }
 export function resetAllSettings() {
     setCardFilter(getDefaultCardFilter());
@@ -302,6 +319,7 @@ export function resetAllSettings() {
         document.getElementById(`skipAllowed${i}`).value = defaultSkips[i - 1] || "no";
     }
     try { localStorage.removeItem(SETTINGS_STORAGE_KEY); } catch (e) {}
+    refreshSettingsUi();
 }
 export function toggleHandicapInput() {
     const enabled = document.getElementById("handicapEnabled").value;

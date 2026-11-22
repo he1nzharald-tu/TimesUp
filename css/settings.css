@@ -1,0 +1,559 @@
+/* ====================================================================
+   Einstellungen – Variante B: Symbolleiste oben (Hochformat) bzw. links (Querformat)
+   Stepper, Schalter, Segmentknöpfe, Rundenkarten, Themen-Chips, Deck-Kacheln
+   ==================================================================== */
+
+#screen-settings {
+  --set-blue: #2f5fc4;
+  --set-blue-soft: #eef3ff;
+  --set-green: #00866a;
+  --set-green-soft: #e6f7f2;
+  --set-violet: #6a5fe0;
+  --set-violet-soft: #f0eeff;
+  --set-line: #d5dce3;
+  --set-off: #b8c2cc;
+  --set-warn-bg: #fff4d1;
+  --set-warn-text: #6b4e00;
+  --set-on-blue: #ffffff;
+  position: relative;
+}
+.dark #screen-settings {
+  --set-blue: #7aa2ff;
+  --set-blue-soft: #1b2741;
+  --set-green: #5ce1b8;
+  --set-green-soft: #12302a;
+  --set-violet: #b3a9ff;
+  --set-violet-soft: #221f3f;
+  --set-line: #2b3648;
+  --set-off: #4a5566;
+  --set-warn-bg: #3a2f0b;
+  --set-warn-text: #ffd76a;
+  --set-on-blue: #0b1220;
+}
+
+#screen-settings .ico {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+/* Gemeinsamer Reset der globalen Button-/Eingabe-Stile */
+#screen-settings button {
+  width: auto;
+  margin: 0;
+  box-shadow: none;
+  filter: none;
+  font-family: inherit;
+}
+#screen-settings .visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* ---------- Kopfzeile ---------- */
+#screen-settings .set-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: #fff;
+  flex-wrap: nowrap;
+}
+#screen-settings .set-heading {
+  flex: 1;
+  margin: 0;
+  font-size: 1.35rem;
+  color: #fff;
+  order: 0;
+}
+#screen-settings .set-head-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  font-size: 0.95rem;
+}
+@media (max-width: 480px) {
+  /* schmale Handys: Kopfzeilen-Knöpfe nur mit Symbol, Text für Screenreader */
+  #screen-settings .set-head-btn {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+  #screen-settings .set-head-btn span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  #screen-settings .set-heading {
+    text-align: center;
+  }
+}
+#screen-settings .set-head-btn.btn-defaults {
+  background: var(--accent-c);
+  color: var(--accent-c-text);
+}
+
+/* ---------- Symbolleiste + Inhalt ---------- */
+#screen-settings .set-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+#screen-settings .set-rail {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--panel);
+  border: 1px solid var(--set-line);
+}
+#screen-settings .set-tab {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  border-bottom: 3px solid transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 4px;
+}
+#screen-settings .set-tab span {
+  /* Hochformat: nur Symbole; Text bleibt für Screenreader */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+#screen-settings .set-tab.active {
+  color: var(--set-blue);
+  background: var(--set-blue-soft);
+  border-bottom-color: var(--set-blue);
+}
+#screen-settings .set-content {
+  min-width: 0;
+}
+#screen-settings .set-panel[hidden] {
+  display: none;
+}
+
+@media (orientation: landscape) {
+  #screen-settings .set-body {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  #screen-settings .set-rail {
+    top: 10px;
+    grid-template-columns: 1fr;
+    width: 88px;
+    flex: none;
+  }
+  #screen-settings .set-tab {
+    flex-direction: column;
+    gap: 2px;
+    min-height: 62px;
+    font-size: 0.75rem;
+    border-bottom: 0;
+    border-left: 3px solid transparent;
+  }
+  #screen-settings .set-tab.active {
+    border-left-color: var(--set-blue);
+  }
+  #screen-settings .set-tab span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+  #screen-settings .set-content {
+    flex: 1;
+  }
+}
+
+/* ---------- Zeilen ---------- */
+#screen-settings .set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--set-line);
+}
+#screen-settings .set-row-col {
+  flex-direction: column;
+  align-items: stretch;
+}
+#screen-settings .set-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+#screen-settings .set-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+#screen-settings .set-help {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+#screen-settings .set-note {
+  margin: -4px 0 8px;
+}
+#screen-settings .set-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0 8px;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+#screen-settings .set-sub {
+  margin: 10px 0 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+#screen-settings .set-all {
+  min-height: 44px;
+  padding: 0 8px;
+  background: transparent;
+  color: var(--set-blue);
+  font-size: 0.95rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ---------- Stepper ---------- */
+#screen-settings .stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+#screen-settings .stepper.hidden {
+  display: none;
+}
+#screen-settings .step-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--set-line);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+#screen-settings .stepper input[type="number"] {
+  width: 64px;
+  min-height: 44px;
+  margin: 0;
+  padding: 4px;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: 10px;
+  -moz-appearance: textfield;
+}
+#screen-settings .stepper input::-webkit-outer-spin-button,
+#screen-settings .stepper input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#screen-settings .stepper input.hidden {
+  display: block;
+}
+
+/* ---------- Schalter ---------- */
+#screen-settings .switch {
+  width: 56px;
+  height: 32px;
+  flex: none;
+  padding: 3px;
+  border-radius: 16px;
+  background: var(--set-off);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  transition: background 0.15s;
+}
+#screen-settings .switch span {
+  width: 26px;
+  height: 26px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+#screen-settings .switch[aria-checked="true"] {
+  background: var(--set-green);
+  justify-content: flex-end;
+}
+
+/* ---------- Segmente und Regelknöpfe ---------- */
+#screen-settings .segment {
+  display: flex;
+  border: 1.5px solid var(--set-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+#screen-settings .segment button,
+#screen-settings .choice-grid button {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 0;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  padding: 6px 8px;
+}
+#screen-settings .segment button + button {
+  border-left: 1.5px solid var(--set-line);
+}
+#screen-settings .choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+#screen-settings .choice-grid button {
+  border: 1.5px solid var(--set-line);
+  border-radius: 10px;
+}
+#screen-settings .segment button[aria-pressed="true"],
+#screen-settings .choice-grid button[aria-pressed="true"] {
+  background: var(--set-blue);
+  color: var(--set-on-blue);
+  border-color: var(--set-blue);
+}
+#screen-settings .set-text-input {
+  margin-top: 6px;
+}
+
+/* ---------- Kartenfilter ---------- */
+#screen-settings .set-match {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--set-blue-soft);
+  color: var(--set-blue);
+  font-weight: 600;
+}
+#screen-settings .set-warning {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--set-warn-bg);
+  color: var(--set-warn-text);
+  font-weight: 500;
+}
+#screen-settings .set-warning.hidden {
+  display: none;
+}
+#screen-settings .level-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+#screen-settings .level-btn {
+  min-height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1.5px solid var(--set-line);
+  background: var(--card-bg);
+  color: var(--text);
+  padding: 4px;
+  font-size: 0.95rem;
+}
+#screen-settings .level-btn small {
+  font-weight: 400;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+#screen-settings .level-btn[aria-pressed="true"] {
+  background: var(--set-blue);
+  border-color: var(--set-blue);
+  color: var(--set-on-blue);
+}
+#screen-settings .chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#screen-settings .chip {
+  min-height: 40px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--set-line);
+  background: var(--card-bg);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+#screen-settings .chip small {
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+#screen-settings .chip[aria-pressed="true"] {
+  background: var(--set-green-soft);
+  border-color: var(--set-green);
+  color: var(--text);
+}
+#screen-settings .deck-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@media (min-width: 640px) {
+  #screen-settings .deck-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) {
+  #screen-settings .deck-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+#screen-settings .deck-tile {
+  min-height: 64px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1.5px solid var(--set-line);
+  background: var(--card-bg);
+  color: var(--text);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+}
+#screen-settings .deck-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.15;
+}
+#screen-settings .deck-tile small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+#screen-settings .deck-tile[aria-pressed="true"] {
+  border-color: var(--set-violet);
+  background: var(--set-violet-soft);
+  box-shadow: inset 0 0 0 2px var(--set-violet);
+}
+
+/* ---------- Rundenkarten ---------- */
+#screen-settings .round-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+}
+#screen-settings .round-settings {
+  border: 1.5px solid var(--set-line);
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+#screen-settings .round-head {
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+#screen-settings .round-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+#screen-settings .round-title {
+  font-weight: 700;
+}
+#screen-settings .round-summary {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+#screen-settings .round-edit {
+  color: var(--set-blue);
+  font-size: 0.85rem;
+  flex: none;
+}
+#screen-settings .round-settings.open .round-edit {
+  visibility: hidden;
+}
+#screen-settings .round-body {
+  padding: 4px 14px 14px;
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#screen-settings .round-body[hidden] {
+  display: none;
+}
+
+/* ---------- „Gespeichert“ ---------- */
+#screen-settings .set-toast {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translate(-50%, -20px);
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: #222;
+  color: #fff;
+  font-size: 0.9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 50;
+}
+#screen-settings .set-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  #screen-settings .set-toast,
+  #screen-settings .switch { transition: none; }
+}

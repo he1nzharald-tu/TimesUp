@@ -459,14 +459,7 @@ td[data-label="Entfernen"] {
    Einstellungen
    ==================================================================== */
 
-.round-settings {
-  padding: 12px;
-  border-radius: var(--radius);
-  margin-bottom: 12px;
-  box-shadow: var(--shadow);
-  border-left: 6px solid #999;
-  overflow: scroll;
-}
+/* Neue Einstellungsseite: css/settings.css */
 
 /* ====================================================================
    Teamauswahl und Teamübersicht
@@ -1766,43 +1759,6 @@ td[data-label="Entfernen"] {
 
   #screen-end td::before {
     content: none;
-  }
-
-  #screen-settings > div:first-child {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  #screen-settings > div:first-child h2 {
-    order: -1;
-    flex: 1 1 100%;
-    font-size: 1.5rem;
-  }
-
-  #tab-rules > div {
-    flex-wrap: wrap;
-    gap: 6px 10px;
-  }
-
-  #tab-rules > div > label > span {
-    font-size: 1.05rem;
-  }
-
-  #tab-rules > div > input,
-  #tab-rules > div > select,
-  #tab-rules > div > div input,
-  #tab-rules > div > div select {
-    margin-left: 0;
-    max-width: 100%;
-  }
-
-  #tab-rules > div > input[type="number"] {
-    width: 90px;
-  }
-
-  #tab-rules > div > div:not(.hidden) {
-    display: flex;
-    flex-wrap: wrap;
   }
 
   #roundBorderWrapper {

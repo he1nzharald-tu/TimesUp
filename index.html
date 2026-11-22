@@ -7,6 +7,7 @@
     <title>Times Up – Mobile App</title>
     <link rel="stylesheet" href="css/startscreen.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/settings.css" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
@@ -56,7 +57,7 @@
             </button>
         </div>
         <div class="start-controls">
-            <button class="start-icon-btn" onclick="showScreen('settings')">⚙️</button>
+            <button class="start-icon-btn" onclick="showScreen('settings')" aria-label="Einstellungen">⚙️</button>
             <input type="text" id="playerInput" placeholder="Spielername eingeben"
                 />
             <button class="start-icon-btn" onclick="addPlayer()"
@@ -93,121 +94,100 @@
         </div>
     </div>
 
-    <!-- === Einstellungen === -->
+    <!-- === Einstellungen (Symbolleiste: oben im Hochformat, links im Querformat) === -->
     <div id="screen-settings" class="screen">
-        <div class="settings-header">
-            <div class="tab-btns settings-header-actions">
-                <button onclick="validateSettingsAndGoBack()">⬅️ Zurück</button>
-            </div>
-            <h2 class="settings-title">⚙️ Einstellungen</h2>
-            <div class="tab-btns settings-header-actions">
-                <button class="btn-defaults" onclick="resetAllSettings()">
-                    🔄 Standardwerte
-                </button>
-            </div>
+        <div class="set-header">
+            <button type="button" class="set-head-btn" onclick="validateSettingsAndGoBack()" aria-label="Zurück"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg><span>Zurück</span></button>
+            <h2 class="set-heading">Einstellungen</h2>
+            <button type="button" class="set-head-btn btn-defaults" onclick="resetAllSettings()" aria-label="Standardwerte"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6"/><path d="M5 15a8 8 0 1 0 2-8.5L4 10"/></svg><span>Standardwerte</span></button>
         </div>
-        <hr class="divider" />
-        <div id="tab-rules">
-            <div class="settings-row settings-row-anchor">
-                <label class="settings-label" for="cardCount">
-                    <span class="settings-chip">
-                        🃏 Anzahl Karten (Std: 40)
-                    </span>
-                </label>
-                <input type="number" id="cardCount" min="1" value="40"
-                    />
+        <div class="set-body">
+        <nav class="set-rail" role="tablist" aria-label="Bereiche der Einstellungen">
+            <button type="button" role="tab" id="settingsTab-karten" class="set-tab active" aria-selected="true" aria-controls="settingsPanel-karten" data-tab="karten"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="12" height="16" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v13"/></svg><span>Karten</span></button>
+            <button type="button" role="tab" id="settingsTab-spiel" class="set-tab" aria-selected="false" aria-controls="settingsPanel-spiel" data-tab="spiel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Spiel</span></button>
+            <button type="button" role="tab" id="settingsTab-fairness" class="set-tab" aria-selected="false" aria-controls="settingsPanel-fairness" data-tab="fairness"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 21h14M4 8h16M4 8l-3 6h6zM20 8l-3 6h6z"/></svg><span>Fairness</span></button>
+            <button type="button" role="tab" id="settingsTab-design" class="set-tab" aria-selected="false" aria-controls="settingsPanel-design" data-tab="design"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.6-.9 1.2-1.8-.5-1.1.2-2.2 1.4-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg><span>Design</span></button>
+        </nav>
+        <div class="set-content" id="tab-rules">
+          <section class="set-panel active" id="settingsPanel-karten" role="tabpanel" aria-labelledby="settingsTab-karten">
+            <div class="set-row">
+                <div class="set-text"><label class="set-title" for="cardCount">Karten pro Spiel</label><span class="set-help">Wie viele Begriffe in den Topf kommen</span></div>
+                <div class="stepper" data-unit=""><button type="button" class="step-btn" data-step="-1" aria-label="Karten pro Spiel verringern">−</button><input type="number" id="cardCount" min="1" max="500" value="40" inputmode="numeric" /><button type="button" class="step-btn" data-step="1" aria-label="Karten pro Spiel erhöhen">+</button></div>
             </div>
-
-            <div class="settings-row settings-row-anchor">
-                <label class="settings-label" for="roundCount">
-                    <span class="settings-chip">
-                        🔁 Anzahl Spielrunden (Std: 3)
-                    </span>
-                </label>
-                <input type="number" id="roundCount" min="1" value="3" onchange="renderRoundSettings()"
-                    />
+            <div class="set-match" id="cardMatchInfo" aria-live="polite">Karten werden geladen …</div>
+            <div class="set-warning hidden" id="cardMatchWarning" role="alert"></div>
+            <h3 class="set-section">Schwierigkeit</h3>
+            <div class="level-grid" id="levelButtons"></div>
+            <h3 class="set-section">Themen <button type="button" class="set-all" id="themesAllBtn">Alle</button></h3>
+            <div class="set-sub">Allgemein</div>
+            <div class="chip-list" id="themeChipsAllgemein"></div>
+            <div class="set-sub">Nerd</div>
+            <div class="chip-list" id="themeChipsNerd"></div>
+            <div class="set-row">
+                <div class="set-text"><span class="set-title" id="nsfwLabel">NSFW</span><span class="set-help">Karten nur für Erwachsene</span></div>
+                <button type="button" class="switch" role="switch" id="nsfwSwitch" aria-checked="false" aria-labelledby="nsfwLabel"><span></span></button>
             </div>
-
-            <div class="settings-row settings-row-anchor">
-                <label class="settings-label" for="teamCount">
-                    <span class="settings-chip">
-                        👥 Anzahl Teams (Std: 2)
-                    </span>
-                </label>
-                <input type="number" id="teamCount" min="2" value="2"
-                    />
+            <h3 class="set-section">Decks <button type="button" class="set-all" id="decksAllBtn">Alle</button></h3>
+            <p class="set-help set-note">Gewählte Decks kommen zusätzlich zu den Themen ins Spiel.</p>
+            <div class="deck-grid" id="deckTiles"></div>
+          </section>
+          <section class="set-panel" id="settingsPanel-spiel" role="tabpanel" aria-labelledby="settingsTab-spiel" hidden>
+            <div class="set-row">
+                <div class="set-text"><label class="set-title" for="teamCount">Teams</label><span class="set-help">2 bis 6 Teams</span></div>
+                <div class="stepper" data-unit=""><button type="button" class="step-btn" data-step="-1" aria-label="Teams verringern">−</button><input type="number" id="teamCount" min="2" max="6" value="2" inputmode="numeric" /><button type="button" class="step-btn" data-step="1" aria-label="Teams erhöhen">+</button></div>
             </div>
-
-            <div class="settings-row settings-row-anchor">
-                <label class="settings-label" for="handicapEnabled">
-                    <span class="settings-chip">
-                        🧩 Handicap aktivieren
-                    </span>
-                </label>
-                <select id="handicapEnabled" onchange="toggleHandicapInput()">
+            <div class="set-row">
+                <div class="set-text"><label class="set-title" for="vetoCount">Veto pro Person</label><span class="set-help">Karten, die man bei der Auswahl ablehnen darf</span></div>
+                <div class="stepper" data-unit=""><button type="button" class="step-btn" data-step="-1" aria-label="Veto pro Person verringern">−</button><input type="number" id="vetoCount" min="0" max="10" value="1" inputmode="numeric" /><button type="button" class="step-btn" data-step="1" aria-label="Veto pro Person erhöhen">+</button></div>
+            </div>
+            <div class="set-row">
+                <div class="set-text"><label class="set-title" for="roundCount">Runden</label><span class="set-help">Antippen zum Bearbeiten</span></div>
+                <div class="stepper" data-unit=""><button type="button" class="step-btn" data-step="-1" aria-label="Runden verringern">−</button><input type="number" id="roundCount" min="1" max="10" value="3" inputmode="numeric" onchange="renderRoundSettings()" /><button type="button" class="step-btn" data-step="1" aria-label="Runden erhöhen">+</button></div>
+            </div>
+            <div id="roundSettingsContainer" class="round-list"></div>
+          </section>
+          <section class="set-panel" id="settingsPanel-fairness" role="tabpanel" aria-labelledby="settingsTab-fairness" hidden>
+            <div class="set-row">
+                <div class="set-text"><span class="set-title" id="handicapEnabledLabel">Handicap</span><span class="set-help">Mehr Zeit für markierte Spieler</span></div>
+                <select id="handicapEnabled" class="as-switch" aria-labelledby="handicapEnabledLabel" onchange="toggleHandicapInput()"><option value="no" selected>Nein</option><option value="yes">Ja</option></select>
+            </div>
+            <div id="handicapTimeContainer" class="hidden">
+            <div class="set-row">
+                <div class="set-text"><label class="set-title" for="handicapTime">Zusatzzeit</label><span class="set-help">Sekunden extra pro Zug</span></div>
+                <div class="stepper" data-unit=" s"><button type="button" class="step-btn" data-step="-1" aria-label="Zusatzzeit verringern">−</button><input type="number" id="handicapTime" min="1" max="60" value="5" inputmode="numeric" /><button type="button" class="step-btn" data-step="1" aria-label="Zusatzzeit erhöhen">+</button></div>
+            </div>
+            </div>
+            <div class="set-row">
+                <div class="set-text"><span class="set-title" id="punishEnabledLabel">Strafzeit</span><span class="set-help">Pause nach einem Regelverstoß</span></div>
+                <select id="punishEnabled" class="as-switch" aria-labelledby="punishEnabledLabel" onchange="togglePunishOptions()"><option value="no" selected>Nein</option><option value="yes">Ja</option></select>
+            </div>
+            <div id="punishOptionsContainer" class="hidden">
+            <div class="set-row">
+                <div class="set-text"><label class="set-title" for="punishTime">Dauer</label><span class="set-help">Sekunden gesperrt</span></div>
+                <div class="stepper" data-unit=" s"><button type="button" class="step-btn" data-step="-1" aria-label="Dauer verringern">−</button><input type="number" id="punishTime" min="1" max="60" value="3" inputmode="numeric" /><button type="button" class="step-btn" data-step="1" aria-label="Dauer erhöhen">+</button></div>
+            </div>
+            </div>
+            <div class="set-row set-row-col">
+                <div class="set-text"><span class="set-title" id="penaltyLabel">Punktabzug</span><span class="set-help">Pro Regelverstoß</span></div>
+                <select id="penaltyPoints" class="as-segment" aria-labelledby="penaltyLabel" title="Punktabzug pro Regelverstoß">
                     <option value="no" selected>Nein</option>
-                    <option value="yes">Ja</option>
-                </select>
-                <div id="handicapTimeContainer" class="hidden">
-                    <label class="settings-label" for="handicapTime">⏱️</label>
-                    <input type="number" id="handicapTime" min="1" value="5"
-                        />
-                </div>
-            </div>
-
-
-            <div class="settings-row">
-                <label class="settings-label" for="punishEnabled">
-                    <span class="settings-chip">
-                        ⚠️ Strafzeit
-                    </span>
-                </label>
-                <select id="punishEnabled" onchange="togglePunishOptions()">
-                    <option value="no" selected>Nein</option>
-                    <option value="yes">Ja</option>
-                </select>
-                <div id="punishOptionsContainer" class="hidden">
-                    <label class="settings-label" for="punishTime">⏱️</label>
-                    <input type="number" id="punishTime" min="1" value="3"
-                        />
-                </div>
-            </div>
-
-            <div class="settings-row">
-                <label class="settings-label" for="penaltyPoints">
-                    <span class="settings-chip">
-                        ➖ Punktabzug
-                    </span>
-                </label>
-                <select id="penaltyPoints" title="Punktabzug pro Regelverstoß">
-                    <option value="no" selected>Nein</option>
-                    <option value="yes">Ja (−1)</option>
-                    <option value="draw">Remi (−0,5)</option>
+                    <option value="yes">−1</option>
+                    <option value="draw">−0,5</option>
                 </select>
             </div>
-
-            <div class="settings-row">
-                <label class="settings-label" for="vetoCount">
-                    <span class="settings-chip">
-                        🚫 Anzahl Karten Veto
-                    </span>
-                </label>
-                <input type="number" id="vetoCount" min="0" value="1" />
-            </div>
-            <div class="settings-row">
-                <label class="settings-label" for="themeSelect">
-                    <span class="settings-chip">
-                        🎨 Design
-                    </span>
-                </label>
-                <select id="themeSelect" onchange="applyTheme(this.value)">
-                    <option value="light">Altes Design (Hell)</option>
-                    <option value="dark">Neues Design (Darkmode)</option>
+          </section>
+          <section class="set-panel" id="settingsPanel-design" role="tabpanel" aria-labelledby="settingsTab-design" hidden>
+            <div class="set-row set-row-col">
+                <div class="set-text"><span class="set-title" id="themeLabel">Design</span><span class="set-help">Hell oder dunkel</span></div>
+                <select id="themeSelect" class="as-segment" aria-labelledby="themeLabel" onchange="applyTheme(this.value)">
+                    <option value="light">Hell</option>
+                    <option value="dark">Dunkel</option>
                 </select>
             </div>
-            <hr class="divider" />
-            <div id="roundSettingsContainer"></div>
+          </section>
         </div>
+        </div>
+        <div class="set-toast" id="settingsToast" role="status" aria-live="polite"></div>
     </div>
 
     <!-- === Bildschirm: Teamauswahl === -->
