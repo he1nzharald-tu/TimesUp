@@ -108,7 +108,57 @@ def run(out, theme="light", vps=None):
             page.click("text=Zurück zum Start")
             page.click("#loadSavesButton"); shot("18_archiv")
             page.context.close()
+            run_three_teams(b, base, out, vp_name, vp, theme, report)
     return report
+
+def run_three_teams(b, base, out, vp_name, vp, theme, report):
+    """Zweiter Rundgang: 3 Teams, eigene Regel, Handicap, Strafe, Veto benutzt."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s.update({"cardCount": 6, "roundCount": 2, "teamCount": 3, "roundTimer": [30, 30],
+              "roundRules": ["Nur beschreiben", "Nur mit Händen"], "roundSkip": ["yes", "no"],
+              "skipLimitType": ["limited", "limited"], "skipLimitValue": [2, 0], "skipReturn": ["no", "yes"],
+              "handicapEnabled": True, "punishEnabled": True, "punishTime": 1, "punishPoints": "draw"})
+    page = new_page(b, base, s, viewport=vp, theme=theme)
+    def shot(name):
+        snap(page, out, f"{vp_name}__{name}")
+        report[f"{vp_name}__{name}"] = overflow(page)
+    page.click("button:has-text('⚙️')"); shot("30_settings_details")
+    page.evaluate("validateSettingsAndGoBack()")
+    add_players(page, ["Anna", "Ben", "Cem", "Dora", "Emil", "Fritz"])
+    page.click("text=Weiter"); ok(page)
+    page.click("text=Zufällige Teams"); shot("31_teamuebersicht_3")
+    page.click("text=Kartenauswahl mit Veto"); ok(page); tick(page, 200)
+    page.click("#cardSelectionInfo")
+    page.locator("#cardSelectionList li").first.click(); ok(page)
+    shot("32_kartenauswahl_veto")
+    for i in range(6):
+        if i: tick(page, 200); page.click("#cardSelectionInfo")
+        page.click("#cardDoneButton"); ok(page)
+    page.click("#startGameOverviewButton"); shot("33_spieluebersicht_3")
+    page.click("#screen-spieluebersicht >> text=Spiel starten")
+    for turn in range(30):
+        if active(page) != "screen-roundstart": break
+        if turn == 2: shot("34_rundenstart_team3")
+        page.click("#startRoundBtn"); ok(page)
+        if turn == 0:
+            page.click("#btnMistake"); tick(page, 1100)
+        for _ in range(1 if turn < 2 else 6):
+            if page.locator("#guessedOverlay").count(): break
+            page.click("#btnCorrect")
+        if not page.locator("#guessedOverlay").count(): tick(page, 31000)
+        page.locator("#guessedOverlay button", has_text="Nächster Spieler").click()
+    shot("35_rundenstatistik_3")
+    page.click("text=Nächste Runde starten")
+    for _ in range(30):
+        if active(page) != "screen-roundstart": break
+        page.click("#startRoundBtn"); ok(page)
+        for _ in range(6):
+            if page.locator("#guessedOverlay").count(): break
+            page.click("#btnCorrect")
+        if not page.locator("#guessedOverlay").count(): tick(page, 31000)
+        page.locator("#guessedOverlay button", has_text="Nächster Spieler").click()
+    shot("36_ende_3")
+    page.context.close()
 
 if __name__ == "__main__":
     rep = run(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "light")
