@@ -11,29 +11,22 @@ const CACHE_VERSION = 'v1';
 const CACHE_PREFIX = 'timesup-';
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
 
-// Eigene Dateien: müssen alle geladen werden, sonst schlägt die Installation fehl.
+// Alle App-Dateien: müssen alle geladen werden, sonst schlägt die Installation fehl.
 const APP_FILES = [
   './',
   './index.html',
   './manifest.json',
   './icon.png',
   './css/startscreen.css',
+  './css/fonts.css',
+  './fonts/fredoka/fredoka-latin-400-normal.woff2',
+  './fonts/fredoka/fredoka-latin-700-normal.woff2',
+  './fonts/fredoka/fredoka-latin-ext-400-normal.woff2',
+  './fonts/fredoka/fredoka-latin-ext-700-normal.woff2',
   './js/app.js',
   './data/cards.json',
   './assets/Alarm.m4a',
   './assets/timer5.m4a'
-];
-
-// Fremde Dateien: werden nach Möglichkeit mitgeladen, ein Fehler bricht die Installation nicht ab.
-const EXTERNAL_FILES = [
-  'https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap'
-];
-
-// Hosts, deren Antworten beim ersten Abruf zusätzlich zwischengespeichert werden
-// (z. B. die eigentlichen Schriftdateien, die erst das Google-Fonts-CSS nachlädt).
-const RUNTIME_CACHE_HOSTS = [
-  'fonts.googleapis.com',
-  'fonts.gstatic.com'
 ];
 
 self.addEventListener('install', (event) => {
@@ -41,14 +34,6 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
     // cache: 'reload' umgeht den HTTP-Cache des Browsers, damit wirklich der neue Stand landet.
     await cache.addAll(APP_FILES.map((url) => new Request(url, { cache: 'reload' })));
-    await Promise.all(EXTERNAL_FILES.map(async (url) => {
-      try {
-        const response = await fetch(url, { mode: 'cors', cache: 'reload' });
-        if (response.ok) await cache.put(url, response);
-      } catch (err) {
-        console.warn('[SW] Externe Datei nicht vorab geladen:', url, err);
-      }
-    }));
     await self.skipWaiting();
   })());
 });
@@ -69,14 +54,13 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
 
-  const url = new URL(request.url);
-  const sameOrigin = url.origin === self.location.origin;
-  if (!sameOrigin && !RUNTIME_CACHE_HOSTS.includes(url.hostname)) return;
+  // Die App lädt nur eigene Dateien; alles andere geht unverändert ins Netz
+  if (new URL(request.url).origin !== self.location.origin) return;
 
-  event.respondWith(handleFetch(request, sameOrigin));
+  event.respondWith(handleFetch(request));
 });
 
-async function handleFetch(request, sameOrigin) {
+async function handleFetch(request) {
   const cache = await caches.open(CACHE_NAME);
 
   // Seitenaufrufe (auch mit ?param oder #hash) immer mit der gespeicherten App beantworten.
@@ -95,8 +79,7 @@ async function handleFetch(request, sameOrigin) {
 
   try {
     const response = await fetch(request);
-    const cacheable = response.ok || (!sameOrigin && response.type === 'opaque');
-    if (cacheable && !request.headers.has('range')) {
+    if (response.ok && !request.headers.has('range')) {
       await cache.put(request, response.clone());
     }
     return response;
