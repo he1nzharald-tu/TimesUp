@@ -4,6 +4,7 @@ import { getPenaltyMode, getSettings, toPositiveInt } from "./settings.js";
 import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray } from "./cards.js";
 import { clearSavedGame, saveGameState } from "./persist.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
+import { allowScreenOff, keepScreenOn } from "./wakelock.js";
 import { icon, renderTeamCards, setButtonContent, teamColor, teamName } from "./teamview.js";
 import { appendText, appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
 
@@ -246,6 +247,7 @@ export function startRoundTimer() {
     document.getElementById("playRoundTeam").textContent = teamName(state.activeTeamIndex);
     updateTimerUi();
     showScreen("play");
+    keepScreenOn();
     state.timer = setInterval(() => {
         state.remainingTime--;
         updateTimerUi();
@@ -576,6 +578,7 @@ export async function confirmStartRound() {
 }
 // === Pause Game ===
 export function pauseGame() {
+    allowScreenOff();
     try { if (state.timer) { clearInterval(state.timer); state.timer = undefined; } } catch (e) {}
     state.isTimerRunning = false;
     if (cancelPenalty()) state.penaltyInterruptedByPause = true;
@@ -622,6 +625,7 @@ export function pauseGame() {
 }
 // Hilfsfunktion zum Fortsetzen des Timers
 export function resumeTimer() {
+    keepScreenOn();
     // prevent duplicate starts
     if (state.isTimerRunning) return;
     if (state.penaltyInterruptedByPause) {
@@ -654,6 +658,7 @@ export function resumeTimer() {
 }
 // === Guessed Cards ===
 export function showGuessedCardsAfterTimer(playAlarm = true) {
+    allowScreenOff();
     // ensure no timer remains running
     try { if (state.timer) { clearInterval(state.timer); state.timer = undefined; } } catch (e) {}
     cancelPenalty();
@@ -795,6 +800,7 @@ export function showCardCorrectionScreen(guessedOverlay) {
     box.appendChild(btnOk);
 }
 export function resetGameState() {
+    allowScreenOff();
     try { if (state.timer) { clearInterval(state.timer); } } catch (e) {}
     // Spielverlauf-Variablen zurücksetzen (Settings & Karten bleiben erhalten)
     state.currentRound = 0;

@@ -400,6 +400,40 @@ def test_penalty_points_round_stats(b, base):
     texts = page.eval_on_selector_all("#statsContainer .team-overview-card p", "els => els.map(e => e.textContent)")
     assert any("4,5" in t and "−0,5 Strafe" in t for t in texts), texts
 
+def test_wake_lock_and_play_again(b, base):
+    """M6/M7: Bildschirm bleibt während des Zugs an (Wake Lock), nach Zugende frei; „Nochmal spielen“ behält die Teams."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s.update({"cardCount": 4, "roundCount": 1, "roundTimer": [30], "roundSkip": ["no"]})
+    page = new_page(b, base, s)
+    page.evaluate("""() => { window.__wl = []; Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: {
+        request: async () => { const l = { released: false, listeners: [], addEventListener(e, f) { this.listeners.push(f); },
+            release: async function () { this.released = true; window.__wl.push('release'); } }; window.__wl.push('request'); return l; } } }); }""")
+    setup_game(page, ["Anna", "Ben"], veto=False)
+    teams = page.evaluate("TimesUp.state.teams.map(t => t.map(p => p.name))")
+    page.click("#startRoundBtn"); ok(page)
+    tick(page, 50)
+    assert page.evaluate("window.__wl") == ["request"], page.evaluate("window.__wl")
+    page.click("#screen-play .play-pause")
+    assert page.evaluate("window.__wl")[-1] == "release"
+    page.locator("#pauseOverlay .pause-continue-btn").click()
+    tick(page, 50)
+    assert page.evaluate("window.__wl")[-1] == "request"
+    while not page.locator("#guessedOverlay").count():
+        page.click("#btnCorrect")
+    assert page.evaluate("window.__wl")[-1] == "release"
+    overlay_button(page, "Nächster Spieler").click()
+    if active(page) == "screen-roundstart":
+        page.click("#startRoundBtn"); ok(page)
+        while not page.locator("#guessedOverlay").count():
+            page.click("#btnCorrect")
+        overlay_button(page, "Nächster Spieler").click()
+    assert active(page) == "screen-end", active(page)
+    assert "gewinnt" in page.text_content("#endWinnerText") or "Unentschieden" in page.text_content("#endWinnerText")
+    page.click(".play-again-btn")
+    assert active(page) == "screen-teamuebersicht", active(page)
+    assert page.evaluate("TimesUp.state.teams.map(t => t.map(p => p.name))") == teams
+    assert page.locator("#teamsContainer .team-card").count() == 2
+
 def test_default_turn_time(b, base):
     """Standardzeit 30 s: frische Installation (Einstellungen und Spiel) und Button "Standardwerte"."""
     page = new_page(b, base, None)

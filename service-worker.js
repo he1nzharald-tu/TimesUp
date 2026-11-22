@@ -7,7 +7,7 @@
 // WICHTIG: Nach jeder Änderung an App-Dateien (HTML, CSS, JS, Karten, Sounds)
 // CACHE_VERSION erhöhen – sonst bekommen installierte Apps die Änderung nicht.
 
-const CACHE_VERSION = 'v14';
+const CACHE_VERSION = 'v15';
 const CACHE_PREFIX = 'timesup-';
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
 // Caches von Versionen ohne Update-Hinweis
@@ -43,6 +43,7 @@ const APP_FILES = [
   './js/filter.js',
   './js/settingsui.js',
   './js/teamview.js',
+  './js/wakelock.js',
   './data/cards.json',
   './data/kategorien.json',
   './assets/Alarm.m4a',
