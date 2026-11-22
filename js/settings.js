@@ -1,5 +1,5 @@
 // Einstellungen: Speichern/Laden, Rundeneinstellungen, Design
-import { SETTINGS_STORAGE_KEY, state } from "./state.js";
+import { DEFAULT_TURN_SECONDS, SETTINGS_STORAGE_KEY, state } from "./state.js";
 import { appAlert, showScreen } from "./ui.js";
 
 export function readJsonStore(key, fallback = {}) {
@@ -72,7 +72,7 @@ export function renderRoundSettings() {
         </select>
         <input type="text" id="customRule${i}" class="hidden" placeholder="Eigene Regel eingeben" />
         <label for="timer${i}">Timer (Sekunden)</label>
-        <input type="number" id="timer${i}" min="10" value="30" />
+        <input type="number" id="timer${i}" min="10" value="${DEFAULT_TURN_SECONDS}" />
         <label for="skipAllowed${i}">Überspringen erlaubt?</label>
         <select id="skipAllowed${i}" onchange="toggleSkipOptions(${i})">
           <option value="no" ${defaultSkip === "no" ? "selected" : ""}>Nein</option>
@@ -257,7 +257,7 @@ export function loadSettingsFromStorage() {
             }
             toggleCustomRuleInput(i);
         }
-        document.getElementById(`timer${i}`).value = settings.roundTimer?.[i - 1] || 60;
+        document.getElementById(`timer${i}`).value = settings.roundTimer?.[i - 1] || DEFAULT_TURN_SECONDS;
         const skipSelect = document.getElementById(`skipAllowed${i}`);
         if (Array.isArray(settings.roundSkip)) skipSelect.value = settings.roundSkip[i - 1] || "no";
         restoreSkipOptions(i, settings);
@@ -282,14 +282,14 @@ export function resetAllSettings() {
     document.getElementById("punishPoints").value = "no";
     renderRoundSettings();
     const defaultRules = ["Nur beschreiben", "Nur ein Wort", "Pantomime und Geräusche"];
-    const defaultTimers = [30, 30, 30];
+    const defaultTimers = [DEFAULT_TURN_SECONDS, DEFAULT_TURN_SECONDS, DEFAULT_TURN_SECONDS];
     const defaultSkips = ["no", "yes", "no"];
     for (let i = 1; i <= 3; i++) {
         document.getElementById(`rule${i}`).value = defaultRules[i - 1] || "";
         const customRuleInput = document.getElementById(`customRule${i}`);
         if (customRuleInput) customRuleInput.value = "";
         toggleCustomRuleInput(i);
-        document.getElementById(`timer${i}`).value = defaultTimers[i - 1] || 30;
+        document.getElementById(`timer${i}`).value = defaultTimers[i - 1] || DEFAULT_TURN_SECONDS;
         document.getElementById(`skipAllowed${i}`).value = defaultSkips[i - 1] || "no";
     }
     try { localStorage.removeItem(SETTINGS_STORAGE_KEY); } catch (e) {}

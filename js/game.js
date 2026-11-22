@@ -1,5 +1,5 @@
 // Spiel: Spieler und Teams, Runden, Timer, Punkte, Pause und Zugende
-import { state } from "./state.js";
+import { DEFAULT_TURN_SECONDS, state } from "./state.js";
 import { getSettings } from "./settings.js";
 import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray } from "./cards.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
@@ -122,7 +122,7 @@ export function prepareGameOverview() {
         roundWrap.innerHTML = "";
         for (let i = 0; i < rounds; i++) {
             const rule = settings.roundRules?.[i] || "-";
-            const timer = settings.roundTimer?.[i] || "?";
+            const timer = settings.roundTimer?.[i] || DEFAULT_TURN_SECONDS;
             const skip = settings.roundSkip?.[i] === "yes"
                 ? (settings.skipReturn?.[i] === "no" ? "Ja, ohne Zurücklegen" : "Ja")
                 : "Nein";
@@ -271,7 +271,7 @@ export function showStartRoundScreen() {
     const startBtn = document.getElementById("startRoundBtn");
     const settings = getSettings();
     const roundRule = settings.roundRules?.[state.currentRound] || "-";
-    const roundTime = settings.roundTimer?.[state.currentRound] || 60;
+    const roundTime = settings.roundTimer?.[state.currentRound] || DEFAULT_TURN_SECONDS;
     const roundSkip = (settings.roundSkip?.[state.currentRound] || "no").toLowerCase() === "yes"
         ? (settings.skipReturn?.[state.currentRound] === "no" ? "Ja, ohne Zurücklegen" : "Ja")
         : "Nein";
@@ -304,7 +304,7 @@ export function startRoundTimer() {
     try { const sb = document.getElementById('startRoundBtn'); if (sb) sb.disabled = true; } catch (e) {}
     const settings = getSettings();
     const roundIndex = state.currentRound;
-    let baseTime = parseInt(settings.roundTimer?.[roundIndex] || 60);
+    let baseTime = parseInt(settings.roundTimer?.[roundIndex] || DEFAULT_TURN_SECONDS);
     if (settings.handicapEnabled && state.activePlayer.handicap) {
         baseTime += parseInt(settings.handicapTime || 5);
     }

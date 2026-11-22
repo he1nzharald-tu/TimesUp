@@ -2,6 +2,9 @@
 export const ARCHIVE_STORAGE_KEY = "timesup_archive";
 export const SETTINGS_STORAGE_KEY = "timesup_settings";
 
+// Standard-Zeit pro Zug in Sekunden (frische Installation, Standardwerte, Fallback im Spiel)
+export const DEFAULT_TURN_SECONDS = 30;
+
 // Alle Werte, die mehrere Module lesen und ändern
 export const state = {
 
