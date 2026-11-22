@@ -510,6 +510,33 @@ def test_archive_export_import(b, base):
     assert len(other.evaluate("Object.keys(JSON.parse(localStorage.getItem('timesup_archive')))")) == 1
     assert not page.errors and not other.errors, (page.errors, other.errors)
 
+def test_overview_rules(b, base):
+    """Spielübersicht zeigt Runden (Regel, Zeit, Überspringen) und Strafen (Todo: Regeln in der Spielübersicht)."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s.update({"roundCount": 3, "roundTimer": [45, 30, 20], "roundRules": ["Nur beschreiben", "Eigene Regel X", "Pantomime und Geräusche"],
+              "roundSkip": ["yes", "yes", "no"], "skipLimitType": ["limited", "unlimited", "limited"], "skipLimitValue": [2, 1000, 0],
+              "skipReturn": ["yes", "no", "yes"], "punishEnabled": True, "punishTime": 4, "punishPoints": "draw",
+              "handicapEnabled": True, "handicapTime": 7})
+    for vp in [(844, 390), (390, 844)]:
+        page = new_page(b, base, s, viewport=vp)
+        add_players(page, ["Anna", "Ben"])
+        page.click("text=Weiter"); ok(page)
+        page.click("text=Zufällige Teams"); page.click("text=Kartenauswahl ohne Veto")
+        page.click("#startGameOverviewButton")
+        rounds = page.eval_on_selector_all("#overviewRules .overview-round", "els => els.map(e => e.innerText.replace(/\\s+/g, ' '))")
+        assert len(rounds) == 3, rounds
+        assert "Runde 1 · 45 s" in rounds[0] and "Nur beschreiben" in rounds[0] and "Überspringen: Ja (max. 2)" in rounds[0], rounds[0]
+        assert "Eigene Regel X" in rounds[1] and "ohne Zurücklegen" in rounds[1], rounds[1]
+        assert "Überspringen: Nein" in rounds[2], rounds[2]
+        pen = page.text_content("#overviewRules .overview-penalties")
+        assert "Strafzeit 4 s" in pen and "Punktabzug −0,5 pro Fehler" in pen and "Handicap +7 s" in pen, pen
+        # nichts überlappt die Start-Leiste, kein horizontales Scrollen
+        assert page.evaluate("""(() => { const t = [...document.querySelectorAll('#screen-spieluebersicht .teams, #overviewTeamsContainer')]
+            .filter(e => e.offsetParent); const bar = document.querySelector('#screen-spieluebersicht .bottom-bar').getBoundingClientRect();
+            return t.every(e => e.getBoundingClientRect().bottom <= bar.top + 1); })()"""), "Teams überlappen die Start-Leiste"
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.context.close()
+
 ALL = [n for n in dir() if n.startswith("test_")]
 
 if __name__ == "__main__":

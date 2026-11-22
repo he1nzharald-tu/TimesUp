@@ -1,9 +1,9 @@
 // Spiel: Spieler und Teams, Runden, Timer, Punkte, Pause und Zugende
 import { DEFAULT_TURN_SECONDS, state } from "./state.js";
-import { getSettings } from "./settings.js";
+import { getSettings, toPositiveInt } from "./settings.js";
 import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsToActiveArchive, shuffleArray } from "./cards.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
-import { appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
+import { appendText, appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
 
 // === Player Management ===
 export function addPlayer() {
@@ -93,10 +93,45 @@ export function togglePlayerTeam(name, fromTeamIdx) {
     displayTeams();
 }
 // === Game Overview ===
+// Kompakte Übersicht der Runden und Strafen in der Spielübersicht
+export function describeSkip(settings, i) {
+    if (settings.roundSkip?.[i] !== "yes") return "Überspringen: Nein";
+    const limited = settings.skipLimitType?.[i] === "limited";
+    const limit = limited ? ` (max. ${settings.skipLimitValue?.[i]})` : "";
+    const back = settings.skipReturn?.[i] === "no" ? ", ohne Zurücklegen" : "";
+    return `Überspringen: Ja${limit}${back}`;
+}
+
+export function renderOverviewRules(settings = getSettings()) {
+    const wrap = document.getElementById("overviewRules");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    const rounds = toPositiveInt(settings.roundCount, 3);
+    const list = document.createElement("div");
+    list.className = "overview-rounds";
+    for (let i = 0; i < rounds; i++) {
+        const card = document.createElement("div");
+        card.className = "overview-round";
+        appendText(card, "span", `Runde ${i + 1} · ${settings.roundTimer?.[i] || DEFAULT_TURN_SECONDS} s`).className = "overview-round-title";
+        appendText(card, "span", settings.roundRules?.[i] || "–").className = "overview-round-rule";
+        appendText(card, "span", describeSkip(settings, i)).className = "overview-round-meta";
+        list.appendChild(card);
+    }
+    wrap.appendChild(list);
+
+    const extras = [];
+    extras.push(settings.punishEnabled ? `Strafzeit ${settings.punishTime || 3} s` : "Keine Strafzeit");
+    const perMistake = getPenaltyPerMistake(settings);
+    extras.push(perMistake ? `Punktabzug −${formatPoints(perMistake)} pro Fehler` : "Kein Punktabzug");
+    if (settings.handicapEnabled) extras.push(`Handicap +${settings.handicapTime || 5} s`);
+    appendText(wrap, "p", "⚠️ " + extras.join(" · ")).className = "overview-penalties";
+}
+
 export function prepareGameOverview() {
     const settings = getSettings();
     const teamCount = parseInt(settings.teamCount || 2);
     state.totalTeams = teamCount;
+    renderOverviewRules(settings);
     
     // Display all teams - new layout for 3+ teams
     const overviewTeamsContainer = document.getElementById("overviewTeamsContainer");
