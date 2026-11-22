@@ -129,65 +129,41 @@ export function openArchive() {
     if (existingOverlay) existingOverlay.remove();
 
     const overlay = document.createElement("div");
+    overlay.className = "overlay";
     overlay.id = "archiveOverlay";
-    overlay.style.position = "fixed";
-    overlay.style.inset = "0";
-    overlay.style.background = "rgba(0,0,0,0.35)";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.zIndex = "10000";
 
     const box = document.createElement("div");
-    box.style.background = "var(--card-bg)";
-    box.style.color = "var(--text)";
-    box.style.border = "1px solid var(--divider)";
-    box.style.borderRadius = "16px";
-    box.style.boxShadow = "0 8px 32px rgba(0,0,0,0.18)";
-    box.style.padding = "24px";
-    box.style.width = "min(92vw, 680px)";
-    box.style.maxHeight = "82vh";
-    box.style.overflowY = "auto";
+    box.className = "overlay-box";
 
     const title = document.createElement("h2");
+    title.className = "overlay-title";
     title.textContent = "Archiv";
-    title.style.margin = "0 0 16px 0";
-    title.style.color = "var(--text)";
     box.appendChild(title);
 
     archives.forEach(archive => {
         const row = document.createElement("div");
-        row.style.display = "grid";
-        row.style.gridTemplateColumns = "1fr auto auto";
-        row.style.gap = "8px";
-        row.style.alignItems = "center";
-        row.style.padding = "10px 0";
-        row.style.borderTop = "1px solid var(--divider)";
+        row.className = "archive-row";
 
         const info = document.createElement("div");
         const names = (archive.players || []).map(p => p.name).join(", ");
         const cardCount = (archive.usedCards || []).length;
         appendText(info, "strong", archive.id || "Unbekanntes Archiv");
         info.appendChild(document.createElement("br"));
-        appendText(info, "span", `${formatArchiveDate(archive.createdAt)} | ${cardCount} Karten`, {
-            color: "var(--muted)"
-        });
+        appendText(info, "span", `${formatArchiveDate(archive.createdAt)} | ${cardCount} Karten`).className = "archive-meta";
         info.appendChild(document.createElement("br"));
         appendText(info, "span", names);
 
         const loadBtn = document.createElement("button");
+        loadBtn.className = "archive-load-btn";
         loadBtn.textContent = "Laden";
-        loadBtn.style.width = "auto";
         loadBtn.onclick = () => {
             overlay.remove();
             loadArchiveEntry(archive);
         };
 
         const deleteBtn = document.createElement("button");
+        deleteBtn.className = "archive-delete-btn";
         deleteBtn.textContent = "Löschen";
-        deleteBtn.style.width = "auto";
-        deleteBtn.style.background = "var(--danger)";
-        deleteBtn.style.color = "var(--on-accent)";
         deleteBtn.onclick = async () => {
             const confirmed = await appConfirm(`Soll der Archiv-Eintrag ${archive.id} wirklich gelöscht werden?`, {
                 okText: "Löschen", danger: true
@@ -212,9 +188,7 @@ export function openArchive() {
 
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "Schließen";
-    closeBtn.style.marginTop = "18px";
-    closeBtn.style.width = "auto";
-    closeBtn.className = "secondary";
+    closeBtn.className = "secondary archive-close-btn";
     closeBtn.onclick = () => overlay.remove();
     box.appendChild(closeBtn);
 

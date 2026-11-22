@@ -742,49 +742,20 @@ export function pauseGame() {
     let pauseOverlay = document.getElementById("pauseOverlay");
     if (!pauseOverlay) {
         pauseOverlay = document.createElement("div");
+        pauseOverlay.className = "overlay";
         pauseOverlay.id = "pauseOverlay";
-        pauseOverlay.style.position = "fixed";
-        pauseOverlay.style.top = "0";
-        pauseOverlay.style.left = "0";
-        pauseOverlay.style.width = "100vw";
-        pauseOverlay.style.height = "100vh";
-        pauseOverlay.style.background = "rgba(0,0,0,0.35)";
-        pauseOverlay.style.display = "flex";
-        pauseOverlay.style.flexDirection = "column";
-        pauseOverlay.style.alignItems = "center";
-        pauseOverlay.style.justifyContent = "center";
-        pauseOverlay.style.zIndex = "9999";
 
     const box = document.createElement("div");
-    box.style.background = "var(--card-bg)";
-        box.style.padding = "36px 32px";
-        box.style.borderRadius = "18px";
-        box.style.boxShadow = "0 4px 24px #636e7233";
-        box.style.display = "flex";
-        box.style.flexDirection = "column";
-        box.style.alignItems = "center";
-        box.style.gap = "24px";
-        box.style.minWidth = "260px";
-        box.style.width = "80vw";           // <--- NEU: 80% der Viewport-Breite
-        box.style.maxWidth = "600px";       // <--- Optional: Maximalbreite für große Bildschirme
+    box.className = "overlay-box";
 
         const title = document.createElement("h2");
+        title.className = "overlay-title";
         title.textContent = "⏸️ Pause";
-        title.style.margin = "0 0 12px 0";
-        title.style.fontSize = "2rem";
-    title.style.color = "var(--muted)";
         box.appendChild(title);
 
         const btnContinue = document.createElement("button");
+        btnContinue.className = "pause-continue-btn";
         btnContinue.textContent = "▶️ Weiter";
-        btnContinue.style.margin = "0 0 8px 0";
-        btnContinue.style.fontSize = "1.3rem";
-        btnContinue.style.padding = "12px 32px";
-        btnContinue.style.borderRadius = "12px";
-    btnContinue.style.background = "var(--primary)";
-    btnContinue.style.color = "var(--on-accent)";
-        btnContinue.style.border = "none";
-        btnContinue.style.cursor = "pointer";
         btnContinue.onclick = function () {
             document.body.removeChild(pauseOverlay);
             resumeTimer();
@@ -792,14 +763,8 @@ export function pauseGame() {
         box.appendChild(btnContinue);
 
         const btnPlus3 = document.createElement("button");
+        btnPlus3.className = "pause-plus-btn";
         btnPlus3.textContent = "+3";
-        btnPlus3.style.fontSize = "1.3rem";
-        btnPlus3.style.padding = "12px 32px";
-        btnPlus3.style.borderRadius = "12px";
-    btnPlus3.style.background = "linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)";
-    btnPlus3.style.color = "var(--on-accent)";
-        btnPlus3.style.border = "none";
-        btnPlus3.style.cursor = "pointer";
         btnPlus3.onclick = function () {
             state.remainingTime += 3;
             document.getElementById("timerDisplay").textContent = `${state.remainingTime}s`;
@@ -861,55 +826,21 @@ export function showGuessedCardsAfterTimer(playAlarm = true) {
     if (guessedOverlay) guessedOverlay.remove();
 
     guessedOverlay = document.createElement("div");
+    guessedOverlay.className = "overlay";
     guessedOverlay.id = "guessedOverlay";
-    guessedOverlay.style.position = "fixed";
-    guessedOverlay.style.top = "0";
-    guessedOverlay.style.left = "0";
-    guessedOverlay.style.width = "100vw";
-    guessedOverlay.style.height = "100vh";
-    guessedOverlay.style.background = "rgba(0,0,0,0.35)";
-    guessedOverlay.style.display = "flex";
-    guessedOverlay.style.flexDirection = "column";
-    guessedOverlay.style.alignItems = "center";
-    guessedOverlay.style.justifyContent = "center";
-    guessedOverlay.style.zIndex = "10000";
 
     const box = document.createElement("div");
-    box.style.background = "var(--card-bg)";
-    box.style.padding = "36px 32px";
-    box.style.borderRadius = "18px";
-    box.style.boxShadow = "0 4px 24px #636e7233";
-    box.style.display = "flex";
-    box.style.flexDirection = "column";
-    box.style.alignItems = "center";
-    box.style.gap = "0px";
-    box.style.minWidth = "260px";
-    box.style.width = "80vw";
-    box.style.maxWidth = "600px";
-    box.style.maxHeight = "80vh";
-    box.style.overflowY = "auto";
-    box.style.margin = "0";
+    box.className = "overlay-box";
 
     // Zuerst: Zwei Hauptoptionen anzeigen
     const title = document.createElement("h2");
+    title.className = "overlay-title";
     title.textContent = "⏱️ Zeit vorbei!";
-    title.style.margin = "0 0 24px 0";
-    title.style.fontSize = "2rem";
-    title.style.color = "var(--muted)";
     box.appendChild(title);
 
     const btnCorrect = document.createElement("button");
+    btnCorrect.className = "time-up-correct-btn";
     btnCorrect.textContent = "✏️ Karten korrigieren";
-    btnCorrect.style.marginBottom = "12px";
-    btnCorrect.style.fontSize = "1.1rem";
-    btnCorrect.style.padding = "14px 32px";
-    btnCorrect.style.borderRadius = "12px";
-    btnCorrect.style.background = "var(--primary)";
-    btnCorrect.style.color = "var(--on-accent)";
-    btnCorrect.style.border = "none";
-    btnCorrect.style.cursor = "pointer";
-    btnCorrect.style.width = "100%";
-    btnCorrect.style.maxWidth = "350px";
     btnCorrect.onclick = function () {
         // Zeige den Korrektur-Bildschirm mit Kartenliste
         showCardCorrectionScreen(guessedOverlay);
@@ -918,20 +849,8 @@ export function showGuessedCardsAfterTimer(playAlarm = true) {
 
     if (state.currentCard && state.currentCards.some(card => isSameCard(card, state.currentCard))) {
         const btnLastCorrect = document.createElement("button");
+        btnLastCorrect.className = "time-up-last-card-btn";
         btnLastCorrect.textContent = `✅ "${state.currentCard.begriff}" richtig`;
-        btnLastCorrect.style.marginBottom = "12px";
-        btnLastCorrect.style.fontSize = "1.1rem";
-        btnLastCorrect.style.padding = "14px 32px";
-        btnLastCorrect.style.borderRadius = "12px";
-        btnLastCorrect.style.background = "linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)";
-        btnLastCorrect.style.color = "var(--on-accent)";
-        btnLastCorrect.style.border = "none";
-        btnLastCorrect.style.cursor = "pointer";
-        btnLastCorrect.style.width = "100%";
-        btnLastCorrect.style.maxWidth = "350px";
-        btnLastCorrect.style.whiteSpace = "normal";
-        btnLastCorrect.style.overflowWrap = "anywhere";
-        btnLastCorrect.style.lineHeight = "1.2";
         btnLastCorrect.onclick = function () {
             if (markCurrentCardCorrectAfterTimer()) {
                 showGuessedCardsAfterTimer(false);
@@ -941,16 +860,8 @@ export function showGuessedCardsAfterTimer(playAlarm = true) {
     }
 
     const btnSkip = document.createElement("button");
+    btnSkip.className = "time-up-next-btn";
     btnSkip.textContent = "➡️ Nächster Spieler";
-    btnSkip.style.fontSize = "1.1rem";
-    btnSkip.style.padding = "14px 32px";
-    btnSkip.style.borderRadius = "12px";
-    btnSkip.style.background = "linear-gradient(90deg, var(--accent-b) 0%, #55efc4 100%)";
-    btnSkip.style.color = "var(--on-accent)";
-    btnSkip.style.border = "none";
-    btnSkip.style.cursor = "pointer";
-    btnSkip.style.width = "100%";
-    btnSkip.style.maxWidth = "350px";
     btnSkip.onclick = function () {
         document.body.removeChild(guessedOverlay);
         endRound();
@@ -973,46 +884,29 @@ export function showCardCorrectionScreen(guessedOverlay) {
     box.innerHTML = "";
 
     const title = document.createElement("h2");
+    title.className = "correction-title";
     title.textContent = "✅ Erratene Karten";
-    title.style.margin = "0 0 5px 0";
-    title.style.fontSize = "2rem";
-    title.style.color = "var(--muted)";
     box.appendChild(title);
 
     // Liste der erratenen Karten
     const list = document.createElement("ul");
-    list.style.listStyle = "none";
-    list.style.padding = "0";
-    list.style.width = "100%";
-    list.style.maxWidth = "420px";
+    list.className = "correction-list";
 
     // Kopie für Manipulation
     const guessed = [...state.correctCards[state.activeTeamIndex]];
 
     guessed.forEach((card, idx) => {
         const li = document.createElement("li");
-        li.style.display = "flex";
-        li.style.alignItems = "center";
-        li.style.justifyContent = "space-between";
-        li.style.padding = "5px 0";
-        li.style.borderBottom = "1px solid var(--divider)";
+        li.className = "correction-item";
 
         const begriff = document.createElement("span");
+        begriff.className = "correction-term";
         begriff.textContent = card.begriff;
-        begriff.style.fontWeight = "bold";
-        begriff.style.fontSize = "1.2rem";
         li.appendChild(begriff);
 
         const btn = document.createElement("button");
+        btn.className = "correction-mistake-btn";
         btn.textContent = "Fehler";
-        btn.style.background = "var(--accent-a)";
-        btn.style.color = "var(--on-accent)";
-        btn.style.border = "none";
-        btn.style.borderRadius = "8px";
-        btn.style.padding = "6px 18px";
-        btn.style.marginLeft = "18px";
-        btn.style.cursor = "pointer";
-        btn.style.width = "80px";
         btn.onclick = async function () {
             // Bestätigung vor dem Entfernen
             if (await appConfirm("Willst du wirklich, dass diese Karte ein Fehler war?", { okText: "Ja, Fehler" })) {
@@ -1033,15 +927,8 @@ export function showCardCorrectionScreen(guessedOverlay) {
 
     // Button zum Zurückkehren in den Zeit-vorbei-Dialog
     const btnOk = document.createElement("button");
+    btnOk.className = "correction-back-btn";
     btnOk.textContent = "Zurück";
-    btnOk.style.marginTop = "18px";
-    btnOk.style.fontSize = "1.2rem";
-    btnOk.style.padding = "12px 32px";
-    btnOk.style.borderRadius = "12px";
-    btnOk.style.background = "var(--primary)";
-    btnOk.style.color = "var(--on-accent)";
-    btnOk.style.border = "none";
-    btnOk.style.cursor = "pointer";
     btnOk.onclick = function () {
         showGuessedCardsAfterTimer(false);
     };
