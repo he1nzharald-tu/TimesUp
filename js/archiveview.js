@@ -1,10 +1,11 @@
 // Archiv-Bildschirm (Entwurf G1/G2 + G3): Kachelreihe mit Spielgruppen oben,
 // darunter Details mit Reitern Spiele / Statistik / Karten; ein Spiel antippen zeigt Runden und Punkte.
 import { state } from "./state.js";
-import { appConfirm, refreshStartCardStatus } from "./ui.js";
+import { appConfirm, refreshStartCardStatus, showScreen } from "./ui.js";
 import { exportArchive, formatArchiveDate, importArchiveFile, loadArchiveEntry, readArchiveStore, writeArchiveStore } from "./cards.js";
 import { archiveStats } from "./gamestats.js";
 import { icon, setButtonContent, TEAM_COLORS, teamColor, teamName } from "./teamview.js";
+import { openGameStats } from "./statsview.js";
 
 let view = { id: null, tab: "spiele", game: null };
 
@@ -260,7 +261,14 @@ function renderGame(panel, archive, g) {
     back.type = "button";
     back.onclick = () => { view = { ...view, game: null }; openArchive(); };
     top.appendChild(back);
-    top.appendChild(el("strong", null, `Spiel ${no} · ${shortDate(g.startedAt)}`));
+    top.appendChild(el("strong", "archive-game-title", `Spiel ${no} · ${shortDate(g.startedAt)}`));
+    const statsBtn = setButtonContent(el("button", "icon-btn archive-game-stats"), "chart", "Statistik");
+    statsBtn.type = "button";
+    statsBtn.onclick = () => {
+        document.getElementById("archiveOverlay")?.remove();
+        openGameStats(g, () => { showScreen("start"); openArchive(); });
+    };
+    top.appendChild(statsBtn);
     panel.appendChild(top);
 
     const teams = el("div", "archive-game-result");
@@ -304,22 +312,78 @@ function renderStats(panel, archive) {
         kpis.appendChild(d);
     });
     panel.appendChild(kpis);
-    const max = Math.max(1, ...s.ranking.map(r => r.explained));
-    const list = el("ol", "archive-ranking");
-    s.ranking.forEach((r, i) => {
-        const li = el("li");
-        li.appendChild(el("span", "rank-no", i + 1));
-        li.appendChild(el("strong", "rank-name", r.name));
-        const bar = el("span", "rank-bar");
-        const fill = el("span");
-        fill.style.width = `${Math.round(r.explained / max * 100)}%`;
-        bar.appendChild(fill);
-        li.appendChild(bar);
-        li.appendChild(el("span", "rank-val", `${r.explained} erklärt`));
-        li.appendChild(el("span", "rank-wins archive-meta", `${plural(r.wins, "Sieg", "Siege")} · Ø ${fmt(r.perTurn)}`));
-        list.appendChild(li);
+
+    const cols = el("div", "archive-stat-cols");
+
+    // Rangliste als Siegertreppchen (Platz 2 – 1 – 3), weitere darunter
+    const rank = el("section", "archive-stat-box");
+    rank.appendChild(el("h4", "gs-label", `Rangliste · ${plural(s.games, "Spiel", "Spiele")}`));
+    const podium = el("ol", "archive-podium");
+    const top3 = s.ranking.slice(0, 3);
+    const maxWins = Math.max(1, ...top3.map(r => r.wins));
+    [1, 0, 2].forEach(i => {
+        const r = top3[i];
+        if (!r) return;
+        const li = el("li", `podium-${i + 1}`);
+        const av = el("span", "avatar podium-avatar", r.name.charAt(0).toUpperCase());
+        av.style.setProperty("--av", TEAM_COLORS[s.ranking.indexOf(r) % TEAM_COLORS.length]);
+        av.setAttribute("aria-hidden", "true");
+        li.appendChild(av);
+        li.appendChild(el("strong", "podium-name", r.name));
+        li.appendChild(el("span", "archive-meta", `${plural(r.wins, "Sieg", "Siege")} · ${r.explained} erklärt`));
+        const step = el("span", "podium-step", i + 1);
+        step.style.height = `${Math.round(36 + 44 * (r.wins / maxWins))}px`;
+        li.appendChild(step);
+        podium.appendChild(li);
     });
-    panel.appendChild(list);
+    rank.appendChild(podium);
+    if (s.ranking.length > 3) {
+        const rest = el("ol", "archive-rest");
+        rest.start = 4;
+        s.ranking.slice(3).forEach(r => rest.appendChild(el("li", null, `${r.name} · ${plural(r.wins, "Sieg", "Siege")} · ${r.explained} erklärt`)));
+        rank.appendChild(rest);
+    }
+    cols.appendChild(rank);
+
+    // Duo-Bilanz
+    const duo = el("section", "archive-stat-box");
+    duo.appendChild(el("h4", "gs-label", "Duo-Bilanz"));
+    if (!s.duos.length) duo.appendChild(el("p", "archive-meta", "Noch keine Teams mit zwei oder mehr Spielern."));
+    const dl = el("ul", "archive-duos");
+    s.duos.slice(0, 8).forEach(d => {
+        const li = el("li");
+        li.appendChild(el("strong", null, d.names.join(" + ")));
+        li.appendChild(el("span", "archive-meta", plural(d.games, "Spiel", "Spiele")));
+        li.appendChild(el("span", "duo-val", `${plural(d.wins, "Sieg", "Siege")} · ${Math.round(d.rate * 100)} %`));
+        dl.appendChild(li);
+    });
+    duo.appendChild(dl);
+    cols.appendChild(duo);
+
+    // Rekorde
+    const rec = el("section", "archive-stat-box");
+    rec.appendChild(el("h4", "gs-label", "Rekorde"));
+    const rl = el("ul", "archive-records");
+    const R = s.records;
+    const items = [
+        ["trophy", "Meiste Punkte in einer Runde", R.roundPoints ? `${fmt(R.roundPoints.points)} · ${R.roundPoints.names.join(", ")} · Runde ${R.roundPoints.round}` : null],
+        ["flame", "Längste Serie", R.streak ? `${R.streak.player} · ${R.streak.count} Begriffe in einem Zug` : null],
+        ["bolt", "Schnellster Begriff", R.fastest ? `${R.fastest.player} · „${R.fastest.begriff}“ ${R.fastest.seconds} s` : null],
+        ["star", "Knappster Sieg", R.closest ? `${R.closest.score} · ${shortDate(R.closest.date)}` : null]
+    ].filter(([, , v]) => v);
+    if (!items.length) rec.appendChild(el("p", "archive-meta", "Noch keine Rekorde."));
+    items.forEach(([ic, t, v]) => {
+        const li = el("li");
+        li.appendChild(icon(ic));
+        const txt = el("span");
+        txt.appendChild(el("span", "archive-meta", t));
+        txt.appendChild(el("strong", null, v));
+        li.appendChild(txt);
+        rl.appendChild(li);
+    });
+    rec.appendChild(rl);
+    cols.appendChild(rec);
+    panel.appendChild(cols);
 }
 
 function renderCards(panel, archive) {

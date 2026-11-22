@@ -55,4 +55,5 @@ export const state = {
     activePlayer: null,
     gameLog: null, // Verlauf des laufenden Spiels fürs Archiv (gamestats.js)
     cardShownAt: null,
+    lastGame: null, // zuletzt beendetes Spiel (Statistik-Seite)
 };

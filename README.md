@@ -36,7 +36,8 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Querformat im Spiel:** Begriff groß links, Richtig/Überspringen/Fehler senkrecht rechts in Daumenreichweite; Hochformat funktioniert genauso
 - **Bildschirm bleibt an:** Während eines Zugs geht das Display nicht aus (Screen Wake Lock, iOS ab 16.4)
 - **Nochmal spielen:** Am Spielende mit denselben Teams und neuen Karten weitermachen; das Spiel landet in derselben Spielgruppe im Archiv
-- **Archiv mit Statistik:** Jede Spielgruppe sammelt ihre Spiele mit Teams (dürfen wechseln), Punkten je Runde, Regeln, Kartenauswahl und Strafen. Reiter *Spiele* (Spiel antippen zeigt die Runden), *Statistik* (Rangliste, Siege, Ø Begriffe pro Zug, schnellster Begriff) und *Karten*; einzelne Gruppen lassen sich exportieren
+- **Statistik am Spielende:** Knopf „Statistik“ auf dem Endbildschirm mit Reitern *Überblick* (Punkteverlauf über die Runden, Spieler mit Auszeichnungen wie MVP, Blitzmerker, Last-Second-Held, Serienmeister, Teamplayer, Skip-König, Pechvogel), *Spieler* (erklärt, Ø pro Zug, Trefferquote, Ø Sekunden, beste Serie, Treffer in der letzten Sekunde, Überspringen, Fehler) und *Begriffe* (härteste Begriffe, Lerneffekt von Runde 1 zu späteren Runden, schnellster Begriff); auch für jedes Spiel im Archiv
+- **Archiv mit Statistik:** Jede Spielgruppe sammelt ihre Spiele mit Teams (dürfen wechseln), Punkten je Runde, Regeln, Kartenauswahl und Strafen. Reiter *Spiele* (Spiel antippen zeigt die Runden), *Statistik* (Siegertreppchen, Duo-Bilanz – welche Paare zusammen gewinnen –, Rekorde wie meiste Punkte in einer Runde, längste Serie, knappster Sieg) und *Karten*; einzelne Gruppen lassen sich exportieren
 - **Darstellung:** Helles und dunkles Design (Kontraste nach WCAG AA), Linien-Symbole, funktioniert auch mit 130 % Systemschrift
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
 - **Updates:** Liegt eine neue Version bereit, zeigt der Startbildschirm „Neue Version – neu laden“; mitten im Spiel wird nie aktualisiert
@@ -202,6 +203,7 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `js/teamview.js` | Teamkarten, Teamnamen/-farben, Linien-Symbole |
 | `js/wakelock.js` | Bildschirm bleibt während eines Zugs an |
 | `js/gamestats.js` | Spielverlauf und Statistik fürs Archiv |
+| `js/statsview.js` | Statistik-Seite eines Spiels |
 | `js/archiveview.js` | Archiv-Bildschirm (Spielgruppen, Spiele, Statistik, Karten) |
 | `js/audio.js` | Countdown-Ton und Alarm |
 | `js/pwa.js` | Offline-Modus, Hinweis auf neue Version, Installationshinweis |

@@ -5,7 +5,7 @@ import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsT
 import { clearSavedGame, saveGameState } from "./persist.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
 import { allowScreenOff, keepScreenOn } from "./wakelock.js";
-import { finishGameLog, logCardShown, logCorrect, logRoundPoints, logTurnStart, logUncorrect, startGameLog } from "./gamestats.js";
+import { finishGameLog, logCardShown, logCorrect, logMistake, logRoundPoints, logSkip, logTurnStart, logUncorrect, startGameLog } from "./gamestats.js";
 import { icon, renderTeamCards, setButtonContent, teamColor, teamName } from "./teamview.js";
 import { appendText, appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
 
@@ -377,6 +377,7 @@ export function handleSkip() {
     if (!state.displayedCards.includes(state.currentCard.id)) state.displayedCards.push(state.currentCard.id);
     state.skippedThisTurn.push(state.currentCard.id);
     state.skipCounter++;
+    logSkip(state.currentCard);
     showNextCard();
 }
 export function handleMistake() {
@@ -384,6 +385,7 @@ export function handleMistake() {
     const settings = getSettings();
     if (state.isPenaltyActive) return;
     state.teamMistakes[state.activeTeamIndex] = (state.teamMistakes[state.activeTeamIndex] || 0) + 1;
+    logMistake();
     saveGameState("turn");
     if (!state.displayedCards.includes(state.currentCard.id)) state.displayedCards.push(state.currentCard.id);
     // Die Karte ist für diesen Zug erledigt und darf nach Zeitablauf nicht als "richtig" angeboten werden

@@ -663,6 +663,145 @@
 }
 
 /* ======================================================================
+   Statistik eines Spiels (Entwurf M2)
+   ====================================================================== */
+
+.gs-sub { font-size: 0.8125rem; font-weight: 500; opacity: 0.9; }
+@media (max-width: 599px) { .gs-sub { display: none; } }
+.gs-score { gap: 6px; font-size: 0.9375rem; }
+.gs-score-sep { color: #6b7380; }
+.gs-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  margin: 10px 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  align-self: flex-start;
+  width: auto;
+}
+.gs-tab {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+}
+.gs-tab[aria-selected="true"] { background: var(--blue); color: var(--card-bg); }
+.gs-panel { display: flex; flex-direction: column; gap: 10px; padding-bottom: 8px; }
+.gs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+}
+.dark .gs-card { background: var(--panel); }
+.gs-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
+.gs-overview { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 700px) {
+  .gs-overview { grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); align-items: start; }
+}
+.gs-chart { width: 100%; height: auto; max-height: 220px; }
+.gs-grid { stroke: var(--line); stroke-width: 1; }
+.gs-axis { fill: var(--muted); font-size: 12px; font-family: inherit; }
+.gs-end { font-size: 12px; font-weight: 700; font-family: inherit; }
+.gs-rounds { display: flex; flex-wrap: wrap; gap: 6px; }
+.gs-round {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  font-size: 0.8125rem;
+}
+.gs-round-pts { color: var(--muted); }
+.gs-ink { color: color-mix(in srgb, var(--team) 58%, #000); }
+.dark .gs-ink { color: color-mix(in srgb, var(--team) 72%, #fff); }
+.gs-score-team { color: color-mix(in srgb, var(--team) 55%, #000); }
+.gs-players { display: flex; flex-direction: column; gap: 6px; }
+.gs-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--team);
+}
+.dark .gs-player { background: var(--panel); }
+.gs-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--team);
+  color: #0b1220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.gs-player-mid { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.gs-player-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.gs-big { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+.gs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--gs-c, var(--blue));
+}
+.gs-badge .ico { width: 12px; height: 12px; }
+.gs-badge-mvp { --gs-c: #7a5c00; }
+.gs-badge-blitz { --gs-c: #2f5fc4; }
+.gs-badge-last { --gs-c: #c0392b; }
+.gs-badge-streak { --gs-c: #7a4fd6; }
+.gs-badge-team { --gs-c: #00775f; }
+.gs-badge-skip { --gs-c: #5f6b70; }
+.gs-badge-pech { --gs-c: #b03a48; }
+.dark .gs-badge-mvp { --gs-c: #f5b400; }
+.dark .gs-badge-blitz { --gs-c: #7aa2ff; }
+.dark .gs-badge-last { --gs-c: #ff8b94; }
+.dark .gs-badge-streak { --gs-c: #b3a9ff; }
+.dark .gs-badge-team { --gs-c: #5ce1b8; }
+.dark .gs-badge-skip { --gs-c: #c0c7d2; }
+.dark .gs-badge-pech { --gs-c: #ff8b94; }
+.gs-awards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px; }
+.gs-award {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--gs-c) 10%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--gs-c) 30%, var(--line));
+}
+.gs-award > .ico { width: 22px; height: 22px; color: var(--gs-c); }
+.gs-award > span { display: flex; flex-direction: column; min-width: 0; }
+.gs-table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid var(--line); background: var(--card-bg); }
+.dark .gs-table-wrap { background: var(--panel); }
+.gs-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.gs-table th { padding: 8px; font-size: 0.75rem; color: var(--muted); text-align: left; white-space: nowrap; }
+.gs-table td { padding: 8px; border-top: 1px solid var(--line); white-space: nowrap; }
+.gs-table .num { text-align: right; }
+.gs-table .gs-strong { font-weight: 700; font-size: 1.0625rem; }
+.gs-rank { color: var(--muted); font-weight: 700; }
+.gs-name { font-weight: 600; }
+.gs-name .team-dot { display: inline-block; width: 10px; height: 10px; }
+.gs-terms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.gs-terms { display: flex; flex-direction: column; gap: 4px; }
+.gs-terms li { display: flex; justify-content: space-between; gap: 10px; font-size: 0.9375rem; }
+#screen-end > .bottom-bar > .end-stats-btn { flex: 0 1 auto !important; padding: 0 16px; }
+
+/* ======================================================================
    Animationen nur für diese Bildschirme
    ====================================================================== */
 

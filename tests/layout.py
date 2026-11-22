@@ -61,6 +61,7 @@ PRIMARY = {
     "screen-play": "#btnCorrect",
     "screen-roundstats": "#screen-roundstats .next-round-btn",
     "screen-end": "#screen-end .back-to-start-btn",
+    "screen-gamestats": "#screen-gamestats .gs-tab",
 }
 
 AUDIT = r"""([sa, primary]) => {
@@ -359,6 +360,13 @@ class Run:
                 continue
             if a == "screen-end":
                 shot("10-ende")
+                page.click(".end-stats-btn")
+                shot("10b-statistik")
+                page.click("#screen-gamestats .gs-tab[data-tab='players']")
+                shot("10c-statistik-spieler")
+                page.click("#screen-gamestats .gs-tab[data-tab='terms']")
+                shot("10d-statistik-begriffe")
+                page.click("#screen-gamestats .head-btn")
                 page.click("#screen-end .back-to-start-btn")
                 page.click("#loadSavesButton")
                 shot("11-archiv")

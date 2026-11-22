@@ -508,6 +508,18 @@ def test_archive_games_and_stats(b, base):
     page = new_page(b, base, s)
     setup_game(page, ["Anna", "Ben", "Cem", "Dora"], veto=False)
     _play_until_end(page)
+    # Statistik am Spielende: Überblick, Spieler, Begriffe, zurück zum Ende
+    page.click(".end-stats-btn")
+    assert active(page) == "screen-gamestats"
+    assert page.locator("#gsPanel .gs-player").count() == 4
+    assert page.locator("#gsPanel svg.gs-chart polyline").count() == 2
+    assert page.locator("#gsPanel .gs-award").count() >= 1, "mindestens MVP"
+    page.click("#screen-gamestats .gs-tab[data-tab='players']")
+    assert page.locator("#gsPanel .gs-table tbody tr").count() == 4
+    page.click("#screen-gamestats .gs-tab[data-tab='terms']")
+    assert "Härteste Begriffe" in page.text_content("#gsPanel")
+    page.click("#screen-gamestats .head-btn")
+    assert active(page) == "screen-end"
     # Spiel 2 mit getauschten Teams
     page.click(".play-again-btn")
     first = page.evaluate("TimesUp.state.teams[0][0].name")
@@ -526,6 +538,11 @@ def test_archive_games_and_stats(b, base):
     assert sum(p["explained"] for p in g1["players"].values()) == 8
     assert g1["teams"] != g2["teams"], "Teams sollten im zweiten Spiel anders sein"
     assert g1["settings"]["cardCount"] == 4 and g1["winners"], g1
+    p0 = next(iter(g1["players"].values()))
+    for key in ["shown", "skips", "mistakes", "bestStreak", "lastSecond", "avgSeconds"]:
+        assert key in p0, (key, p0)
+    assert sum(p["shown"] for p in g1["players"].values()) >= 8
+    assert "hardest" in g1["terms"] and "learning" in g1["terms"]
     # Bildschirm
     page.click(".back-to-start-btn")
     page.click("#loadSavesButton")
@@ -533,10 +550,19 @@ def test_archive_games_and_stats(b, base):
     assert page.locator("#archiveOverlay .archive-game").count() == 2
     page.locator("#archiveOverlay .archive-game").first.click()
     assert page.locator("#archiveOverlay .archive-round").count() == 2
+    # Statistik eines Spiels aus dem Archiv öffnen und zurück
+    page.click("#archiveOverlay .archive-game-stats")
+    assert active(page) == "screen-gamestats" and page.locator("#archiveOverlay").count() == 0
+    page.click("#screen-gamestats .head-btn")
+    assert page.locator("#archiveOverlay").count() == 1
+    assert page.locator("#archiveOverlay .archive-round").count() == 2, "zurück im selben Spiel"
     assert "Runde 1" in page.text_content("#archiveOverlay .archive-rounds")
     page.click("#archiveOverlay .archive-tab[data-tab='statistik']")
     assert "2" in page.text_content("#archiveOverlay .archive-kpi"), page.text_content("#archiveOverlay .archive-kpis")
-    assert page.locator("#archiveOverlay .archive-ranking li").count() == 4
+    assert page.locator("#archiveOverlay .archive-podium li").count() == 3
+    assert page.locator("#archiveOverlay .archive-rest li").count() == 1
+    assert page.locator("#archiveOverlay .archive-duos li").count() >= 2
+    assert "Meiste Punkte in einer Runde" in page.text_content("#archiveOverlay .archive-records")
     page.click("#archiveOverlay .archive-tab[data-tab='karten']")
     assert page.locator("#archiveOverlay .archive-cards li").count() == len(entry["usedCards"])
     # Statistik-Werte
