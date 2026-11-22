@@ -13,7 +13,7 @@ const SAVED_FIELDS = [
     "players", "teams", "totalTeams", "playingCards", "currentCards", "correctCards",
     "currentRound", "totalRounds", "totalPoints", "penaltyPoints", "teamMistakes", "roundPointsApplied",
     "teamTurnOrder", "teamTurnOrderPosition", "activePlayerIndicesByTeam", "activeTeamIndex",
-    "activePlayerIndexInTeam", "activeArchiveId",
+    "activePlayerIndexInTeam", "activeArchiveId", "gameLog",
 ];
 
 let currentPhase = null;

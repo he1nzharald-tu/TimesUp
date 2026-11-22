@@ -483,6 +483,74 @@ def test_card_explanation_stays_centered(b, base):
         assert abs(c1 - m1) < h * 0.15, ("Begriff+Erklärung nicht mittig", vp, c1, m1)
         page.context.close()
 
+def _play_until_end(page):
+    """Spielt alle Runden mit „Richtig“ durch, bis das Spielende erscheint."""
+    for _ in range(200):
+        a = active(page)
+        if a == "screen-end":
+            return
+        if page.locator("#guessedOverlay").count():
+            overlay_button(page, "Nächster Spieler").click(); continue
+        if a == "screen-roundstart":
+            page.click("#startRoundBtn"); ok(page); continue
+        if a == "screen-roundstats":
+            page.click(".next-round-btn"); continue
+        if a == "screen-play":
+            page.click("#btnCorrect"); continue
+    raise AssertionError("Spielende nicht erreicht: " + active(page))
+
+def test_archive_games_and_stats(b, base):
+    """Archiv: jedes beendete Spiel wird mit Teams, Punkten, Runden gespeichert; Teams dürfen wechseln;
+    Reiter Spiele / Statistik / Karten; Spiel antippen zeigt Runden."""
+    s = copy.deepcopy(DEFAULT_SETTINGS)
+    s.update({"cardCount": 4, "roundCount": 2, "roundTimer": [30, 30], "roundSkip": ["no", "no"],
+              "roundRules": ["Nur beschreiben", "Nur ein Wort"]})
+    page = new_page(b, base, s)
+    setup_game(page, ["Anna", "Ben", "Cem", "Dora"], veto=False)
+    _play_until_end(page)
+    # Spiel 2 mit getauschten Teams
+    page.click(".play-again-btn")
+    first = page.evaluate("TimesUp.state.teams[0][0].name")
+    page.locator("#teamsContainer .team-member-btn", has_text=first).click()
+    page.click("text=Kartenauswahl ohne Veto"); maybe_ok(page)
+    page.click("#startGameOverviewButton")
+    page.click(".overview-start-btn")
+    _play_until_end(page)
+    store = page.evaluate("JSON.parse(localStorage.getItem('timesup_archive'))")
+    entry = list(store.values())[0]
+    games = entry["games"]
+    assert len(games) == 2, games
+    g1, g2 = games
+    assert len(g1["rounds"]) == 2 and g1["rounds"][0]["rule"] == "Nur beschreiben", g1["rounds"]
+    assert sum(sum(r["points"]) for r in g1["rounds"]) == sum(g1["points"]) == 8, g1
+    assert sum(p["explained"] for p in g1["players"].values()) == 8
+    assert g1["teams"] != g2["teams"], "Teams sollten im zweiten Spiel anders sein"
+    assert g1["settings"]["cardCount"] == 4 and g1["winners"], g1
+    # Bildschirm
+    page.click(".back-to-start-btn")
+    page.click("#loadSavesButton")
+    assert page.locator("#archiveOverlay .archive-tile").count() == 1
+    assert page.locator("#archiveOverlay .archive-game").count() == 2
+    page.locator("#archiveOverlay .archive-game").first.click()
+    assert page.locator("#archiveOverlay .archive-round").count() == 2
+    assert "Runde 1" in page.text_content("#archiveOverlay .archive-rounds")
+    page.click("#archiveOverlay .archive-tab[data-tab='statistik']")
+    assert "2" in page.text_content("#archiveOverlay .archive-kpi"), page.text_content("#archiveOverlay .archive-kpis")
+    assert page.locator("#archiveOverlay .archive-ranking li").count() == 4
+    page.click("#archiveOverlay .archive-tab[data-tab='karten']")
+    assert page.locator("#archiveOverlay .archive-cards li").count() == len(entry["usedCards"])
+    # Statistik-Werte
+    stats = page.evaluate("(() => { const e = Object.values(JSON.parse(localStorage.getItem('timesup_archive')))[0];"
+                          " return TimesUp.archiveStats ? TimesUp.archiveStats(e) : null; })()")
+    if stats:
+        assert stats["games"] == 2 and stats["explained"] == 16, stats
+    # Export einer einzelnen Gruppe enthält die Spiele
+    with page.expect_download() as dl:
+        page.click("#archiveOverlay .archive-export-one-btn")
+    data = json.loads(open(dl.value.path(), encoding="utf-8").read())
+    assert len(data["entries"]) == 1 and len(data["entries"][0]["games"]) == 2
+    assert not page.errors, page.errors
+
 def test_default_turn_time(b, base):
     """Standardzeit 30 s: frische Installation (Einstellungen und Spiel) und Button "Standardwerte"."""
     page = new_page(b, base, None)
@@ -870,7 +938,7 @@ def test_overview_rules(b, base):
         page.click("#startGameOverviewButton")
         rounds = page.eval_on_selector_all("#overviewRules .overview-round", "els => els.map(e => e.innerText.replace(/\\s+/g, ' '))")
         assert len(rounds) == 3, rounds
-        assert "Runde 1 · 45 s" in rounds[0] and "Nur beschreiben" in rounds[0] and "Überspringen: Ja (max. 2)" in rounds[0], rounds[0]
+        assert rounds[0].startswith("1") and "45 s" in rounds[0] and "Nur beschreiben" in rounds[0] and "Überspringen: Ja (max. 2)" in rounds[0], rounds[0]
         assert "Eigene Regel X" in rounds[1] and "ohne Zurücklegen" in rounds[1], rounds[1]
         assert "Überspringen: Nein" in rounds[2], rounds[2]
         pen = page.text_content("#overviewRules .overview-penalties")

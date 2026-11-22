@@ -124,124 +124,8 @@ export function loadArchiveEntry(archive) {
     updateKartenStatusText(`Archiv ${archive.id} geladen - ${(archive.usedCards || []).length} Karten gesperrt`);
     appAlert("Die Spieler wurden übernommen. Die Teams können jetzt neu gemischt werden.", { title: "Archiv geladen" });
 }
-export function openArchive() {
-    const store = readArchiveStore();
-    const archives = Object.values(store).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
-    const existingOverlay = document.getElementById("archiveOverlay");
-    if (existingOverlay) existingOverlay.remove();
-
-    const overlay = document.createElement("div");
-    overlay.className = "overlay";
-    overlay.id = "archiveOverlay";
-
-    const box = document.createElement("div");
-    box.className = "overlay-box";
-
-    const title = document.createElement("h2");
-    title.className = "overlay-title";
-    title.textContent = "Archiv";
-    box.appendChild(title);
-
-    // Schließen oben rechts und durch Tippen neben das Fenster
-    const closeTop = document.createElement("button");
-    closeTop.type = "button";
-    closeTop.className = "overlay-close";
-    closeTop.setAttribute("aria-label", "Archiv schließen");
-    closeTop.appendChild(icon("x"));
-    closeTop.onclick = () => overlay.remove();
-    box.appendChild(closeTop);
-    overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
-
-    archives.forEach(archive => {
-        const row = document.createElement("div");
-        row.className = "archive-row";
-
-        const info = document.createElement("div");
-        const names = (archive.players || []).map(p => p.name).join(", ");
-        const cardCount = (archive.usedCards || []).length;
-        appendText(info, "strong", archive.id || "Unbekanntes Archiv");
-        info.appendChild(document.createElement("br"));
-        appendText(info, "span", `${formatArchiveDate(archive.createdAt)} | ${cardCount} Karten`).className = "archive-meta";
-        info.appendChild(document.createElement("br"));
-        appendText(info, "span", names);
-
-        const loadBtn = document.createElement("button");
-        loadBtn.className = "archive-load-btn";
-        loadBtn.textContent = "Laden";
-        loadBtn.onclick = () => {
-            overlay.remove();
-            loadArchiveEntry(archive);
-        };
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "archive-delete-btn";
-        deleteBtn.textContent = "Löschen";
-        deleteBtn.onclick = async () => {
-            const confirmed = await appConfirm(`Soll der Archiv-Eintrag ${archive.id} wirklich gelöscht werden?`, {
-                okText: "Löschen", danger: true
-            });
-            if (!confirmed) return;
-            const updatedStore = readArchiveStore();
-            delete updatedStore[archive.id];
-            writeArchiveStore(updatedStore);
-            if (state.activeArchiveId === archive.id) {
-                state.activeArchiveId = null;
-                refreshStartCardStatus();
-            }
-            overlay.remove();
-            openArchive();
-        };
-
-        row.appendChild(info);
-        row.appendChild(loadBtn);
-        row.appendChild(deleteBtn);
-        box.appendChild(row);
-    });
-
-    if (archives.length === 0) {
-        appendText(box, "p", "Noch keine gespeicherten Spiele. Ein exportiertes Archiv von einem anderen Gerät kannst du hier importieren.")
-            .className = "archive-empty";
-    }
-
-    const actions = document.createElement("div");
-    actions.className = "archive-actions";
-
-    if (archives.length > 0) {
-        const exportBtn = setButtonContent(document.createElement("button"), "upload", "Exportieren");
-        actions.appendChild(exportBtn);
-        exportBtn.className = "archive-export-btn";
-        exportBtn.title = "Archiv als Datei speichern oder teilen";
-        exportBtn.onclick = () => exportArchive();
-    }
-
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.accept = ".json,application/json";
-    fileInput.id = "archiveImportInput";
-    fileInput.hidden = true;
-    fileInput.onchange = async () => {
-        const file = fileInput.files && fileInput.files[0];
-        fileInput.value = "";
-        if (file) await importArchiveFile(file);
-    };
-    actions.appendChild(fileInput);
-
-    const importBtn = setButtonContent(document.createElement("button"), "download", "Importieren");
-    actions.appendChild(importBtn);
-    importBtn.className = "archive-import-btn";
-    importBtn.title = "Exportiertes Archiv laden";
-    importBtn.onclick = () => fileInput.click();
-
-    const closeBtn = document.createElement("button");
-    closeBtn.textContent = "Schließen";
-    closeBtn.className = "secondary archive-close-btn";
-    closeBtn.onclick = () => overlay.remove();
-    actions.appendChild(closeBtn);
-    box.appendChild(actions);
-
-    overlay.appendChild(box);
-    document.body.appendChild(overlay);
-}
+export { openArchive } from "./archiveview.js";
+import { openArchive } from "./archiveview.js";
 
 // === Archiv exportieren und importieren (Spielgruppen auf ein anderes Gerät mitnehmen) ===
 const ARCHIVE_FILE_TYPE = "timesup-archiv";
@@ -253,8 +137,11 @@ export function buildArchiveExport(store = readArchiveStore(), now = new Date())
     return { type: ARCHIVE_FILE_TYPE, version: ARCHIVE_FILE_VERSION, exportedAt: now.toISOString(), entries };
 }
 
-export async function exportArchive() {
-    const data = buildArchiveExport();
+// ids: nur diese Spielgruppen exportieren (Standard: alle)
+export async function exportArchive(ids = null) {
+    const all = readArchiveStore();
+    const store = Array.isArray(ids) ? Object.fromEntries(Object.entries(all).filter(([id]) => ids.includes(id))) : all;
+    const data = buildArchiveExport(store);
     const date = data.exportedAt.slice(0, 10);
     const fileName = `timesup-archiv-${date}.json`;
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -294,6 +181,12 @@ function cleanArchiveEntry(entry) {
         });
     const cleaned = { id: entry.id.trim(), createdAt, players, usedCards };
     if (entry.lastPlayedAt && !Number.isNaN(new Date(entry.lastPlayedAt).getTime())) cleaned.lastPlayedAt = String(entry.lastPlayedAt);
+    // Spielverlauf (ab v21): Liste der Spiele mit Teams, Punkten, Runden
+    if (Array.isArray(entry.games)) {
+        cleaned.games = entry.games
+            .filter(g => g && typeof g === "object" && typeof g.id === "string" && Array.isArray(g.teams))
+            .slice(0, 500);
+    }
     return cleaned;
 }
 
@@ -331,8 +224,11 @@ export function mergeArchiveEntries(store, entries) {
         const cards = new Map((existing.usedCards || []).map(c => [cardKey(c), c]));
         entry.usedCards.forEach(c => { if (!cards.has(cardKey(c))) cards.set(cardKey(c), c); });
         const newer = lastActivity(entry) > lastActivity(existing) ? entry : existing;
+        const games = new Map((existing.games || []).map(g => [g.id, g]));
+        (entry.games || []).forEach(g => { if (!games.has(g.id)) games.set(g.id, g); });
         result[entry.id] = {
             ...existing,
+            ...(games.size ? { games: [...games.values()].sort((a, b) => String(a.startedAt).localeCompare(String(b.startedAt))) } : {}),
             players: newer.players,
             usedCards: [...cards.values()],
             createdAt: String(existing.createdAt) < String(entry.createdAt) ? existing.createdAt : entry.createdAt,

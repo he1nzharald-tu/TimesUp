@@ -211,7 +211,13 @@ AUDIT = r"""([sa, primary]) => {
     }
   }
   // Kontrast (WCAG AA): 4,5:1, große Schrift 3:1; Hintergründe mit Verlauf werden übersprungen
-  const parse = c => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; };
+  const parse = c => {
+    let m = c.match(/rgba?\(([^)]+)\)/);
+    if (m) { const p = m[1].split(/[ ,\/]+/).filter(Boolean).map(Number); return [p[0], p[1], p[2], p.length > 3 ? p[3] : 1]; }
+    m = c.match(/color\(srgb ([^)]+)\)/);   // Ergebnis von color-mix()
+    if (m) { const p = m[1].split(/[ \/]+/).filter(Boolean).map(Number); return [p[0] * 255, p[1] * 255, p[2] * 255, p.length > 3 ? p[3] : 1]; }
+    return null;
+  };
   const lum = ([r, g, b]) => { const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); };
   const bgOf = e => {
     for (let p = e; p; p = p.parentElement) {
@@ -356,6 +362,11 @@ class Run:
                 page.click("#screen-end .back-to-start-btn")
                 page.click("#loadSavesButton")
                 shot("11-archiv")
+                if page.locator("#archiveOverlay .archive-game").count():
+                    page.locator("#archiveOverlay .archive-game").first.click()
+                    shot("11b-archiv-spiel")
+                    page.click("#archiveOverlay .archive-tab[data-tab='statistik']")
+                    shot("11c-archiv-statistik")
                 break
             if page.locator("#guessedOverlay").count():
                 page.locator("#guessedOverlay button", has_text="Nächster Spieler").click()

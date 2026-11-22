@@ -53,4 +53,6 @@ export const state = {
     teamMistakes: [], // Array of mistakes per team
     penaltyPoints: [], // insgesamt abgezogene Strafpunkte je Team
     activePlayer: null,
+    gameLog: null, // Verlauf des laufenden Spiels fürs Archiv (gamestats.js)
+    cardShownAt: null,
 };

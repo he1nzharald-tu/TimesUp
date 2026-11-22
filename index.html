@@ -116,17 +116,21 @@
         <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
         <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
         <symbol id="i-hand" viewBox="0 0 24 24"><path d="M12 12V4.5a1.5 1.5 0 0 1 3 0V12M15 11V6.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-.5a6 6 0 0 1-5.2-3L3 13.5a1.5 1.5 0 0 1 2.6-1.5L8 15V6.5a1.5 1.5 0 0 1 3 0V12"/></symbol>
+        <symbol id="i-talk" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+        <symbol id="i-word" viewBox="0 0 24 24"><path d="M5 7h14M9 7v11M15 7v11"/></symbol>
+        <symbol id="i-mime" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v7M7 10l5 2 5-2M9 21l3-7 3 7"/></symbol>
         <symbol id="i-logo" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M5 3L2.5 5.5M19 3l2.5 2.5"/></symbol>
     </svg>
 
     <!-- === Startbildschirm === -->
     <div id="screen-start" class="screen active">
-        <header class="start-head">
-            <button id="loadSavesButton" type="button" class="icon-btn" aria-label="Archiv"><svg class="ico" aria-hidden="true"><use href="#i-archive"/></svg><span class="btn-label">Archiv</span></button>
-            <h1 class="app-title"><svg class="ico app-logo" aria-hidden="true"><use href="#i-logo"/></svg>TimesUp <span class="app-title-by">by He1nzHarald</span></h1>
-            <button type="button" class="icon-btn" onclick="showScreen('settings')" aria-label="Einstellungen"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span class="btn-label">Einstellungen</span></button>
+        <header class="app-head start-head">
+            <svg class="ico app-logo" aria-hidden="true"><use href="#i-logo"/></svg>
+            <h1 class="app-title">TimesUp <span class="app-title-by">by He1nzHarald</span></h1>
+            <p id="kartenStatusText" class="start-status">Karten werden geladen...</p>
+            <button id="loadSavesButton" type="button" class="head-btn" aria-label="Archiv"><svg class="ico" aria-hidden="true"><use href="#i-archive"/></svg><span class="btn-label">Archiv</span></button>
+            <button type="button" class="head-btn" onclick="showScreen('settings')" aria-label="Einstellungen"><svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg><span class="btn-label">Einstellungen</span></button>
         </header>
-        <p id="kartenStatusText" class="start-status">Karten werden geladen...</p>
         <div class="start-banners">
             <div id="resumeBanner" class="update-banner resume-banner" role="status" hidden>
                 <span id="resumeBannerText">Nicht beendetes Spiel</span>
@@ -150,15 +154,12 @@
         <form class="player-add" onsubmit="event.preventDefault(); addPlayer();" autocomplete="off">
             <label class="visually-hidden" for="playerInput">Spielername</label>
             <input type="text" id="playerInput" placeholder="Spielername eingeben" enterkeyhint="done" autocapitalize="words" autocorrect="off" spellcheck="false" maxlength="24" />
-            <button type="submit" class="btn-add" title="Spieler hinzufügen" aria-label="Spieler hinzufügen"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg></button>
+            <button type="submit" class="btn-add" title="Spieler hinzufügen" aria-label="Spieler hinzufügen"><svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg><span class="btn-add-label">Hinzufügen</span></button>
         </form>
-        <div class="list-head">
-            <span class="list-head-title">Spieler <span id="playerCount" class="count-badge">0</span></span>
-            <span class="list-head-hint"><svg class="ico" aria-hidden="true"><use href="#i-handicap"/></svg> Handicap = mehr Zeit</span>
-        </div>
         <ul id="playerList" class="player-list" aria-label="Spieler"></ul>
         <p id="playerEmptyHint" class="empty-hint">Noch keine Spieler – Namen eingeben und mit <strong>+</strong> hinzufügen.</p>
-        <div class="bottom-bar">
+        <div class="bottom-bar start-bar">
+            <p class="start-bar-info"><span id="playerCount">0</span> <span id="playerCountLabel">Spieler</span><span class="start-bar-hint"> · <svg class="ico" aria-hidden="true"><use href="#i-handicap"/></svg> = Handicap (mehr Zeit)</span></p>
             <button type="button" class="btn-primary start-continue-btn" onclick="confirmBeforeContinue()"><span>Weiter</span><svg class="ico" aria-hidden="true"><use href="#i-next"/></svg></button>
         </div>
     </div>
@@ -286,6 +287,7 @@
         <div class="bottom-bar">
             <button type="button" class="btn-secondary" onclick="startCardSelectionWithoutVeto()"><svg class="ico" aria-hidden="true"><use href="#i-shuffle"/></svg><span>Kartenauswahl ohne Veto</span></button>
             <button type="button" class="btn-primary" onclick="startCardSelection(true)"><svg class="ico" aria-hidden="true"><use href="#i-cards"/></svg><span>Kartenauswahl mit Veto</span></button>
+            <button type="button" id="teamsBackToOverview" class="btn-primary" onclick="prepareGameOverview()" hidden><svg class="ico" aria-hidden="true"><use href="#i-check"/></svg><span>Fertig – zur Übersicht</span></button>
         </div>
     </div>
 
@@ -309,33 +311,34 @@
 
     <!-- === Bildschirm: Spielübersicht === -->
     <div id="screen-spieluebersicht" class="screen">
-        <header class="app-head">
-            <h2 class="app-head-title"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>Spielübersicht</h2>
+        <header class="app-head overview-head">
+            <h2 class="app-head-title"><svg class="ico" aria-hidden="true"><use href="#i-list"/></svg>Bereit?</h2>
+            <span class="overview-facts">
+                <span><svg class="ico" aria-hidden="true"><use href="#i-cards"/></svg><span id="overviewCardCount">0</span> Karten</span>
+                <span><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span id="overviewTime">30 s</span></span>
+                <span><svg class="ico" aria-hidden="true"><use href="#i-users"/></svg><span id="overviewTeamCount">2</span> Teams</span>
+            </span>
         </header>
         <div id="overviewRules" class="overview-rules" aria-label="Regeln dieses Spiels"></div>
-        <div id="overviewTeamsContainer" class="team-grid"></div>
+        <div id="overviewTeamsContainer" class="team-rows"></div>
         <div class="bottom-bar">
-            <button type="button" class="btn-primary" onclick="startGame()"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Spiel starten</span></button>
+            <button type="button" class="btn-secondary overview-teams-btn" onclick="editTeamsFromOverview()"><svg class="ico" aria-hidden="true"><use href="#i-users"/></svg><span>Teams ändern</span></button>
+            <button type="button" class="btn-primary overview-start-btn" onclick="startGame()"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Spiel starten</span></button>
         </div>
     </div>
 
     <!-- === Bildschirm: Rundenstart (aktiver Spieler) === -->
     <div id="screen-roundstart" class="screen">
-        <div id="roundBorderWrapper" class="round-card">
-            <div class="round-lights" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div id="roundBorderWrapper" class="round-spotlight">
             <div class="round-main">
-                <div id="roundPlayerTeam" class="team-pill">Team</div>
+                <div class="team-pill"><span id="roundPlayerTeam">Team</span> · <span id="roundStartRound">Runde 1</span></div>
                 <h2 id="roundPlayerName"></h2>
-                <p class="round-hint">ist dran</p>
+                <p class="round-rule"><svg class="ico" aria-hidden="true"><use id="roundRuleIcon" href="#i-talk"/></svg><span id="roundStartRule">-</span></p>
+                <p class="round-meta"><span id="roundStartTime">-</span> · Überspringen: <span id="roundStartSkip">-</span></p>
             </div>
-            <div id="roundStartInfo" class="round-start-info">
-                <div class="info-tile"><svg class="ico" aria-hidden="true"><use href="#i-timer"/></svg><span class="info-label">Zeit</span><span id="roundStartTime" class="info-value">-</span></div>
-                <div class="info-tile"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg><span class="info-label">Regel</span><span id="roundStartRule" class="info-value">-</span></div>
-                <div class="info-tile"><svg class="ico" aria-hidden="true"><use href="#i-skip"/></svg><span class="info-label">Überspringen</span><span id="roundStartSkip" class="info-value">-</span></div>
+            <div class="round-go">
+                <button type="button" id="startRoundBtn" class="round-start-btn" onclick="confirmStartRound()" aria-label="Zug starten"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Start</span></button>
             </div>
-        </div>
-        <div class="bottom-bar">
-            <button type="button" id="startRoundBtn" class="btn-primary btn-team" onclick="confirmStartRound()"><svg class="ico" aria-hidden="true"><use href="#i-play"/></svg><span>Start!</span></button>
         </div>
     </div>
 

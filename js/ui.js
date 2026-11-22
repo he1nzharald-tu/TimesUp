@@ -108,6 +108,7 @@ export function updatePlayerTable() {
         const li = document.createElement("li");
         li.className = "player-row";
 
+        appendText(li, "span", String(state.players.indexOf(p) + 1)).className = "player-no";
         const name = appendText(li, "span", p.name);
         name.className = "player-name-chip";
 
@@ -138,6 +139,8 @@ export function updatePlayerTable() {
     });
     const count = document.getElementById("playerCount");
     if (count) count.textContent = String(state.players.length);
+    const countLabel = document.getElementById("playerCountLabel");
+    if (countLabel) countLabel.textContent = "Spieler";
     const empty = document.getElementById("playerEmptyHint");
     if (empty) empty.hidden = state.players.length > 0;
 }
@@ -166,6 +169,9 @@ export function displayTeams() {
         teams: state.teams,
         onPlayerClick: (name, teamIdx) => togglePlayerTeam(name, teamIdx)
     });
+    // Aus der Spielübersicht gekommen (Karten schon gewählt): direkt zurück zur Übersicht
+    const back = document.getElementById("teamsBackToOverview");
+    if (back) back.hidden = !(state.playingCards && state.playingCards.length > 0);
 }
 // === Card Selection ===
 export function updateKartenStatusText(text) {

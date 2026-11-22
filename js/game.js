@@ -5,6 +5,7 @@ import { ensureActiveArchive, isSameCard, resetCardSelectionUi, savePlayedCardsT
 import { clearSavedGame, saveGameState } from "./persist.js";
 import { playEndAlarm, playTick, stopTick, unlockGameAudio } from "./audio.js";
 import { allowScreenOff, keepScreenOn } from "./wakelock.js";
+import { finishGameLog, logCardShown, logCorrect, logRoundPoints, logTurnStart, logUncorrect, startGameLog } from "./gamestats.js";
 import { icon, renderTeamCards, setButtonContent, teamColor, teamName } from "./teamview.js";
 import { appendText, appAlert, appConfirm, displayTeams, refreshStartCardStatus, renderTeamPlayerList, showScreen, updatePlayerTable } from "./ui.js";
 
@@ -111,14 +112,24 @@ export function renderOverviewRules(settings = getSettings()) {
     if (!wrap) return;
     wrap.innerHTML = "";
     const rounds = toPositiveInt(settings.roundCount, 3);
+    const times = [];
     const list = document.createElement("div");
     list.className = "overview-rounds";
     for (let i = 0; i < rounds; i++) {
+        const time = settings.roundTimer?.[i] || DEFAULT_TURN_SECONDS;
+        times.push(time);
         const card = document.createElement("div");
         card.className = "overview-round";
-        appendText(card, "span", `Runde ${i + 1} · ${settings.roundTimer?.[i] || DEFAULT_TURN_SECONDS} s`).className = "overview-round-title";
-        appendText(card, "span", settings.roundRules?.[i] || "–").className = "overview-round-rule";
-        appendText(card, "span", describeSkip(settings, i)).className = "overview-round-meta";
+        const no = appendText(card, "span", String(i + 1));
+        no.className = "overview-round-no";
+        no.setAttribute("aria-label", `Runde ${i + 1}`);
+        const text = document.createElement("span");
+        text.className = "overview-round-text";
+        const rule = appendText(text, "span", settings.roundRules?.[i] || "–");
+        rule.className = "overview-round-rule";
+        rule.prepend(icon(ruleIconName(settings.roundRules?.[i])));
+        appendText(text, "span", `${time} s · ${describeSkip(settings, i)}`).className = "overview-round-meta";
+        card.appendChild(text);
         list.appendChild(card);
     }
     wrap.appendChild(list);
@@ -130,7 +141,22 @@ export function renderOverviewRules(settings = getSettings()) {
     if (settings.handicapEnabled) extras.push(`Handicap +${settings.handicapTime || 5} s`);
     const note = appendText(wrap, "p", extras.join(" · "));
     note.className = "overview-penalties";
-    note.prepend(icon("warn"));
+    note.prepend(icon("info"));
+
+    // Kopfzeile: Karten, Zeit, Teams
+    const uniq = [...new Set(times)];
+    const timeEl = document.getElementById("overviewTime");
+    if (timeEl) timeEl.textContent = uniq.length === 1 ? `${uniq[0]} s` : `${times.join("/")} s`;
+    const cardEl = document.getElementById("overviewCardCount");
+    if (cardEl) cardEl.textContent = String(state.playingCards.length);
+    const teamEl = document.getElementById("overviewTeamCount");
+    if (teamEl) teamEl.textContent = String(state.teams.filter(t => t.length).length);
+}
+
+// „Teams ändern“ in der Spielübersicht: zurück zur Teamübersicht, Karten bleiben ausgewählt
+export function editTeamsFromOverview() {
+    displayTeams();
+    showScreen("teamuebersicht");
 }
 
 export function prepareGameOverview() {
@@ -139,7 +165,7 @@ export function prepareGameOverview() {
     state.totalTeams = teamCount;
     renderOverviewRules(settings);
     
-    renderTeamCards(document.getElementById("overviewTeamsContainer"), { teams: state.teams });
+    renderTeamCards(document.getElementById("overviewTeamsContainer"), { teams: state.teams, compact: true });
     showScreen("spieluebersicht");
 }
 export function buildTeamTurnOrder() {
@@ -167,6 +193,7 @@ export function startGame() {
         return;
     }
     ensureActiveArchive();
+    startGameLog();
     const settings = getSettings();
     state.totalRounds = parseInt(settings.roundCount || 3);
     state.totalTeams = parseInt(settings.teamCount || 2);
@@ -188,6 +215,14 @@ export function startGame() {
     saveGameState("roundstart");
 
     showStartRoundScreen();
+}
+// Symbol passend zur Rundenregel (Linien-Symbol aus dem Sprite)
+export function ruleIconName(rule) {
+    const r = String(rule || "").toLowerCase();
+    if (r.includes("pantomime") || r.includes("geräusch")) return "mime";
+    if (r.includes("ein wort") || r.includes("einsilbig")) return "word";
+    if (r.includes("beschreib")) return "talk";
+    return "info";
 }
 export function showStartRoundScreen() {
     if (!state.activePlayer) {
@@ -215,6 +250,9 @@ export function showStartRoundScreen() {
     if (timeEl) timeEl.textContent = `${roundTime} s`;
     if (ruleEl) ruleEl.textContent = roundRule;
     if (skipEl) skipEl.textContent = roundSkip;
+    const roundEl = document.getElementById("roundStartRound");
+    if (roundEl) roundEl.textContent = `Runde ${state.currentRound + 1}`;
+    document.getElementById("roundRuleIcon")?.setAttribute("href", `#i-${ruleIconName(roundRule)}`);
     
     // Teamfarbe für Rundenstart und Spiel (CSS-Variable --team)
     const color = teamColor(state.activeTeamIndex);
@@ -248,6 +286,7 @@ export function startRoundTimer() {
     updateTimerUi();
     showScreen("play");
     keepScreenOn();
+    logTurnStart();
     state.timer = setInterval(() => {
         state.remainingTime--;
         updateTimerUi();
@@ -298,10 +337,12 @@ export function showNextCard() {
     setActionButtonsEnabled(true);
     updateSkipButtonState();
     updatePlayInfo();
+    logCardShown();
 }
 export function handleCorrect() {
     if (!state.currentCard) return;
     state.correctCards[state.activeTeamIndex].push(state.currentCard);
+    logCorrect(state.currentCard);
     state.currentCards = state.currentCards.filter(card => !isSameCard(card, state.currentCard));
     state.showingExplanation = false;
     saveGameState("turn");
@@ -315,6 +356,7 @@ export function markCurrentCardCorrectAfterTimer() {
     const alreadyCounted = state.correctCards[state.activeTeamIndex].some(card => isSameCard(card, state.currentCard));
     if (!alreadyCounted) {
         state.correctCards[state.activeTeamIndex].push(state.currentCard);
+        logCorrect(state.currentCard);
     }
     state.currentCards = state.currentCards.filter(card => !isSameCard(card, state.currentCard));
     state.showingExplanation = false;
@@ -459,6 +501,7 @@ export function formatPenalty(value) {
 
 export function applyCurrentRoundPoints() {
     if (state.roundPointsApplied) return;
+    const before = [...state.totalPoints];
     const perMistake = getPenaltyPerMistake();
     state.correctCards.forEach((teamCards, idx) => {
         const before = state.totalPoints[idx] || 0;
@@ -469,6 +512,7 @@ export function applyCurrentRoundPoints() {
         state.penaltyPoints[idx] = (state.penaltyPoints[idx] || 0) + (before + gained - state.totalPoints[idx]);
     });
     state.roundPointsApplied = true;
+    logRoundPoints(before, state.totalPoints);
 }
 export function showRoundStats() {
     document.getElementById("statsRoundNumber").textContent = state.currentRound + 1;
@@ -503,6 +547,7 @@ export function nextGameRound() {
 export function showFinalScreen() {
     clearSavedGame();             // Spiel ist zu Ende, nichts mehr fortzusetzen
     savePlayedCardsToActiveArchive();
+    finishGameLog();
     const container = document.getElementById("finalTeamsContainer");
     const maxPoints = state.totalPoints.length ? Math.max(...state.totalPoints) : 0;
     const winningTeamIndexes = new Set(state.totalPoints
@@ -553,9 +598,11 @@ export function updatePlayInfo() {
 export function playAgain() {
     const teams = state.teams.map(team => [...team]);
     const totalTeams = state.totalTeams;
+    const archiveId = state.activeArchiveId;   // gleiche Spielgruppe: Archiv weiterführen
     resetGameState();
     state.teams = teams;
     state.totalTeams = totalTeams;
+    state.activeArchiveId = archiveId;
     displayTeams();
     showScreen("teamuebersicht");
 }
@@ -756,6 +803,7 @@ export function showCardCorrectionScreen(guessedOverlay) {
         // Karte war doch nicht (regelgerecht) erraten: zurück in den Stapel, bei Regelverstoß zusätzlich Punktabzug
         const takeBack = asRuleViolation => {
             state.correctCards[state.activeTeamIndex] = state.correctCards[state.activeTeamIndex].filter(c => c !== card);
+            logUncorrect(card);
             state.currentCards.push(card);
             if (asRuleViolation) {
                 state.teamMistakes[state.activeTeamIndex] = (state.teamMistakes[state.activeTeamIndex] || 0) + 1;
@@ -803,6 +851,7 @@ export function resetGameState() {
     allowScreenOff();
     try { if (state.timer) { clearInterval(state.timer); } } catch (e) {}
     // Spielverlauf-Variablen zurücksetzen (Settings & Karten bleiben erhalten)
+    state.gameLog = null;
     state.currentRound = 0;
     state.totalRounds = 1;
     state.teams = [];

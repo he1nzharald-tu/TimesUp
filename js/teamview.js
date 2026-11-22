@@ -50,9 +50,31 @@ export function setButtonContent(button, iconName, text) {
 export function renderTeamCards(container, options) {
     if (!container) return;
     const { teams = [], points = null, penalties = null, winners = null, activeIndex = null, onPlayerClick = null,
-        idPrefix = null, formatPoints = v => String(v), formatPenalty = () => "", showHandicap = true } = options;
+        idPrefix = null, formatPoints = v => String(v), formatPenalty = () => "", showHandicap = true, compact = false } = options;
     container.textContent = "";
     container.dataset.teams = String(teams.length);
+    if (compact) {
+        // Kompakt (Spielübersicht): eine Zeile je Team – Farbe, Name, Spieler
+        teams.forEach((team, idx) => {
+            const row = document.createElement("div");
+            row.className = "team-row team-overview-card";
+            row.dataset.team = String(idx);
+            row.style.setProperty("--team", teamColor(idx));
+            const dot = document.createElement("span");
+            dot.className = "team-dot";
+            row.appendChild(dot);
+            const name = document.createElement("strong");
+            name.className = "team-row-name";
+            name.textContent = teamName(idx);
+            row.appendChild(name);
+            const members = document.createElement("span");
+            members.className = "team-row-members";
+            members.textContent = team.map(p => p.name).join(" · ") || "noch leer";
+            row.appendChild(members);
+            container.appendChild(row);
+        });
+        return;
+    }
     teams.forEach((team, idx) => {
         const card = document.createElement("section");
         card.className = "team-card team-overview-card";

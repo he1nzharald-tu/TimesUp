@@ -35,7 +35,8 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Für Handy gebaut:** Gestaltet für das iPhone 16 Pro, getestet auf 13 Geräteprofilen von 320 bis 1376 px Breite (iPhone SE bis iPad Pro, Galaxy S24, iPad Split View). Notch, Dynamic Island und Home-Leiste werden freigehalten
 - **Querformat im Spiel:** Begriff groß links, Richtig/Überspringen/Fehler senkrecht rechts in Daumenreichweite; Hochformat funktioniert genauso
 - **Bildschirm bleibt an:** Während eines Zugs geht das Display nicht aus (Screen Wake Lock, iOS ab 16.4)
-- **Nochmal spielen:** Am Spielende mit denselben Teams und neuen Karten weitermachen
+- **Nochmal spielen:** Am Spielende mit denselben Teams und neuen Karten weitermachen; das Spiel landet in derselben Spielgruppe im Archiv
+- **Archiv mit Statistik:** Jede Spielgruppe sammelt ihre Spiele mit Teams (dürfen wechseln), Punkten je Runde, Regeln, Kartenauswahl und Strafen. Reiter *Spiele* (Spiel antippen zeigt die Runden), *Statistik* (Rangliste, Siege, Ø Begriffe pro Zug, schnellster Begriff) und *Karten*; einzelne Gruppen lassen sich exportieren
 - **Darstellung:** Helles und dunkles Design (Kontraste nach WCAG AA), Linien-Symbole, funktioniert auch mit 130 % Systemschrift
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
 - **Updates:** Liegt eine neue Version bereit, zeigt der Startbildschirm „Neue Version – neu laden“; mitten im Spiel wird nie aktualisiert
@@ -200,6 +201,8 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `js/ui.js` | Bildschirmwechsel, Dialoge, Listen |
 | `js/teamview.js` | Teamkarten, Teamnamen/-farben, Linien-Symbole |
 | `js/wakelock.js` | Bildschirm bleibt während eines Zugs an |
+| `js/gamestats.js` | Spielverlauf und Statistik fürs Archiv |
+| `js/archiveview.js` | Archiv-Bildschirm (Spielgruppen, Spiele, Statistik, Karten) |
 | `js/audio.js` | Countdown-Ton und Alarm |
 | `js/pwa.js` | Offline-Modus, Hinweis auf neue Version, Installationshinweis |
 | `js/persist.js` | Spielstand sichern und fortsetzen |
