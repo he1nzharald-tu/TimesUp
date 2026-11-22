@@ -37,3 +37,15 @@ jobs:
 
       - name: Tests ausführen
         run: python tests/e2e.py
+
+      - name: Layoutprüfung auf allen Geräten
+        if: always()
+        run: python tests/layout.py --dark --out layout-out
+
+      - name: Layout-Aufnahmen hochladen
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: layout-aufnahmen
+          path: layout-out/
+          retention-days: 14

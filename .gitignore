@@ -28,3 +28,4 @@ dist/
 # Python
 __pycache__/
 *.pyc
+tests/layout-out/
