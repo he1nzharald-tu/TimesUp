@@ -456,6 +456,76 @@ def test_cards_json_matches_excel(b, base):
         assert out.read_text(encoding="utf-8") == (REPO / "data" / "cards.json").read_text(encoding="utf-8"), \
             "data/cards.json veraltet: python3 scripts/export_cards.py ausführen"
 
+def _excel(path, rows, header=("Begriff", "Erklärung", "Schwierigkeit", "Themen", "ID")):
+    import openpyxl
+    wb = openpyxl.Workbook(); ws = wb.active
+    if header: ws.append(list(header))
+    for r in rows: ws.append(list(r))
+    wb.save(path)
+
+def _run(script, *args):
+    return subprocess.run([sys.executable, str(REPO / "scripts" / script), *map(str, args)], capture_output=True, text=True)
+
+def test_card_export_columns_and_ids(b, base):
+    """Export liest Spalten über die Kopfzeile, übernimmt feste IDs und trägt neue IDs auf Wunsch ein (AP 0)."""
+    sys.path.insert(0, str(REPO / "scripts"))
+    from kartendaten import card_id, read_rows
+    with tempfile.TemporaryDirectory() as tmp:
+        src, out = Path(tmp) / "k.xlsx", Path(tmp) / "cards.json"
+        # Spalten absichtlich in anderer Reihenfolge
+        _excel(src, [
+            ("kfest", "Elefant", "Großes Tier mit Rüssel", "Kinder", "Tiere & Natur, Allgemeinwissen"),
+            (None, "Gabel", "Besteck mit Zinken", "mittel", "alltag"),
+        ], header=("ID", "Begriff", "Erklärung", "Schwierigkeit", "Themen"))
+        r = _run("export_cards.py", src, out)
+        assert r.returncode == 0, r.stdout + r.stderr
+        cards = json.loads(out.read_text(encoding="utf-8"))["cards"]
+        assert cards[0] == {"id": "kfest", "begriff": "Elefant", "erklaerung": "Großes Tier mit Rüssel",
+                            "level": "kinder", "themes": ["tiere-natur", "allgemeinwissen"]}, cards[0]
+        assert cards[1]["id"] == card_id("Gabel", "Besteck mit Zinken") and cards[1]["level"] == "mittel", cards[1]
+        assert "ohne ID" in r.stdout, r.stdout
+        r = _run("export_cards.py", src, out, "--ids-eintragen")
+        assert r.returncode == 0 and "neue IDs" in r.stdout, r.stdout
+        assert [row["id"] for row in read_rows(src)] == ["kfest", cards[1]["id"]]
+
+        # alte Datei ohne Kopfzeile: A = Begriff, B = Erklärung
+        _excel(src, [("Gabel", "Besteck mit Zinken")], header=None)
+        assert _run("export_cards.py", src, out).returncode == 0
+        assert json.loads(out.read_text(encoding="utf-8"))["cards"] == [
+            {"id": card_id("Gabel", "Besteck mit Zinken"), "begriff": "Gabel", "erklaerung": "Besteck mit Zinken"}]
+
+def test_card_export_rejects_invalid(b, base):
+    """Unbekannte Stufen/Themen und doppelte IDs brechen den Export ab, cards.json bleibt unberührt (AP 0)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        src, out = Path(tmp) / "k.xlsx", Path(tmp) / "cards.json"
+        out.write_text("alt", encoding="utf-8")
+        _excel(src, [("Elefant", "Großes Tier", "Leicht", "Tiere & Natur", "k1"),
+                     ("Gabel", "Besteck", "Mittel", "Kochen", "k1")])
+        r = _run("export_cards.py", src, out)
+        assert r.returncode == 1, r.stdout
+        assert "„Leicht“" in r.stdout and "„Kochen“" in r.stdout and "doppelt" in r.stdout, r.stdout
+        assert out.read_text(encoding="utf-8") == "alt"
+
+def test_check_cards_rules(b, base):
+    """Prüfskript findet zu lange Erklärungen, Begriff/Wortstamm in der Erklärung und zu leichte Politiker (AP 0)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / "k.xlsx"
+        _excel(src, [
+            ("Elefant", "Großes graues Tier mit Rüssel", "Kinder", "Tiere & Natur", "k1"),            # in Ordnung
+            ("Schreibtischunterlage", "Unterlage auf dem Tisch", "Mittel", "Alltag & Haushalt", "k2"),
+            ("Gabel", "x" * 81, "Mittel", "Alltag & Haushalt", "k3"),
+            ("Olaf Scholz", "Deutscher Bundeskanzler ab 2021", "Mittel", "Politik & Gesellschaft, Berühmte Personen", "k4"),
+        ])
+        r = _run("check_cards.py", src, "--liste")
+        assert r.returncode == 1, r.stdout
+        lines = r.stdout
+        assert "Zeile 3: Schreibtischunterlage – Begriff in Erklärung" in lines, lines
+        assert "Zeile 4: Gabel – zu lang: 81 Zeichen" in lines, lines
+        assert "Zeile 5: Olaf Scholz – Politiker zu leicht" in lines, lines
+        assert "Zeile 2:" not in lines, lines
+        r = _run("check_cards.py", src, "--zeilen", "2-2", "--vollstaendig")
+        assert r.returncode == 0 and "Keine Auffälligkeiten" in r.stdout, r.stdout
+
 def test_archive_export_import(b, base):
     """Archiv als Datei exportieren und auf einem anderen Gerät importieren und zusammenführen (Todo 8)."""
     c1, c2, c3 = CARDS[0], CARDS[1], CARDS[2]

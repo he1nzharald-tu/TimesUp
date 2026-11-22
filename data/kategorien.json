@@ -1,0 +1,32 @@
+{
+  "hinweis": "Erlaubte Werte für die Spalten Schwierigkeit und Themen in db_Karten.xlsx. In der Excel-Datei stehen die Namen; mehrere Themen mit Komma trennen.",
+  "stufen": [
+    { "id": "kinder",  "name": "Kinder",  "beschreibung": "Für Kinder ab ca. 8 Jahren" },
+    { "id": "mittel",  "name": "Mittel",  "beschreibung": "Kennt fast jeder Erwachsene" },
+    { "id": "schwer",  "name": "Schwer",  "beschreibung": "Braucht etwas Allgemeinwissen" },
+    { "id": "experte", "name": "Experte", "beschreibung": "Für Kenner des Themas" }
+  ],
+  "themen": [
+    { "id": "allgemeinwissen", "name": "Allgemeinwissen",         "gruppe": "allgemein", "symbol": "💡" },
+    { "id": "alltag",          "name": "Alltag & Haushalt",       "gruppe": "allgemein", "symbol": "🏠" },
+    { "id": "tiere-natur",     "name": "Tiere & Natur",           "gruppe": "allgemein", "symbol": "🌿" },
+    { "id": "essen-trinken",   "name": "Essen & Trinken",         "gruppe": "allgemein", "symbol": "🍽️" },
+    { "id": "geografie",       "name": "Geografie & Reisen",      "gruppe": "allgemein", "symbol": "🌍" },
+    { "id": "geschichte",      "name": "Geschichte",              "gruppe": "allgemein", "symbol": "🏛️" },
+    { "id": "musik",           "name": "Musik",                   "gruppe": "allgemein", "symbol": "🎵" },
+    { "id": "film-serien",     "name": "Film & Serien",           "gruppe": "allgemein", "symbol": "🎬" },
+    { "id": "sport",           "name": "Sport",                   "gruppe": "allgemein", "symbol": "⚽" },
+    { "id": "personen",        "name": "Berühmte Personen",       "gruppe": "allgemein", "symbol": "⭐" },
+    { "id": "politik",         "name": "Politik & Gesellschaft",  "gruppe": "allgemein", "symbol": "🗳️" },
+    { "id": "gaming",          "name": "Gaming & Videospiele",    "gruppe": "nerd", "symbol": "🎮" },
+    { "id": "fantasy",         "name": "Fantasy",                 "gruppe": "nerd", "symbol": "🧙" },
+    { "id": "science-fiction", "name": "Science-Fiction",         "gruppe": "nerd", "symbol": "🚀" },
+    { "id": "superhelden",     "name": "Superhelden & Comics",    "gruppe": "nerd", "symbol": "🦸" },
+    { "id": "anime-manga",     "name": "Anime & Manga",           "gruppe": "nerd", "symbol": "🍥" },
+    { "id": "it",              "name": "Programmieren & IT",      "gruppe": "nerd", "symbol": "💻" },
+    { "id": "wissenschaft",    "name": "Naturwissenschaft & Technik", "gruppe": "nerd", "symbol": "🔬" },
+    { "id": "spiele",          "name": "Brett- & Rollenspiele",   "gruppe": "nerd", "symbol": "🎲" },
+    { "id": "internet",        "name": "Internet & Memes",        "gruppe": "nerd", "symbol": "📱" },
+    { "id": "popkultur",       "name": "80er, 90er & 2000er",     "gruppe": "nerd", "symbol": "📼" }
+  ]
+}

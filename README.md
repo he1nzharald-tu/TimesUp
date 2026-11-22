@@ -59,20 +59,43 @@ Nach dem ersten Start sind alle Dateien gespeichert, und die App läuft auch off
 
 Die Karten werden in Excel gepflegt und für die App nach JSON exportiert.
 
-1. `data/db_Karten.xlsx` öffnen und bearbeiten:
-   - erstes Tabellenblatt, keine Überschriftenzeile
-   - Spalte A: Begriff
-   - Spalte B: Erklärung (wird im Spiel auf Antippen angezeigt)
-   - Zeilen ohne Begriff oder ohne Erklärung werden ignoriert
-2. Export ausführen (nur Python 3 nötig, keine Zusatzpakete):
-   ```bash
-   python3 scripts/export_cards.py
-   ```
-   Das Skript schreibt `data/cards.json` und weist auf doppelte Begriffe hin.
-3. `CACHE_VERSION` hochzählen (siehe unten).
-4. `data/db_Karten.xlsx` und `data/cards.json` gemeinsam committen.
+1. `data/db_Karten.xlsx` öffnen, Blatt **Karten** bearbeiten. Die Spalten werden über die Kopfzeile erkannt:
 
-Jede Karte bekommt eine feste ID, die aus Begriff und Erklärung berechnet wird. Wird der Text einer Karte geändert, gilt sie als neue Karte. Das Archiv sperrt sie dann bei bestehenden Spielgruppen nicht mehr.
+   | Spalte | Inhalt |
+   |---|---|
+   | Begriff | das zu erratende Wort |
+   | Erklärung | wird im Spiel auf Antippen angezeigt, siehe Regeln unten |
+   | Schwierigkeit | genau eine Stufe: Kinder, Mittel, Schwer oder Experte (Auswahlliste) |
+   | Themen | ein oder mehrere Themen, mit Komma getrennt, z. B. `Tiere & Natur, Allgemeinwissen` |
+   | ID | feste Kennung der Karte – nicht ändern, bei neuen Karten leer lassen |
+
+   Erlaubte Stufen und Themen stehen in `data/kategorien.json` (zum Nachschlagen auch im Blatt **Kategorien**). Zeilen ohne Begriff oder Erklärung werden ignoriert.
+2. Export ausführen (nur Python 3 nötig):
+   ```bash
+   python3 scripts/export_cards.py --ids-eintragen
+   ```
+   Das Skript schreibt `data/cards.json`. Unbekannte Stufen oder Themen und doppelte IDs brechen den Export ab. Neue Karten bekommen eine ID; mit `--ids-eintragen` wird sie in die Excel-Datei zurückgeschrieben (dafür `pip install openpyxl`).
+3. Karten prüfen:
+   ```bash
+   python3 scripts/check_cards.py            # Übersicht
+   python3 scripts/check_cards.py --liste    # jede Auffälligkeit mit Zeilennummer
+   python3 scripts/check_cards.py --csv bericht.csv
+   ```
+4. `CACHE_VERSION` hochzählen (siehe unten).
+5. `data/db_Karten.xlsx` und `data/cards.json` gemeinsam committen.
+
+Die ID steht fest in der Excel-Datei. Eine Erklärung kann darum überarbeitet werden, ohne dass die Karte als neu gilt – das Archiv sperrt sie bei bestehenden Spielgruppen weiter.
+
+### Regeln für Erklärungen
+
+- höchstens **80 Zeichen** (auf dem kleinsten Handy, 360 × 640, sind das höchstens 3 Zeilen; bis etwa 120 Zeichen passt es noch, darüber wird es eng)
+- Aufbau: Was ist es + 1–2 Erkennungsmerkmale
+- der Begriff und sein Wortstamm kommen nicht vor (also nicht „Schreibtischunterlage: Unterlage auf dem Tisch“)
+- Personen: Rolle + bekanntestes Werk oder größter Erfolg
+- einfache Sprache, neutral, ohne Wertung; Kinder-Karten kindgerecht
+- Politikerinnen und Politiker erst ab Stufe Schwer
+
+`check_cards.py` prüft Länge, Begriff/Wortstamm, doppelte Begriffe und die Politik-Regel automatisch.
 
 ## Wichtig: CACHE_VERSION hochzählen
 
