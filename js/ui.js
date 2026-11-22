@@ -2,10 +2,9 @@
 import { state } from "./state.js";
 import { removePlayer, toggleHandicap, togglePlayerTeam } from "./game.js";
 
-export function appendText(parent, tagName, text, styles = {}) {
+export function appendText(parent, tagName, text) {
     const el = document.createElement(tagName);
     el.textContent = text;
-    Object.assign(el.style, styles);
     parent.appendChild(el);
     return el;
 }
@@ -108,14 +107,7 @@ export function updatePlayerTable() {
         const tr = document.createElement("tr");
         const tdName = document.createElement("td");
         tdName.setAttribute("data-label", "Spielername");
-        // Make player name bold in a box (theme-aware)
-        appendText(tdName, "span", p.name, {
-            display: "inline-block",
-            fontWeight: "bold",
-            background: "var(--card-bg)",
-            borderRadius: "8px",
-            padding: "4px 12px"
-        });
+        appendText(tdName, "span", p.name).className = "player-name-chip";
         tr.appendChild(tdName);
 
         const tdHandicap = document.createElement("td");
@@ -129,7 +121,7 @@ export function updatePlayerTable() {
 
         const tdRemove = document.createElement("td");
         tdRemove.setAttribute("data-label", "Entfernen");
-        tdRemove.style.textAlign = "center"; // Center the button
+        tdRemove.className = "remove-cell";
         const btn = document.createElement("button");
         btn.textContent = "❌ Entfernen";
         btn.onclick = () => removePlayer(p.name);
@@ -187,7 +179,7 @@ export function displayTeams() {
             (state.teams[teamIdx] || []).forEach(p => {
                 const li = document.createElement("li");
                 li.textContent = p.name + (p.handicap ? " 🧩" : "");
-                li.style.cursor = "pointer";
+                li.className = "team-member";
                 li.onclick = () => togglePlayerTeam(p.name, teamIdx);
                 list.appendChild(li);
             });

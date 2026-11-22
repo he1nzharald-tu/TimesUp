@@ -1174,3 +1174,54 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
   background: var(--card-bg);
   color: var(--text);
 }
+
+/* === Listen und Punkteanzeigen (vorher per JavaScript gesetzt) === */
+#playerTableBody .player-name-chip {
+  display: inline-block;
+  font-weight: bold;
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 4px 12px;
+}
+#playerTableBody .remove-cell {
+  text-align: center;
+}
+#teamOverviewLegacy .team-member {
+  cursor: pointer;
+}
+#cardSelectionList .card-choice {
+  padding: 8px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+}
+#cardSelectionList .card-choice-term {
+  background: var(--panel);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+#overviewRoundSettings .round-overview-box {
+  border: 2px solid var(--divider);
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  color: var(--text);
+}
+#statsContainer .team-points,
+#finalTeamsContainer .team-points {
+  margin: 0 0 6px 0;
+  font-weight: bold;
+  color: var(--text);
+}
+#finalTeamsContainer .team-points {
+  font-size: 1.3rem;
+}
+#finalTeamA .final-name-cell,
+#finalTeamB .final-name-cell {
+  padding: 4px 12px;
+}
+#finalTeamA .final-handicap-cell,
+#finalTeamB .final-handicap-cell {
+  text-align: center;
+}

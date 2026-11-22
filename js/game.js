@@ -127,14 +127,7 @@ export function prepareGameOverview() {
                 ? (settings.skipReturn?.[i] === "no" ? "Ja, ohne Zurücklegen" : "Ja")
                 : "Nein";
             const box = document.createElement("div");
-            // Use theme-aware panel/card backgrounds; keep round accents optional
-            box.style.border = `2px solid var(--divider)`;
-            box.style.background = `var(--panel)`;
-            box.style.borderRadius = "12px";
-            box.style.padding = "10px";
-            box.style.marginBottom = "10px";
-            box.style.boxShadow = "0 2px 4px rgba(0,0,0,0.05)";
-            box.style.color = "var(--text)";
+            box.className = "round-overview-box";
             appendText(box, "strong", `Runde ${i + 1}`);
             box.appendChild(document.createElement("br"));
             box.appendChild(document.createTextNode(`Regel: ${rule}`));
@@ -564,9 +557,7 @@ export function showRoundStats() {
                 
                 const points = document.createElement("p");
                 points.textContent = `Punkte: ${formatPoints(state.totalPoints[idx])}${formatPenalty(state.penaltyPoints[idx])}`;
-                points.style.margin = "0 0 6px 0";
-                points.style.fontWeight = "bold";
-                points.style.color = "var(--text)";
+                points.className = "team-points";
                 box.appendChild(points);
                 
                 const list = document.createElement("ul");
@@ -669,10 +660,7 @@ export function showFinalScreen() {
             
             const points = document.createElement("p");
             points.textContent = `Punkte: ${formatPoints(state.totalPoints[idx])}${formatPenalty(state.penaltyPoints[idx])}`;
-            points.style.margin = "0 0 6px 0";
-            points.style.fontWeight = "bold";
-            points.style.fontSize = "1.3rem";
-            points.style.color = "var(--text)";
+            points.className = "team-points";
             box.appendChild(points);
             
             const list = document.createElement("ul");
@@ -705,10 +693,10 @@ export function showFinalScreen() {
                 const row = document.createElement("tr");
                 const nameCell = document.createElement("td");
                 nameCell.textContent = player.name;
-                nameCell.style.padding = "4px 12px";
+                nameCell.className = "final-name-cell";
                 const handicapCell = document.createElement("td");
                 handicapCell.textContent = player.handicap ? "✓" : "";
-                handicapCell.style.textAlign = "center";
+                handicapCell.className = "final-handicap-cell";
                 row.appendChild(nameCell);
                 row.appendChild(handicapCell);
                 finalTeamA.appendChild(row);
@@ -720,10 +708,10 @@ export function showFinalScreen() {
                 const row = document.createElement("tr");
                 const nameCell = document.createElement("td");
                 nameCell.textContent = player.name;
-                nameCell.style.padding = "4px 12px";
+                nameCell.className = "final-name-cell";
                 const handicapCell = document.createElement("td");
                 handicapCell.textContent = player.handicap ? "✓" : "";
-                handicapCell.style.textAlign = "center";
+                handicapCell.className = "final-handicap-cell";
                 row.appendChild(nameCell);
                 row.appendChild(handicapCell);
                 finalTeamB.appendChild(row);

@@ -327,16 +327,10 @@ export function handleCardSelectionClick() {
     state.cardsWereShown = true;
     cardsForPlayer.forEach((card, index) => {
         const li = document.createElement("li");
+        li.className = "card-choice";
         li._timesupCard = card;
-        appendText(li, "span", card.begriff, {
-            background: "var(--panel)",
-            padding: "2px 6px",
-            borderRadius: "6px"
-        });
+        appendText(li, "span", card.begriff).className = "card-choice-term";
         li.appendChild(document.createTextNode(` - ${card.erklaerung}`));
-        li.style.padding = "8px";
-        li.style.borderBottom = "1px solid #ccc";
-        li.style.cursor = "pointer";
         li.onclick = () => handleCardVeto(li, index);
         ul.appendChild(li);
     });
