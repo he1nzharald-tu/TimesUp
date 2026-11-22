@@ -1,0 +1,26 @@
+# Office-Sperr- und Temp-Dateien (Excel, Word, PowerPoint, LibreOffice)
+~$*
+.~lock.*#
+*.tmp
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editor- und IDE-Ordner
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node / Build (falls später genutzt)
+node_modules/
+dist/
