@@ -1,0 +1,7 @@
+# Textdateien einheitlich mit LF speichern
+* text=auto eol=lf
+*.xlsx binary
+*.png binary
+*.m4a binary
+*.mp3 binary
+*.woff2 binary
