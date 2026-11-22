@@ -428,6 +428,11 @@ function renderRoundSettings() {
             <option value="limited">Maximal erlaubt:</option>
           </select>
           <input type="number" id="skipLimitValue${i}" class="hidden" min="1" value="3" />
+          <label for="skipReturn${i}">Übersprungene Karten kommen im selben Zug zurück?</label>
+          <select id="skipReturn${i}">
+            <option value="yes" selected>Ja</option>
+            <option value="no">Nein</option>
+          </select>
         </div>
       `;
         container.appendChild(div);
@@ -450,6 +455,23 @@ function toggleSkipOptions(round) {
         document.getElementById(`skipLimitValue${round}`).value = 3;
         document.getElementById(`skipLimitValue${round}`).classList.add("hidden");
     }
+}
+
+function restoreSkipOptions(round, settings) {
+    const skipAllowed = document.getElementById(`skipAllowed${round}`)?.value === "yes";
+    const skipOptions = document.getElementById(`skipOptions${round}`);
+    const limitType = document.getElementById(`skipLimitType${round}`);
+    const limitValue = document.getElementById(`skipLimitValue${round}`);
+    const skipReturn = document.getElementById(`skipReturn${round}`);
+    if (skipOptions) skipOptions.classList.toggle("hidden", !skipAllowed);
+    const savedType = settings.skipLimitType?.[round - 1];
+    const limited = skipAllowed && savedType === "limited";
+    if (limitType) limitType.value = limited ? "limited" : "unlimited";
+    if (limitValue) {
+        limitValue.classList.toggle("hidden", !limited);
+        if (limited) limitValue.value = settings.skipLimitValue?.[round - 1] || 3;
+    }
+    if (skipReturn) skipReturn.value = settings.skipReturn?.[round - 1] === "no" ? "no" : "yes";
 }
 
 function toggleCustomRuleInput(round, focusInput = false) {
@@ -507,6 +529,7 @@ function saveSettingsToStorage() {
         roundSkip: [],
         skipLimitType: [],
         skipLimitValue: [],
+        skipReturn: [],
         vetoCount: parseInt(document.getElementById("vetoCount").value),
         handicapEnabled: document.getElementById("handicapEnabled").value === "yes",
         handicapTime: parseInt(document.getElementById("handicapTime").value || 5),
@@ -543,6 +566,7 @@ function saveSettingsToStorage() {
         settings.roundSkip.push(skipAllowed);
         settings.skipLimitType.push(skipLimitType);
         settings.skipLimitValue.push(skipLimitValue);
+        settings.skipReturn.push(document.getElementById(`skipReturn${i}`)?.value === "no" ? "no" : "yes");
     }
     writeJsonStore(SETTINGS_STORAGE_KEY, settings);
     // also persist theme separately for quicker access
@@ -574,7 +598,7 @@ function loadSettingsFromStorage() {
         const savedRule = settings.roundRules?.[i - 1] || "";
         const ruleSelect = document.getElementById(`rule${i}`);
         const customRuleInput = document.getElementById(`customRule${i}`);
-        if (ruleSelect) {
+        if (ruleSelect && Array.isArray(settings.roundRules)) {
             if (savedRule && !getDefaultRuleOptions().includes(savedRule)) {
                 ruleSelect.value = "custom";
                 if (customRuleInput) customRuleInput.value = savedRule;
@@ -585,7 +609,9 @@ function loadSettingsFromStorage() {
             toggleCustomRuleInput(i);
         }
         document.getElementById(`timer${i}`).value = settings.roundTimer?.[i - 1] || 60;
-        document.getElementById(`skipAllowed${i}`).value = settings.roundSkip?.[i - 1] || "no";
+        const skipSelect = document.getElementById(`skipAllowed${i}`);
+        if (Array.isArray(settings.roundSkip)) skipSelect.value = settings.roundSkip[i - 1] || "no";
+        restoreSkipOptions(i, settings);
     }
     // load theme into selector and apply
     const storedTheme = localStorage.getItem('timesup_theme') || 'light';
@@ -1039,7 +1065,9 @@ function prepareGameOverview() {
         for (let i = 0; i < rounds; i++) {
             const rule = settings.roundRules?.[i] || "-";
             const timer = settings.roundTimer?.[i] || "?";
-            const skip = settings.roundSkip?.[i] || "Nein";
+            const skip = settings.roundSkip?.[i] === "yes"
+                ? (settings.skipReturn?.[i] === "no" ? "Ja, ohne Zurücklegen" : "Ja")
+                : "Nein";
             const box = document.createElement("div");
             // Use theme-aware panel/card backgrounds; keep round accents optional
             box.style.border = `2px solid var(--divider)`;
@@ -1228,6 +1256,7 @@ function playEndAlarm() {
     } catch (e) { }
 }
 let displayedCards = [];
+let skippedThisTurn = []; // übersprungene Karten, die im selben Zug zurückkommen dürfen
 let skipCounter = 0;
 let isPenaltyActive = false;
 let totalPoints = []; // Array of points per team [team0_points, team1_points, ...]
@@ -1312,7 +1341,9 @@ function showStartRoundScreen() {
     const settings = getSettings();
     const roundRule = settings.roundRules?.[currentRound] || "-";
     const roundTime = settings.roundTimer?.[currentRound] || 60;
-    const roundSkip = (settings.roundSkip?.[currentRound] || "no").toLowerCase() === "yes" ? "Ja" : "Nein";
+    const roundSkip = (settings.roundSkip?.[currentRound] || "no").toLowerCase() === "yes"
+        ? (settings.skipReturn?.[currentRound] === "no" ? "Ja, ohne Zurücklegen" : "Ja")
+        : "Nein";
     const timeEl = document.getElementById("roundStartTime");
     const ruleEl = document.getElementById("roundStartRule");
     const skipEl = document.getElementById("roundStartSkip");
@@ -1349,6 +1380,7 @@ function startRoundTimer() {
     }
     remainingTime = baseTime;
     displayedCards = [];
+    skippedThisTurn = [];
     skipCounter = 0;
     document.getElementById("playRoundPlayer").textContent = activePlayer.name;
     document.getElementById("playRoundTeam").textContent = `Team ${activeTeamIndex + 1}`;
@@ -1376,8 +1408,19 @@ function startRoundTimer() {
     showNextCard();
 }
 
+function skippedCardsReturn() {
+    return getSettings().skipReturn?.[currentRound] !== "no";
+}
+
 function showNextCard() {
-    const available = currentCards.filter(card => !displayedCards.includes(card.begriff));
+    let available = currentCards.filter(card => !displayedCards.includes(card.begriff));
+    if (available.length === 0 && skippedThisTurn.length > 0 && skippedCardsReturn()) {
+        // Stapel ist durch: übersprungene Karten kommen wieder nach oben
+        const returning = new Set(skippedThisTurn);
+        displayedCards = displayedCards.filter(key => !returning.has(key));
+        skippedThisTurn = [];
+        available = currentCards.filter(card => !displayedCards.includes(card.begriff));
+    }
     if (available.length === 0) {
         document.getElementById("cardTerm").textContent = "🔄 Keine weiteren Karten";
         document.getElementById("cardExplanation").style.display = "none";
@@ -1428,7 +1471,8 @@ function handleSkip() {
         const maxSkips = parseInt(settings.skipLimitValue?.[roundIndex] || 100);
         if (skipCounter >= maxSkips) return;
     }
-    displayedCards.push(currentCard.begriff);
+    if (!displayedCards.includes(currentCard.begriff)) displayedCards.push(currentCard.begriff);
+    skippedThisTurn.push(currentCard.begriff);
     skipCounter++;
     showNextCard();
 }
@@ -2123,6 +2167,7 @@ function resetGameState() {
     isTimerRunning = false;
     remainingTime = 0;
     displayedCards = [];
+    skippedThisTurn = [];
     skipCounter = 0;
     isPenaltyActive = false;
     totalPoints = [];
