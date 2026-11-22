@@ -381,7 +381,7 @@
   grid-template-columns: 1fr;
   gap: 6px;
   width: 100%;
-  max-width: 460px;
+  max-width: 30rem;
 }
 .info-tile {
   display: flex;

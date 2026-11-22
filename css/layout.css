@@ -58,6 +58,15 @@
 @media (max-height: 499px) {
   :root { --pad-top: 8px; }
 }
+/* Tablets: alles etwas größer (fast alle Größen sind in rem angegeben) */
+@media (min-width: 600px) and (min-height: 700px) {
+  html { font-size: clamp(17px, 0.6rem + 0.9vw, 22px); }
+  :root {
+    --pad-top: clamp(16px, 3vh, 40px);
+    --tap: 3rem;
+    --bar-btn-h: 3.4rem;
+  }
+}
 
 /* --- Seite --------------------------------------------------------- */
 

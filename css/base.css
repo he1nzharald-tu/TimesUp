@@ -258,7 +258,7 @@ button.secondary {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 56px;
+  min-height: max(56px, 3.4rem);
   padding: 6px 8px;
   border-radius: var(--radius-l);
   background: var(--primary);
@@ -566,7 +566,7 @@ button.secondary {
 }
 .overlay .overlay-box {
   box-sizing: border-box;
-  width: min(100%, 460px);
+  width: min(100%, 30rem);
   max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
