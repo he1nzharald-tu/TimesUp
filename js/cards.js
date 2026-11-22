@@ -120,11 +120,6 @@ export function loadArchiveEntry(archive) {
 export function openArchive() {
     const store = readArchiveStore();
     const archives = Object.values(store).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
-    if (archives.length === 0) {
-        appAlert("Es gibt noch keine gespeicherten Spiele im Archiv.");
-        return;
-    }
-
     const existingOverlay = document.getElementById("archiveOverlay");
     if (existingOverlay) existingOverlay.remove();
 
@@ -186,14 +181,172 @@ export function openArchive() {
         box.appendChild(row);
     });
 
+    if (archives.length === 0) {
+        appendText(box, "p", "Noch keine gespeicherten Spiele. Ein exportiertes Archiv von einem anderen Gerät kannst du hier importieren.")
+            .className = "archive-empty";
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "archive-actions";
+
+    if (archives.length > 0) {
+        const exportBtn = appendText(actions, "button", "⬆️ Exportieren");
+        exportBtn.className = "archive-export-btn";
+        exportBtn.title = "Archiv als Datei speichern oder teilen";
+        exportBtn.onclick = () => exportArchive();
+    }
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".json,application/json";
+    fileInput.id = "archiveImportInput";
+    fileInput.hidden = true;
+    fileInput.onchange = async () => {
+        const file = fileInput.files && fileInput.files[0];
+        fileInput.value = "";
+        if (file) await importArchiveFile(file);
+    };
+    actions.appendChild(fileInput);
+
+    const importBtn = appendText(actions, "button", "⬇️ Importieren");
+    importBtn.className = "archive-import-btn";
+    importBtn.title = "Exportiertes Archiv laden";
+    importBtn.onclick = () => fileInput.click();
+
     const closeBtn = document.createElement("button");
     closeBtn.textContent = "Schließen";
     closeBtn.className = "secondary archive-close-btn";
     closeBtn.onclick = () => overlay.remove();
-    box.appendChild(closeBtn);
+    actions.appendChild(closeBtn);
+    box.appendChild(actions);
 
     overlay.appendChild(box);
     document.body.appendChild(overlay);
+}
+
+// === Archiv exportieren und importieren (Spielgruppen auf ein anderes Gerät mitnehmen) ===
+const ARCHIVE_FILE_TYPE = "timesup-archiv";
+const ARCHIVE_FILE_VERSION = 1;
+const ARCHIVE_FILE_MAX_BYTES = 5 * 1024 * 1024;
+
+export function buildArchiveExport(store = readArchiveStore(), now = new Date()) {
+    const entries = Object.values(store).sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+    return { type: ARCHIVE_FILE_TYPE, version: ARCHIVE_FILE_VERSION, exportedAt: now.toISOString(), entries };
+}
+
+export async function exportArchive() {
+    const data = buildArchiveExport();
+    const date = data.exportedAt.slice(0, 10);
+    const fileName = `timesup-archiv-${date}.json`;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+
+    // Auf Handys/Tablets das Teilen-Menü (AirDrop, Dateien, Messenger), sonst Download
+    try {
+        const file = new File([blob], fileName, { type: "application/json" });
+        if (navigator.canShare && navigator.canShare({ files: [file] }) && matchMedia("(pointer: coarse)").matches) {
+            await navigator.share({ files: [file], title: "TimesUp-Archiv" });
+            return;
+        }
+    } catch (err) {
+        if (err && err.name === "AbortError") return; // Teilen abgebrochen
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function cleanArchiveEntry(entry) {
+    if (!entry || typeof entry !== "object" || typeof entry.id !== "string" || !entry.id.trim()) return null;
+    const createdAt = Number.isNaN(new Date(entry.createdAt).getTime()) ? new Date(0).toISOString() : String(entry.createdAt);
+    const players = (Array.isArray(entry.players) ? entry.players : [])
+        .filter(p => p && typeof p.name === "string" && p.name.trim())
+        .map(p => ({ name: p.name.trim(), handicap: !!p.handicap }));
+    const usedCards = (Array.isArray(entry.usedCards) ? entry.usedCards : [])
+        .filter(c => c && (typeof c.id === "string" || typeof c.begriff === "string"))
+        .map(c => {
+            const card = { begriff: String(c.begriff || ""), erklaerung: String(c.erklaerung || "") };
+            if (typeof c.id === "string" && c.id) card.id = c.id;
+            return card;
+        });
+    const cleaned = { id: entry.id.trim(), createdAt, players, usedCards };
+    if (entry.lastPlayedAt && !Number.isNaN(new Date(entry.lastPlayedAt).getTime())) cleaned.lastPlayedAt = String(entry.lastPlayedAt);
+    return cleaned;
+}
+
+// Liest den Inhalt einer Archiv-Datei; wirft einen Fehler mit verständlicher Meldung
+export function parseArchiveFile(text) {
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        throw new Error("Die Datei ist kein gültiges TimesUp-Archiv.");
+    }
+    if (!data || data.type !== ARCHIVE_FILE_TYPE || !Array.isArray(data.entries)) {
+        throw new Error("Die Datei ist kein gültiges TimesUp-Archiv.");
+    }
+    if (data.version > ARCHIVE_FILE_VERSION) {
+        throw new Error("Das Archiv stammt aus einer neueren App-Version. Bitte aktualisiere die App.");
+    }
+    return data.entries.map(cleanArchiveEntry).filter(Boolean);
+}
+
+// Führt importierte Einträge mit dem vorhandenen Archiv zusammen.
+// Gleiche ID: gespielte Karten werden vereinigt, die Spieler des zuletzt gespielten Stands gelten.
+export function mergeArchiveEntries(store, entries) {
+    const result = { ...store };
+    let added = 0, merged = 0;
+    const cardKey = card => card.id ? `id:${card.id}` : `alt:${getCardKey(card)}`;
+    const lastActivity = e => String(e.lastPlayedAt || e.createdAt || "");
+    for (const entry of entries) {
+        const existing = result[entry.id];
+        if (!existing) {
+            result[entry.id] = entry;
+            added++;
+            continue;
+        }
+        const cards = new Map((existing.usedCards || []).map(c => [cardKey(c), c]));
+        entry.usedCards.forEach(c => { if (!cards.has(cardKey(c))) cards.set(cardKey(c), c); });
+        const newer = lastActivity(entry) > lastActivity(existing) ? entry : existing;
+        result[entry.id] = {
+            ...existing,
+            players: newer.players,
+            usedCards: [...cards.values()],
+            createdAt: String(existing.createdAt) < String(entry.createdAt) ? existing.createdAt : entry.createdAt,
+            ...(newer.lastPlayedAt ? { lastPlayedAt: newer.lastPlayedAt } : {})
+        };
+        merged++;
+    }
+    return { store: result, added, merged };
+}
+
+export async function importArchiveFile(file) {
+    if (file.size > ARCHIVE_FILE_MAX_BYTES) {
+        await appAlert("Die Datei ist zu groß für ein TimesUp-Archiv.", { title: "Import fehlgeschlagen" });
+        return;
+    }
+    let entries;
+    try {
+        entries = parseArchiveFile(await file.text());
+    } catch (err) {
+        await appAlert(err.message, { title: "Import fehlgeschlagen" });
+        return;
+    }
+    if (entries.length === 0) {
+        await appAlert("Die Datei enthält keine gespeicherten Spiele.", { title: "Nichts zu importieren" });
+        return;
+    }
+    const { store, added, merged } = mergeArchiveEntries(readArchiveStore(), entries);
+    writeArchiveStore(store);
+    openArchive();
+    const parts = [];
+    if (added) parts.push(`${added} ${added === 1 ? "Spiel" : "Spiele"} neu`);
+    if (merged) parts.push(`${merged} ${merged === 1 ? "Spiel" : "Spiele"} zusammengeführt`);
+    await appAlert(`${parts.join(", ")}. Lade ein Spiel, um mit dieser Gruppe weiterzuspielen.`, { title: "Archiv importiert" });
 }
 // === Karten laden (data/cards.json, erzeugt mit scripts/export_cards.py) ===
 export async function loadCards() {

@@ -5,6 +5,7 @@ Aufruf im Repo-Ordner:
     python3 tests/e2e.py test_dialogs    # einzelne Tests
 """
 import copy
+import json
 import re
 import subprocess
 import shutil
@@ -454,6 +455,60 @@ def test_cards_json_matches_excel(b, base):
                         str(REPO / "data" / "db_Karten.xlsx"), str(out)], check=True, capture_output=True)
         assert out.read_text(encoding="utf-8") == (REPO / "data" / "cards.json").read_text(encoding="utf-8"), \
             "data/cards.json veraltet: python3 scripts/export_cards.py ausführen"
+
+def test_archive_export_import(b, base):
+    """Archiv als Datei exportieren und auf einem anderen Gerät importieren und zusammenführen (Todo 8)."""
+    c1, c2, c3 = CARDS[0], CARDS[1], CARDS[2]
+    entry = {"id": "TU-20260601T100000", "createdAt": "2026-06-01T10:00:00.000Z", "lastPlayedAt": "2026-06-01T11:00:00.000Z",
+             "players": [{"name": "Anna", "handicap": True}, {"name": "Ben", "handicap": False}],
+             "usedCards": [{"id": c1["id"], "begriff": c1["begriff"], "erklaerung": c1["erklaerung"]},
+                           {"begriff": c2["begriff"], "erklaerung": c2["erklaerung"]}]}   # alter Eintrag ohne ID
+    page = new_page(b, base, None)
+    page.evaluate("e => { localStorage.setItem('timesup_archive', JSON.stringify({[e.id]: e})); }", entry)
+    page.click("#loadSavesButton")
+    with page.expect_download() as dl:
+        page.click("#archiveOverlay .archive-export-btn")
+    path = dl.value.path()
+    assert dl.value.suggested_filename.startswith("timesup-archiv-") and dl.value.suggested_filename.endswith(".json")
+    data = json.loads(open(path, encoding="utf-8").read())
+    assert data["type"] == "timesup-archiv" and data["version"] == 1 and len(data["entries"]) == 1, data
+
+    # anderes Gerät: leeres Archiv, Import muss trotzdem möglich sein
+    other = new_page(b, base, None)
+    other.click("#loadSavesButton")
+    assert other.locator("#archiveOverlay .archive-empty").count() == 1, "leeres Archiv öffnet sich nicht"
+    assert other.locator("#archiveOverlay .archive-export-btn").count() == 0
+    other.set_input_files("#archiveImportInput", path)
+    other.wait_for_selector(".app-dialog")
+    assert "1 Spiel neu" in other.text_content(".app-dialog"), other.text_content(".app-dialog")
+    ok(other)
+    other.locator("#archiveOverlay button", has_text="Laden").click(); ok(other)
+    assert other.evaluate("TimesUp.state.players.map(p => p.name + (p.handicap ? '*' : ''))") == ["Anna*", "Ben"]
+    total = other.evaluate("TimesUp.state.cardPool.length")
+    assert other.evaluate("getAvailableCardPoolForArchive().length") == total - 2
+
+    # erneuter Import mit neuerem Stand: Karten vereinigen, neuere Spieler übernehmen
+    newer = dict(data["entries"][0], lastPlayedAt="2026-06-02T11:00:00.000Z",
+                 players=[{"name": "Anna", "handicap": False}, {"name": "Cem", "handicap": False}],
+                 usedCards=[{"id": c3["id"], "begriff": c3["begriff"], "erklaerung": c3["erklaerung"]}])
+    upd = Path(tempfile.mkdtemp()) / "neu.json"
+    upd.write_text(json.dumps(dict(data, entries=[newer])), encoding="utf-8")
+    other.click("#loadSavesButton")
+    other.set_input_files("#archiveImportInput", str(upd))
+    other.wait_for_selector(".app-dialog")
+    assert "zusammengeführt" in other.text_content(".app-dialog")
+    ok(other)
+    stored = other.evaluate("JSON.parse(localStorage.getItem('timesup_archive'))['TU-20260601T100000']")
+    assert len(stored["usedCards"]) == 3 and [p["name"] for p in stored["players"]] == ["Anna", "Cem"], stored
+
+    # ungültige Datei
+    bad = upd.with_name("kaputt.json"); bad.write_text("{kein json", encoding="utf-8")
+    other.set_input_files("#archiveImportInput", str(bad))
+    other.wait_for_selector(".app-dialog")
+    assert "Import fehlgeschlagen" in other.text_content(".app-dialog")
+    ok(other)
+    assert len(other.evaluate("Object.keys(JSON.parse(localStorage.getItem('timesup_archive')))")) == 1
+    assert not page.errors and not other.errors, (page.errors, other.errors)
 
 ALL = [n for n in dir() if n.startswith("test_")]
 

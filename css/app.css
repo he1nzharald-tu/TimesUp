@@ -1216,3 +1216,23 @@ ul li { padding: 6px 0; font-size: 1.1rem; }
 #finalTeamB .final-handicap-cell {
   text-align: center;
 }
+
+/* === Archiv: Export und Import === */
+#archiveOverlay .archive-empty {
+  margin: 0 0 8px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+#archiveOverlay .archive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+#archiveOverlay .archive-actions button {
+  width: auto;
+  margin: 0;
+}
+#archiveOverlay .archive-actions .archive-close-btn {
+  margin-left: auto;
+}

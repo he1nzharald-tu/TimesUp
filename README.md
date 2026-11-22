@@ -21,13 +21,14 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Kartenauswahl:** Zufällig oder jeder Spieler zieht seine Karten selbst und darf per Veto Karten tauschen
 - **Runden frei einstellbar:** Anzahl, Regel (auch eigene Regeln), Zeit pro Zug
 - **Überspringen:** Pro Runde erlauben oder verbieten, mit oder ohne Limit; übersprungene Karten kommen im selben Zug wieder (abschaltbar)
-- **Regelverstoß:** Karte als Fehler werten, optional mit Strafzeit
+- **Regelverstoß:** Karte als Fehler werten, optional mit Strafzeit und Punktabzug („Ja“ −1, „Remi“ −0,5 pro Fehler, nie unter 0)
 - **Pause:** Pausieren, auf Wunsch mit 3 Sekunden extra
 - **Nach Zeitablauf:** Erratene Karten korrigieren oder die letzte Karte noch als richtig werten
 - **Auswertung:** Rundenstatistik und Endbildschirm mit Gewinnerteam
-- **Archiv:** Gespeicherte Spiele mit Spielern; bereits gespielte Karten werden beim nächsten Spiel derselben Gruppe nicht noch einmal gezogen
+- **Archiv:** Gespeicherte Spiele mit Spielern; bereits gespielte Karten werden beim nächsten Spiel derselben Gruppe nicht noch einmal gezogen. Über „Exportieren“ und „Importieren“ lässt sich das Archiv als Datei auf ein anderes Gerät mitnehmen (gleiche Spiele werden zusammengeführt)
 - **Darstellung:** Helles und dunkles Design, Hoch- und Querformat, Handy bis Tablet
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
+- **Updates:** Liegt eine neue Version bereit, zeigt der Startbildschirm „Neue Version – neu laden“; mitten im Spiel wird nie aktualisiert
 
 ## Lokal starten
 
@@ -78,7 +79,7 @@ Installierte Apps laden ihre Dateien aus dem Offline-Speicher, nicht aus dem Net
 const CACHE_VERSION = 'v3';   // vorher 'v2'
 ```
 
-Beim nächsten Online-Start lädt die App dann alle Dateien neu und löscht den alten Speicher. Die Änderung ist ab dem darauf folgenden Start sichtbar.
+Beim nächsten Online-Start lädt die App die neue Version im Hintergrund. Auf dem Startbildschirm erscheint dann „Neue Version – neu laden“; nach dem Antippen läuft die neue Version, der alte Speicher wird gelöscht.
 
 Neue Dateien, die die App lädt, müssen außerdem in die Liste `APP_FILES` in `service-worker.js`, sonst fehlen sie offline.
 
@@ -89,7 +90,7 @@ Unter `tests/` liegen automatische Tests, die die App in einem echten Browser du
 - komplette Partien mit 2 und 3 Teams, mit und ohne Veto, auch auf einem kleinen Handy im Hochformat
 - Strafzeit (auch bei Zugende und Pause) und Punktabzug (Ja/Remi, nie unter 0)
 - Überspringen mit und ohne Zurücklegen
-- Karten-IDs, doppelte Begriffe, alte Archiv-Einträge, gleichmäßiges Mischen
+- Karten-IDs, doppelte Begriffe, alte Archiv-Einträge, Archiv-Export und -Import, gleichmäßiges Mischen
 - `data/cards.json` passt zu `data/db_Karten.xlsx`
 - Offline-Modus, Hinweis auf neue Version, keine Anfragen an fremde Server
 - Dialoge, Standardwerte, Skalierung im Querformat
