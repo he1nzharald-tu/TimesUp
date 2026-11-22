@@ -732,7 +732,7 @@ function renderTeamPlayerList() {
 function assignRandomTeams() {
     const teamCount = parseInt(document.getElementById("teamCount").value || 2);
     totalTeams = teamCount;
-    const shuffled = [...players].sort(() => Math.random() - 0.5);
+    const shuffled = shuffleArray(players);
     
     // Initialize teams array
     teams = [];
@@ -906,7 +906,7 @@ function startCardSelection(withVeto) {
     if (cardSelectionTargetCount < totalCards) {
         alert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
     }
-    shuffledCardPool = [...availableCardPool].sort(() => Math.random() - 0.5);
+    shuffledCardPool = shuffleArray(availableCardPool);
     playingCards = [];
     playerCardCount = cardsPerPlayer;
     currentCardPlayerIndex = 0;
@@ -930,7 +930,7 @@ function startCardSelectionWithoutVeto() {
     if (cardSelectionTargetCount < totalCards) {
         alert(`Für diese Archiv-ID sind nur noch ${cardSelectionTargetCount} neue Karten verfügbar.`);
     }
-    shuffledCardPool = [...availableCardPool].sort(() => Math.random() - 0.5);
+    shuffledCardPool = shuffleArray(availableCardPool);
     playingCards = shuffledCardPool.slice(0, cardSelectionTargetCount);
     resetCardSelectionUi();
     cardsWereShown = true;
@@ -1305,6 +1305,7 @@ let usedCardsThisTurn = [];
 let teamMistakes = []; // Array of mistakes per team
 let activePlayer = null;
 
+// Fisher-Yates: jede Reihenfolge gleich wahrscheinlich, Original bleibt unverändert
 function shuffleArray(items) {
     const shuffled = [...items];
     for (let i = shuffled.length - 1; i > 0; i--) {
