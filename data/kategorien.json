@@ -1,5 +1,5 @@
 {
-  "hinweis": "Erlaubte Werte für die Spalten Schwierigkeit und Themen in db_Karten.xlsx. In der Excel-Datei stehen die Namen; mehrere Themen mit Komma trennen. Karten mit dem Thema NSFW (nur für Erwachsene) kommen nur ins Spiel, wenn NSFW ausdrücklich gewählt ist – sie bekommen kein weiteres Thema.",
+  "hinweis": "Erlaubte Werte für die Spalten Schwierigkeit und Themen in db_Karten.xlsx. In der Excel-Datei stehen die Namen; mehrere Themen mit Komma trennen. Die Spalte Deck ist optional und nimmt höchstens ein Deck auf. Karten mit dem Thema NSFW (nur für Erwachsene) kommen nur ins Spiel, wenn NSFW ausdrücklich gewählt ist – sie bekommen kein weiteres Thema.",
   "stufen": [
     { "id": "kinder",  "name": "Kinder",  "beschreibung": "Für Kinder ab ca. 8 Jahren" },
     { "id": "mittel",  "name": "Mittel",  "beschreibung": "Kennt fast jeder Erwachsene" },
@@ -30,5 +30,23 @@
     { "id": "internet",        "name": "Internet & Memes",        "gruppe": "nerd", "symbol": "📱" },
     { "id": "popkultur",       "name": "80er, 90er & 2000er",     "gruppe": "nerd", "symbol": "📼" },
     { "id": "nsfw",       "name": "NSFW",     "gruppe": "erwachsene", "symbol": "🔞" }
+  ],
+  "decks": [
+    { "id": "fantasy-filme", "name": "Fantasy-Filme & Serien", "typ": "breit", "symbol": "🐉" },
+    { "id": "scifi-filme", "name": "Sci-Fi-Filme & Serien", "typ": "breit", "symbol": "🛸" },
+    { "id": "videospiel-klassiker", "name": "Videospiel-Klassiker", "typ": "breit", "symbol": "🕹️" },
+    { "id": "anime-hits", "name": "Anime-Hits", "typ": "breit", "symbol": "🍥" },
+    { "id": "internet-memes", "name": "Internet & Memes", "typ": "breit", "symbol": "😂" },
+    { "id": "brett-kartenspiele", "name": "Brett- & Kartenspiele", "typ": "breit", "symbol": "🎲" },
+    { "id": "kult-80-00", "name": "80er/90er/2000er-Kult", "typ": "breit", "symbol": "📼" },
+    { "id": "technik-wissenschaft", "name": "Technik & Wissenschaft", "typ": "breit", "symbol": "🔬" },
+    { "id": "harry-potter", "name": "Harry Potter", "typ": "franchise", "symbol": "⚡" },
+    { "id": "star-wars", "name": "Star Wars", "typ": "franchise", "symbol": "🌌" },
+    { "id": "marvel", "name": "Marvel", "typ": "franchise", "symbol": "🦸" },
+    { "id": "herr-der-ringe", "name": "Herr der Ringe & Hobbit", "typ": "franchise", "symbol": "💍" },
+    { "id": "pokemon", "name": "Pokémon", "typ": "franchise", "symbol": "🔴" },
+    { "id": "nintendo", "name": "Nintendo (Mario, Zelda & Co.)", "typ": "franchise", "symbol": "🍄" },
+    { "id": "simpsons", "name": "Die Simpsons", "typ": "franchise", "symbol": "🍩" },
+    { "id": "game-of-thrones", "name": "Game of Thrones", "typ": "franchise", "symbol": "🗡️" }
   ]
 }

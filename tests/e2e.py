@@ -477,15 +477,17 @@ def test_card_export_columns_and_ids(b, base):
         src, out = Path(tmp) / "k.xlsx", Path(tmp) / "cards.json"
         # Spalten absichtlich in anderer Reihenfolge
         _excel(src, [
-            ("kfest", "Elefant", "Großes Tier mit Rüssel", "Kinder", "Tiere & Natur, 80er, 90er & 2000er, Allgemeinwissen"),
-            (None, "Gabel", "Besteck mit Zinken", "mittel", "alltag"),
-        ], header=("ID", "Begriff", "Erklärung", "Schwierigkeit", "Themen"))
+            ("kfest", "Elefant", "Großes Tier mit Rüssel", "Kinder", "Tiere & Natur, 80er, 90er & 2000er, Allgemeinwissen", "Star Wars"),
+            (None, "Gabel", "Besteck mit Zinken", "mittel", "alltag", None),
+        ], header=("ID", "Begriff", "Erklärung", "Schwierigkeit", "Themen", "Deck"))
         r = _run("export_cards.py", src, out)
         assert r.returncode == 0, r.stdout + r.stderr
         cards = json.loads(out.read_text(encoding="utf-8"))["cards"]
         assert cards[0] == {"id": "kfest", "begriff": "Elefant", "erklaerung": "Großes Tier mit Rüssel",
-                            "level": "kinder", "themes": ["tiere-natur", "popkultur", "allgemeinwissen"]}, cards[0]
+                            "level": "kinder", "themes": ["tiere-natur", "popkultur", "allgemeinwissen"],
+                            "deck": "star-wars"}, cards[0]
         assert cards[1]["id"] == card_id("Gabel", "Besteck mit Zinken") and cards[1]["level"] == "mittel", cards[1]
+        assert "deck" not in cards[1], cards[1]
         assert "ohne ID" in r.stdout, r.stdout
         r = _run("export_cards.py", src, out, "--ids-eintragen")
         assert r.returncode == 0 and "neue IDs" in r.stdout, r.stdout
@@ -502,11 +504,13 @@ def test_card_export_rejects_invalid(b, base):
     with tempfile.TemporaryDirectory() as tmp:
         src, out = Path(tmp) / "k.xlsx", Path(tmp) / "cards.json"
         out.write_text("alt", encoding="utf-8")
-        _excel(src, [("Elefant", "Großes Tier", "Leicht", "Tiere & Natur", "k1"),
-                     ("Gabel", "Besteck", "Mittel", "Kochen", "k1")])
+        _excel(src, [("Elefant", "Großes Tier", "Leicht", "Tiere & Natur", "Zoo-Deck", "k1"),
+                     ("Gabel", "Besteck", "Mittel", "Kochen", None, "k1")],
+               header=("Begriff", "Erklärung", "Schwierigkeit", "Themen", "Deck", "ID"))
         r = _run("export_cards.py", src, out)
         assert r.returncode == 1, r.stdout
         assert "„Leicht“" in r.stdout and "„Kochen“" in r.stdout and "doppelt" in r.stdout, r.stdout
+        assert "unbekanntes Deck „Zoo-Deck“" in r.stdout, r.stdout
         assert out.read_text(encoding="utf-8") == "alt"
 
 def test_check_cards_rules(b, base):

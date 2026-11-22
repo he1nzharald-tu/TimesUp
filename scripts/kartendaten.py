@@ -17,7 +17,7 @@ NS = {
     "r": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
     "pr": "http://schemas.openxmlformats.org/package/2006/relationships",
 }
-SPALTEN = {"begriff": "Begriff", "erklaerung": "Erklärung", "stufe": "Schwierigkeit", "themen": "Themen", "id": "ID"}
+SPALTEN = {"begriff": "Begriff", "erklaerung": "Erklärung", "stufe": "Schwierigkeit", "themen": "Themen", "deck": "Deck", "id": "ID"}
 
 
 def card_id(begriff: str, erklaerung: str) -> str:
@@ -37,6 +37,12 @@ def load_kategorien(path=KATEGORIEN):
     themen = {t["name"].lower(): t["id"] for t in data["themen"]}
     themen.update({t["id"]: t["id"] for t in data["themen"]})
     return data, stufen, themen
+
+
+def deck_map(data):
+    decks = {d["name"].lower(): d["id"] for d in data.get("decks", [])}
+    decks.update({d["id"]: d["id"] for d in data.get("decks", [])})
+    return decks
 
 
 def _text(el) -> str:
@@ -114,7 +120,8 @@ def split_themen(text, bekannt=None):
 def build_cards(rows, kategorien=None):
     """Baut die Kartenliste und sammelt Fehler und Hinweise.
     Rückgabe: cards, fehler (Liste), hinweise (dict mit Zählern/Listen)"""
-    _, stufen, themen = kategorien or load_kategorien()
+    data, stufen, themen = kategorien or load_kategorien()
+    decks = deck_map(data)
     cards, fehler = [], []
     hinweise = {"leer": 0, "ohne_id": [], "ohne_stufe": 0, "ohne_themen": 0}
     ids = {}
@@ -152,12 +159,19 @@ def build_cards(rows, kategorien=None):
                 card["themes"] = ids_themen
         else:
             hinweise["ohne_themen"] += 1
+        deck_text = row.get("deck", "")
+        if deck_text:
+            deck = decks.get(deck_text.lower())
+            if not deck:
+                fehler.append(f"Zeile {row['zeile']} ({begriff}): unbekanntes Deck „{deck_text}“")
+            else:
+                card["deck"] = deck
         card["zeile"] = row["zeile"]
         cards.append(card)
     return cards, fehler, hinweise
 
 
 def write_cards_json(cards, target=CARDS_JSON):
-    keys = ["id", "begriff", "erklaerung", "level", "themes"]
+    keys = ["id", "begriff", "erklaerung", "level", "themes", "deck"]
     lines = ",\n".join("    " + json.dumps({k: c[k] for k in keys if k in c}, ensure_ascii=False) for c in cards)
     Path(target).write_text('{\n  "version": 1,\n  "cards": [\n' + lines + "\n  ]\n}\n", encoding="utf-8")

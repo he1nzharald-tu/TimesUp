@@ -67,9 +67,10 @@ Die Karten werden in Excel gepflegt und für die App nach JSON exportiert.
    | Erklärung | wird im Spiel auf Antippen angezeigt, siehe Regeln unten |
    | Schwierigkeit | genau eine Stufe: Kinder, Mittel, Schwer oder Experte (Auswahlliste) |
    | Themen | ein oder mehrere Themen, mit Komma getrennt, z. B. `Tiere & Natur, Allgemeinwissen`; Namen mit Komma wie `80er, 90er & 2000er` werden erkannt |
+   | Deck | optional, höchstens ein Deck, z. B. `Star Wars` oder `Anime-Hits` (Auswahlliste) |
    | ID | feste Kennung der Karte – nicht ändern, bei neuen Karten leer lassen |
 
-   Erlaubte Stufen und Themen stehen in `data/kategorien.json` (zum Nachschlagen auch im Blatt **Kategorien**). Zeilen ohne Begriff oder Erklärung werden ignoriert.
+   Erlaubte Stufen, Themen und Decks stehen in `data/kategorien.json` (zum Nachschlagen auch im Blatt **Kategorien**). Zeilen ohne Begriff oder Erklärung werden ignoriert.
 2. Export ausführen (nur Python 3 nötig):
    ```bash
    python3 scripts/export_cards.py --ids-eintragen
