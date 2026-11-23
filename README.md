@@ -38,7 +38,7 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Nochmal spielen:** Am Spielende mit denselben Teams und neuen Karten weitermachen; das Spiel landet in derselben Spielgruppe im Archiv
 - **Statistik am Spielende:** Knopf „Statistik“ auf dem Endbildschirm mit Reitern *Überblick* (Punkteverlauf über die Runden, Spieler mit Auszeichnungen wie MVP, Blitzmerker, Last-Second-Held, Serienmeister, Teamplayer, Skip-König, Pechvogel), *Spieler* (erklärt, Ø pro Zug, Trefferquote, Ø Sekunden, beste Serie, Treffer in der letzten Sekunde, Überspringen, Fehler) und *Begriffe* (härteste Begriffe, Lerneffekt von Runde 1 zu späteren Runden, schnellster Begriff); auch für jedes Spiel im Archiv
 - **Archiv mit Statistik:** Jede Spielgruppe sammelt ihre Spiele mit Teams (dürfen wechseln), Punkten je Runde, Regeln, Kartenauswahl und Strafen. Reiter *Spiele* (Spiel antippen zeigt die Runden), *Statistik* (Siegertreppchen, Duo-Bilanz – welche Paare zusammen gewinnen –, Rekorde wie meiste Punkte in einer Runde, längste Serie, knappster Sieg) und *Karten*; einzelne Gruppen lassen sich exportieren
-- **Darstellung:** Sechs Designs – Hell, Dunkel, Brettspiel, Gameshow, Retro Arcade und Pastell (Einstellungen › Design, mit Vorschau; Kontraste nach WCAG AA), Linien-Symbole, funktioniert auch mit 130 % Systemschrift
+- **Darstellung:** Zehn Designs – Hell, Dunkel, Brettspiel, Gameshow, Retro Arcade, Pastell, Streng geheim, Comic, Kreidetafel und Unterwasser mit animiertem Aquarium (Einstellungen › Design, mit Vorschau; Kontraste nach WCAG AA), Linien-Symbole, funktioniert auch mit 130 % Systemschrift
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
 - **Updates:** Liegt eine neue Version bereit, zeigt der Startbildschirm „Neue Version – neu laden“; mitten im Spiel wird nie aktualisiert
 
@@ -164,13 +164,13 @@ Einzelne Tests: `python3 tests/e2e.py test_dialogs test_full_game_two_teams`. Ei
 python3 tests/layout.py                         # alle Geräte, hell
 python3 tests/layout.py iphone16pro --dark      # ein Gerät, hell und dunkel
 python3 tests/layout.py --font-scale 1.3        # mit größerer Systemschrift
-python3 tests/layout.py --themes brett,gameshow,arcade,pastell   # weitere Designs
+python3 tests/layout.py --themes brett,gameshow,arcade,pastell,geheim,comic,kreide,wasser   # weitere Designs
 python3 tests/layout.py --strict                # Exit-Code 1 bei Fehlern
 ```
 
 Ergebnis in `tests/layout-out/`: `report.txt` und je Gerät ein Übersichtsbild `sheet_<gerät>.png`. Auf GitHub läuft die Prüfung bei jedem Push mit; die Aufnahmen liegen im Lauf unter „Artifacts → layout-aufnahmen“.
 
-**Neues Design anlegen:** in `css/themes.css` einen Block `.theme-<name>` mit den Farbvariablen aus `css/base.css` (und `--set-*` für die Einstellungen) anlegen, den Namen in `THEMES` in `js/settings.js` und im frühen Skript im Kopf von `index.html` eintragen, eine Option in `#themeSelect` und eine Vorschau `.theme-swatch-<name>` ergänzen.
+**Neues Design anlegen:** in `css/themes.css` einen Block `.theme-<name>` mit den Farbvariablen aus `css/base.css` (und `--set-*` für die Einstellungen) anlegen, den Namen in `THEMES` in `js/settings.js` und im frühen Skript im Kopf von `index.html` eintragen, eine Option in `#themeSelect` und eine Vorschau `.theme-swatch-<name>` ergänzen. Eigene Schrift: in `css/fonts.css` eintragen (Datei unter `fonts/<name>/` mit Lizenz, in `service-worker.js` aufnehmen) und im Design `--font-body` / `--font-head` setzen.
 
 **Layoutregeln** (siehe Kopf von `css/layout.css`): Breitenstufen XS < 360, S 360–429 (Referenz iPhone 16 Pro), M 430–599, L 600–959, XL ≥ 960 px und „Handy quer“ (Höhe < 500 px). Jeder Bildschirm ist eine Spalte aus Kopfzeile, scrollendem Inhalt und Aktionsleiste unten; Abstände zum Rand immer über `--sa-top/right/bottom/left`.
 
@@ -192,10 +192,11 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `css/base.css` | Farben (hell/dunkel), Schrift, Knöpfe, Kopfzeile, Teamkarten, Overlays |
 | `css/layout.css` | App-Gerüst, Safe Areas, Breitenstufen, Design-Variablen |
 | `css/screens.css` | Die einzelnen Bildschirme inkl. Querformat und Tablet |
-| `css/themes.css` | Zusätzliche Designs: Brettspiel, Gameshow, Retro Arcade, Pastell |
+| `css/themes.css` | Zusätzliche Designs: Brettspiel, Gameshow, Retro Arcade, Pastell, Streng geheim, Comic, Kreidetafel, Unterwasser |
 | `css/effects.css` | Feuerwerk, eigene Dialoge, Animationen |
 | `css/settings.css` | Einstellungsseite (Symbolleiste, Stepper, Schalter, Kacheln) |
-| `css/fonts.css`, `fonts/` | Schrift Fredoka (lokal, SIL Open Font License) |
+| `css/fonts.css`, `fonts/` | Schriften Fredoka, Special Elite, Bangers, Gochi Hand, Schoolbell, Baloo 2 (lokal, OFL bzw. Apache 2.0) |
+| `js/aquarium.js` | Aquarium-Hintergrund des Designs Unterwasser (Fische, Pflanzen, Luftblasen als SVG) |
 | `js/main.js` | Einstieg: lädt Einstellungen und Karten |
 | `js/state.js` | Gemeinsamer Spielzustand |
 | `js/settings.js` | Einstellungen speichern/laden, Runden, Design |

@@ -75,7 +75,7 @@
         // Apply persisted theme as early as possible to avoid flash of light theme
         try {
             // Design früh setzen (kein Aufblitzen); Werte wie THEMES in js/settings.js
-            var themes = { dark: [1, '#0b1220'], brett: [0, '#6f4524'], gameshow: [1, '#7a0a22'], arcade: [1, '#12062b'], pastell: [0, '#fff6fb'] };
+            var themes = { dark: [1, '#0b1220'], brett: [0, '#6f4524'], gameshow: [1, '#7a0a22'], arcade: [1, '#12062b'], pastell: [0, '#fff6fb'], geheim: [0, '#c9ad70'], comic: [0, '#ffe14d'], kreide: [1, '#24402f'], wasser: [1, '#0e6f9e'] };
             var t = localStorage.getItem('timesup_theme');
             if (themes[t]) {
                 var root = document.documentElement;
@@ -265,6 +265,10 @@
                     <option value="gameshow">Gameshow</option>
                     <option value="arcade">Retro Arcade</option>
                     <option value="pastell">Pastell</option>
+                    <option value="geheim">Streng geheim</option>
+                    <option value="comic">Comic</option>
+                    <option value="kreide">Kreidetafel</option>
+                    <option value="wasser">Unterwasser</option>
                 </select>
             </div>
           </section>

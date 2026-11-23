@@ -248,6 +248,7 @@
 }
 #screen-settings .set-all {
   min-height: 44px;
+  min-width: 48px;
   padding: 0 8px;
   background: transparent;
   color: var(--set-blue);

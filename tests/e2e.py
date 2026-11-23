@@ -849,9 +849,10 @@ def test_settings_ui_tabs_and_autosave(b, base):
     page.click("#settingsTab-design")
     page.click(".theme-grid[data-for='themeSelect'] button[data-value='dark']")
     assert page.evaluate("document.documentElement.classList.contains('dark')")
-    assert page.locator(".theme-grid[data-for='themeSelect'] button").count() == 6
+    assert page.locator(".theme-grid[data-for='themeSelect'] button").count() == 10
     # Neue Designs: Klasse, Dunkel-Regeln nur bei Gameshow/Arcade, Statusleistenfarbe, gespeichert
-    for theme, dark in [("brett", False), ("gameshow", True), ("arcade", True), ("pastell", False), ("light", False)]:
+    for theme, dark in [("brett", False), ("gameshow", True), ("arcade", True), ("pastell", False),
+                        ("geheim", False), ("comic", False), ("kreide", True), ("wasser", True), ("light", False)]:
         page.click(f".theme-grid[data-for='themeSelect'] button[data-value='{theme}']")
         cls = page.evaluate("document.documentElement.className")
         assert ("dark" in cls.split()) == dark, (theme, cls)
@@ -859,6 +860,10 @@ def test_settings_ui_tabs_and_autosave(b, base):
         assert len([c for c in cls.split() if c.startswith("theme-")]) <= 1, cls
         assert page.evaluate("localStorage.getItem('timesup_theme')") == theme
         assert page.get_attribute(".theme-grid[data-for='themeSelect'] button[data-value='%s']" % theme, "aria-pressed") == "true"
+        # Aquarium-Hintergrund nur im Design Unterwasser, mit Fischen
+        assert page.locator("#aquarium").count() == (1 if theme == "wasser" else 0), theme
+        if theme == "wasser":
+            assert page.locator("#aquarium .aq-swim").count() >= 8
     assert not page.errors, page.errors
 
 def test_theme_survives_reload(b, base):
@@ -869,6 +874,17 @@ def test_theme_survives_reload(b, base):
     assert page.get_attribute("#themeColorMeta", "content") == "#7a0a22"
     bg = page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--card-bg').trim()")
     assert bg == "#16040d", bg
+
+def test_theme_fonts(b, base):
+    """Designs mit eigener Schrift laden sie lokal; das Aquarium bleibt nach dem Neuladen erhalten."""
+    for theme, font in [("geheim", "Special Elite"), ("comic", "Bangers"), ("kreide", "Gochi Hand"), ("wasser", "Baloo 2")]:
+        page = new_page(b, base, None, theme=theme)
+        page.evaluate("document.fonts.ready")
+        loaded = page.evaluate("[...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, ''))")
+        assert font in loaded, (theme, loaded)
+        assert page.locator("#aquarium").count() == (1 if theme == "wasser" else 0)
+        assert not page.errors, page.errors
+        page.context.close()
 
 def test_settings_ui_card_filter(b, base):
     """Stufen, Themen, NSFW und Decks in den Einstellungen; Warnung bei zu wenigen Karten (AP 4/6)."""

@@ -7,7 +7,7 @@
 // WICHTIG: Nach jeder Änderung an App-Dateien (HTML, CSS, JS, Karten, Sounds)
 // CACHE_VERSION erhöhen – sonst bekommen installierte Apps die Änderung nicht.
 
-const CACHE_VERSION = 'v23';
+const CACHE_VERSION = 'v24';
 const CACHE_PREFIX = 'timesup-';
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
 // Caches von Versionen ohne Update-Hinweis
@@ -32,6 +32,11 @@ const APP_FILES = [
   './fonts/fredoka/fredoka-latin-700-normal.woff2',
   './fonts/fredoka/fredoka-latin-ext-400-normal.woff2',
   './fonts/fredoka/fredoka-latin-ext-700-normal.woff2',
+  './fonts/specialelite/specialelite.woff',
+  './fonts/bangers/bangers.woff',
+  './fonts/gochihand/gochihand.woff',
+  './fonts/schoolbell/schoolbell.woff',
+  './fonts/baloo2/baloo2.woff',
   './js/main.js',
   './js/persist.js',
   './js/pwa.js',
@@ -48,6 +53,7 @@ const APP_FILES = [
   './js/gamestats.js',
   './js/archiveview.js',
   './js/statsview.js',
+  './js/aquarium.js',
   './data/cards.json',
   './data/kategorien.json',
   './assets/Alarm.m4a',

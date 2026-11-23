@@ -204,7 +204,7 @@
   color: var(--text);
   border: 1px solid var(--divider);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
-  font-family: 'Fredoka', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-family: var(--font-body, 'Fredoka', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif);
   animation: appDialogPop 0.18s cubic-bezier(.2, .9, .3, 1.2);
 }
 

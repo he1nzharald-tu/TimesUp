@@ -3,6 +3,7 @@ import { DEFAULT_TURN_SECONDS, SETTINGS_STORAGE_KEY, state } from "./state.js";
 import { appAlert, showScreen } from "./ui.js";
 import { getCardFilter, getDefaultCardFilter, setCardFilter } from "./filter.js";
 import { afterRoundsRendered, refreshSettingsUi } from "./settingsui.js";
+import { setAquarium } from "./aquarium.js";
 
 export function readJsonStore(key, fallback = {}) {
     try {
@@ -339,7 +340,11 @@ export const THEMES = {
     brett:    { name: "Brettspiel",  dark: false, color: "#6f4524" },
     gameshow: { name: "Gameshow",    dark: true,  color: "#7a0a22" },
     arcade:   { name: "Retro Arcade", dark: true, color: "#12062b" },
-    pastell:  { name: "Pastell",     dark: false, color: "#fff6fb" }
+    pastell:  { name: "Pastell",     dark: false, color: "#fff6fb" },
+    geheim:   { name: "Streng geheim", dark: false, color: "#c9ad70" },
+    comic:    { name: "Comic",       dark: false, color: "#ffe14d" },
+    kreide:   { name: "Kreidetafel", dark: true,  color: "#24402f" },
+    wasser:   { name: "Unterwasser", dark: true,  color: "#0e6f9e" }
 };
 export function applyTheme(theme) {
     if (!THEMES[theme]) theme = "light";
@@ -350,6 +355,8 @@ export function applyTheme(theme) {
     // Farbe der Browser-/Statusleiste an das Design anpassen
     const meta = document.getElementById('themeColorMeta');
     if (meta) meta.setAttribute('content', t.color);
+    // Aquarium-Hintergrund nur im Design Unterwasser
+    setAquarium(theme === "wasser");
     // Statusleiste der installierten App (wirkt beim nächsten Start)
     const bar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
     if (bar) bar.setAttribute('content', t.dark ? 'black-translucent' : 'default');
