@@ -38,7 +38,7 @@ Weil alle die Karten aus den vorherigen Runden kennen, entstehen schnell Insider
 - **Nochmal spielen:** Am Spielende mit denselben Teams und neuen Karten weitermachen; das Spiel landet in derselben Spielgruppe im Archiv
 - **Statistik am Spielende:** Knopf „Statistik“ auf dem Endbildschirm mit Reitern *Überblick* (Punkteverlauf über die Runden, Spieler mit Auszeichnungen wie MVP, Blitzmerker, Last-Second-Held, Serienmeister, Teamplayer, Skip-König, Pechvogel), *Spieler* (erklärt, Ø pro Zug, Trefferquote, Ø Sekunden, beste Serie, Treffer in der letzten Sekunde, Überspringen, Fehler) und *Begriffe* (härteste Begriffe, Lerneffekt von Runde 1 zu späteren Runden, schnellster Begriff); auch für jedes Spiel im Archiv
 - **Archiv mit Statistik:** Jede Spielgruppe sammelt ihre Spiele mit Teams (dürfen wechseln), Punkten je Runde, Regeln, Kartenauswahl und Strafen. Reiter *Spiele* (Spiel antippen zeigt die Runden), *Statistik* (Siegertreppchen, Duo-Bilanz – welche Paare zusammen gewinnen –, Rekorde wie meiste Punkte in einer Runde, längste Serie, knappster Sieg) und *Karten*; einzelne Gruppen lassen sich exportieren
-- **Darstellung:** Zehn Designs – Hell, Dunkel, Brettspiel, Gameshow, Retro Arcade, Pastell, Streng geheim, Comic, Kreidetafel und Unterwasser mit animiertem Aquarium (Einstellungen › Design, mit Vorschau; Kontraste nach WCAG AA), Linien-Symbole, funktioniert auch mit 130 % Systemschrift
+- **Darstellung:** Zehn Designs – Hell, Dunkel, Brettspiel, Gameshow, Retro Arcade, Pastell, Streng geheim, Comic, Kreidetafel und Unterwasser mit 3D-Aquarium (Einstellungen › Design, mit Vorschau; Kontraste nach WCAG AA), Linien-Symbole, funktioniert auch mit 130 % Systemschrift
 - **Offline:** Nach dem ersten Aufruf funktioniert die App ohne Internet; sie lädt nichts von fremden Servern
 - **Updates:** Liegt eine neue Version bereit, zeigt der Startbildschirm „Neue Version – neu laden“; mitten im Spiel wird nie aktualisiert
 
@@ -196,7 +196,8 @@ Mit `DUMP=1` vor `shots.py` werden zusätzlich die berechneten Stile aller Eleme
 | `css/effects.css` | Feuerwerk, eigene Dialoge, Animationen |
 | `css/settings.css` | Einstellungsseite (Symbolleiste, Stepper, Schalter, Kacheln) |
 | `css/fonts.css`, `fonts/` | Schriften Fredoka, Special Elite, Bangers, Gochi Hand, Schoolbell, Baloo 2 (lokal, OFL bzw. Apache 2.0) |
-| `js/aquarium.js` | Aquarium-Hintergrund des Designs Unterwasser (Fische, Pflanzen, Luftblasen als SVG) |
+| `js/aquarium.js` | Aquarium-Hintergrund des Designs Unterwasser; startet das 3D-Aquarium, ohne WebGL gezeichnete Fische als Ersatz |
+| `js/aquarium-gl.js`, `aquarium/` | 3D-Aquarium (WebGL): Fische, Felsen, Korallen und Seegras aus Googles WebGL Aquarium (BSD, `aquarium/LICENSE.txt`, erzeugt mit `scripts/make_aquarium.py`); Wasser, Sand, Lichtstrahlen und Kaustik per Shader |
 | `js/main.js` | Einstieg: lädt Einstellungen und Karten |
 | `js/state.js` | Gemeinsamer Spielzustand |
 | `js/settings.js` | Einstellungen speichern/laden, Runden, Design |

@@ -23,6 +23,7 @@ Ergebnis im Ausgabeordner (Standard: tests/layout-out/, nicht im Git):
     sheet_<gerät>.png              Übersicht je Gerät
     report.json / report.txt       alle Befunde
 """
+import traceback
 import argparse
 import json
 import os
@@ -297,7 +298,7 @@ class Run:
         tag = dev + ({"light": "", "dark": "-dunkel"}.get(theme, "-" + theme))
         s = dict(DEFAULT_SETTINGS)
         s["cardCount"] = 16
-        page = new_page(b, base, settings=s, viewport=(w, h), theme=theme)
+        page = new_page(b, base, settings=s, viewport=(w, h), theme=theme, still=True)
         page.emulate_media(reduced_motion="reduce")   # Animationen sofort im Endzustand
         page.add_style_tag(content=SA_CSS % sa)
         if getattr(self, "font_scale", 1.0) != 1.0:   # größere Systemschrift (Android/iOS-Zoom) nachbilden
@@ -384,8 +385,11 @@ class Run:
                 ok(page)
                 continue
             if a == "screen-play":
-                if page.locator("#btnCorrect").is_enabled():
-                    page.click("#btnCorrect")
+                if page.locator("#btnCorrect").is_enabled() and not page.locator("#guessedOverlay").count():
+                    try:
+                        page.click("#btnCorrect", timeout=3000)
+                    except Exception:   # Zugende-Fenster kam dazwischen (Zeit abgelaufen)
+                        pass
                 tick(page, 600)
                 continue
         page.context.close()
@@ -458,6 +462,7 @@ def main():
                     run.flow(b, base, d, t)
                 except Exception as e:  # Ablauf auf einem Gerät gescheitert = Fehler
                     failed.append(f"{d} ({t}): {str(e).splitlines()[0][:200]}")
+                    if os.environ.get("TRACE"): traceback.print_exc()
     run.sheets()
     head, n_err = run.report()
     print(head)

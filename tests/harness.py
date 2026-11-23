@@ -68,10 +68,12 @@ def browser():
             b.close()
 
 
-def new_page(b, base, settings=None, viewport=(1280, 720), theme=None, seed=True, block_sw=True, clock=True):
-    """Neue Seite mit leerem Speicher; optional mit Einstellungen, Design, festem Zufall und steuerbarer Uhr."""
+def new_page(b, base, settings=None, viewport=(1280, 720), theme=None, seed=True, block_sw=True, clock=True, still=False):
+    """Neue Seite mit leerem Speicher; optional mit Einstellungen, Design, festem Zufall und steuerbarer Uhr.
+    still=True: „Bewegung reduzieren“ (das 3D-Aquarium zeichnet dann nur ein Standbild, spart Rechenzeit)."""
     ctx = b.new_context(viewport={"width": viewport[0], "height": viewport[1]},
-                        service_workers="block" if block_sw else "allow")
+                        service_workers="block" if block_sw else "allow",
+                        reduced_motion="reduce" if still else "no-preference")
     if seed:
         ctx.add_init_script(SEED_SCRIPT)
     init = ""

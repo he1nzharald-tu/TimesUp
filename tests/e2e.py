@@ -863,7 +863,8 @@ def test_settings_ui_tabs_and_autosave(b, base):
         # Aquarium-Hintergrund nur im Design Unterwasser, mit Fischen
         assert page.locator("#aquarium").count() == (1 if theme == "wasser" else 0), theme
         if theme == "wasser":
-            assert page.locator("#aquarium .aq-swim").count() >= 8
+            # 3D-Aquarium (WebGL) mit Zeichenfläche, sonst gezeichnete Fische als Ersatz
+            page.wait_for_function("document.querySelector('#aquarium.aq-gl canvas') || document.querySelectorAll('#aquarium .aq-swim').length >= 8", timeout=10000)
     assert not page.errors, page.errors
 
 def test_theme_survives_reload(b, base):
@@ -883,6 +884,20 @@ def test_theme_fonts(b, base):
         loaded = page.evaluate("[...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, ''))")
         assert font in loaded, (theme, loaded)
         assert page.locator("#aquarium").count() == (1 if theme == "wasser" else 0)
+        if theme == "wasser":
+            page.wait_for_function("document.querySelector('#aquarium.aq-gl canvas')", timeout=10000)
+            # die Zeichenfläche zeigt tatsächlich etwas (nicht schwarz)
+            tick(page, 300)
+            # Bildschirmfoto der Ecke oben rechts: hell-türkises Wasser statt Schwarz
+            import io
+            from PIL import Image
+            img = Image.open(io.BytesIO(page.screenshot(clip={"x": 1100, "y": 0, "width": 180, "height": 60}))).convert("RGB")
+            px = list(img.getdata())
+            lum = sum(sum(p) for p in px) / len(px) / 3
+            assert lum > 20, lum
+            # zurück zu Hell: Aquarium und Zeichenfläche verschwinden
+            page.evaluate("applyTheme('light')")
+            assert page.locator("#aquarium").count() == 0
         assert not page.errors, page.errors
         page.context.close()
 

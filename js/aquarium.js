@@ -306,12 +306,35 @@ function build() {
     return aq;
 }
 
+// Erst das 3D-Aquarium (WebGL) versuchen; ohne WebGL oder bei einem Fehler die gezeichnete Variante
+let stopGl = null;
+let token = 0;
 export function setAquarium(on) {
-    if (on && !root) {
-        root = build();
-        document.body.prepend(root);
-    } else if (!on && root) {
-        root.remove();
-        root = null;
+    if (on && root) return;
+    const my = ++token;
+    if (!on) {
+        if (stopGl) { stopGl(); stopGl = null; }
+        if (root) { root.remove(); root = null; }
+        return;
     }
+    root = document.createElement("div");
+    root.id = "aquarium";
+    root.setAttribute("aria-hidden", "true");
+    root.innerHTML = `<div class="aq-veil"></div>`;
+    document.body.prepend(root);
+    const still = !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const host = root;
+    import("./aquarium-gl.js")
+        .then(m => m.startAquarium(host, { still }))
+        .then(stop => {
+            if (my !== token || root !== host) { stop(); return; }
+            stopGl = stop;
+            host.classList.add("aq-gl");
+        })
+        .catch(() => {
+            if (my !== token || root !== host) return;
+            const svg = build();
+            host.replaceWith(svg);
+            root = svg;
+        });
 }

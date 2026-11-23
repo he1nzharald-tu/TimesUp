@@ -939,6 +939,8 @@
   50% { transform: translate(10px, -55vh); }
   100% { transform: translate(-6px, -112vh); opacity: 0.8; }
 }
+#aquarium .aq-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#aquarium.aq-gl .aq-veil { background: linear-gradient(180deg, rgba(4, 41, 75, 0.05), rgba(4, 41, 75, 0.25)); }
 /* ohne Bewegung (Bedienungshilfen): Fische stehen still verteilt */
 #aquarium.aq-still .aq-swim { animation: none !important; transform: none; }
 #aquarium.aq-still .aq-swim.l { transform: scaleX(-1); }
